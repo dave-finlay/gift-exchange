@@ -12,7 +12,7 @@
     <a class="brand" href="{% url 'home' %}">{{ SITE_NAME }}</a>
     {% if user.is_authenticated %}
       <nav>
-        {% if user.is_staff %}<a href="{% url 'invitations' %}">Invitations</a>{% endif %}
+        {% if user.is_staff %}<a href="{% url 'invitations' %}">Invite New Organizer</a>{% endif %}
         <a href="{% url 'password_change' %}">Password</a>
         <form method="post" action="{% url 'signout' %}">{% csrf_token %}<button class="link">Sign out</button></form>
       </nav>
