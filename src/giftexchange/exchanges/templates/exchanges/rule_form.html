@@ -2,17 +2,15 @@
 {% block title %}Add a Rule · {% endblock %}
 {% block content %}
 {% if exchange %}
-  <p><a href="{% url 'exchange' exchange.pk %}">← {{ exchange.name }}</a></p>
   <h1>Add a Rule for {{ exchange.name }}</h1>
 {% else %}
-  <p><a href="{% url 'circle' circle.pk %}">← {{ circle.name }}</a></p>
   <h1>Add a Rule</h1>
   <p class="muted">For every exchange in {{ circle.name }}.</p>
 {% endif %}
 <form method="post" class="card">
   {% csrf_token %}
   {% include "form.html" %}
-  <button>Add rule</button>
+  <p class="actions"><button>Add rule</button> <a class="button secondary" href="{% if exchange %}{% url 'exchange' exchange.pk %}{% else %}{% url 'circle' circle.pk %}{% endif %}">Cancel</a></p>
 </form>
 <p class="muted">Use "must give to" sparingly: the more rules there are, the easier it is to guess who has whom.</p>
 {% endblock %}

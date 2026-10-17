@@ -1,13 +1,12 @@
 {% extends "base.html" %}
 {% block title %}{% if person.pk %}{{ person.name }}{% else %}Add a Person{% endif %} · {% endblock %}
 {% block content %}
-<p><a href="{% url 'circle' circle.pk %}">← {{ circle.name }}</a></p>
 <h1>{% if person.pk %}{{ person.name }}{% else %}Add a Person{% endif %}</h1>
 <form method="post" class="card">
   {% csrf_token %}
   {% include "form.html" %}
   <datalist id="households">{% for name in households %}<option value="{{ name }}">{% endfor %}</datalist>
-  <button>Save</button>
+  <p class="actions"><button>Save</button> <a class="button secondary" href="{% url 'circle' circle.pk %}">Cancel</a></p>
 </form>
 {% if person.pk %}<p class="actions"><a class="button secondary" href="{% url 'person_delete' circle.pk person.pk %}">Delete {{ person.name }}</a></p>{% endif %}
 {% if not person.pk %}<p class="muted">People can share an email address, for example a child and a parent. Each still gets their own email.</p>{% endif %}
