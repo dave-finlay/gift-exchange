@@ -272,6 +272,8 @@ by email like everyone else's, and never appears on organizer screens.
    - People are grouped by household: add, edit, deactivate, delete.
      Deleting asks for confirmation, and isn't allowed while the person
      is in a gift exchange that has started (that's a withdrawal).
+     Tapping a person's row edits them; swiping it left deletes (via the
+     confirmation page). Swiping left anywhere else on the page goes home.
    - **Paste a list:** lines of `Name, email`, like the old script's
      file.
    - Standing rules, offered as "both ways" or one way.

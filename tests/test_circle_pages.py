@@ -269,3 +269,11 @@ def test_swiping_left_on_a_circle_goes_home(client, circle):
     assert f'data-swipe-left="{reverse("home")}"'.encode() in content
     home = client.get(reverse("home")).content
     assert b'data-swipe-left=""' in home
+
+
+def test_person_rows_link_to_edit_and_swipe_to_delete(client, circle):
+    content = client.get(reverse("circle", args=[circle.pk])).content.decode()
+    alice = person(circle, "Alice")
+    edit = reverse("person_edit", args=[circle.pk, alice.pk])
+    delete = reverse("person_delete", args=[circle.pk, alice.pk])
+    assert f'href="{edit}" data-swipe-left="{delete}"' in content

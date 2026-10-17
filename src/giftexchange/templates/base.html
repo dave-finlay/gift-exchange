@@ -14,7 +14,7 @@
       <a class="brand" href="{% url 'home' %}">⌂ Home</a>
       {# A menu that opens without JavaScript #}
       <details class="menu">
-        <summary>Menu</summary>
+        <summary>{% include "icons/menu.svg" %}</summary>
         <nav>
           {% if user.is_staff %}<a href="{% url 'invitations' %}">Invite New Organizer</a>{% endif %}
           <a href="{% url 'password_change' %}">Change password</a>
