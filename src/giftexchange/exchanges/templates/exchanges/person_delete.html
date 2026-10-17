@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Delete {{ person.name }} · {% endblock %}
 {% block content %}
-<p><a href="{% url 'circle' circle.pk %}">← {{ circle.name }}</a></p>
 <h1>Delete {{ person.name }}?</h1>
 {% if busy %}
   <p>{{ person.name }} is taking part in {{ busy|join:", " }}, which has already started, so they can't be deleted yet.</p>

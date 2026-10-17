@@ -1,12 +1,11 @@
 {% extends "base.html" %}
 {% block title %}New Gift Exchange · {% endblock %}
 {% block content %}
-<p><a href="{% url 'circle' circle.pk %}">← {{ circle.name }}</a></p>
 <h1>New Gift Exchange</h1>
 <p class="muted">Everyone in {{ circle.name }} starts off taking part. You can change that next.</p>
 <form method="post" class="card">
   {% csrf_token %}
   {% include "form.html" %}
-  <button>Create exchange</button>
+  <p class="actions"><button>Create gift exchange</button> <a class="button secondary" href="{% url 'circle' circle.pk %}">Cancel</a></p>
 </form>
 {% endblock %}

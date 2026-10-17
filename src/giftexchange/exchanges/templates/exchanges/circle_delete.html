@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Delete {{ circle.name }} · {% endblock %}
 {% block content %}
-<p><a href="{% url 'circle' circle.pk %}">← {{ circle.name }}</a></p>
 <h1>Delete {{ circle.name }}?</h1>
 {% if busy %}
   <p>{{ busy|join:", " }} {% if busy|length == 1 %}is{% else %}are{% endif %} under way, so {{ circle.name }} can't be deleted yet.</p>
