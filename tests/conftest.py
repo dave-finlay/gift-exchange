@@ -8,7 +8,7 @@ class Build:
     """Builds a circle and an exchange from plain names."""
 
     def __init__(self, households, **exchange_fields):
-        owner = User.objects.create_user("organiser@example.org", "unused")
+        owner = User.objects.create_user("organizer@example.org", "unused")
         self.circle = Circle.objects.create(owner=owner, name="The Smiths")
         self.person = {}
         for i, members in enumerate(households):

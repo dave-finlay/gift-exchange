@@ -208,7 +208,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 INVITATION_DAYS = env_int("INVITATION_DAYS", 7)
 
-# Internationalisation
+# Internationalization
 
 LANGUAGE_CODE = "en-ie"
 TIME_ZONE = env("TIME_ZONE", "Europe/Dublin")

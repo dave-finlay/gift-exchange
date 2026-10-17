@@ -37,10 +37,10 @@ DJANGO_DEBUG=1 uv run python manage.py runserver
 |---|---|
 | `src/giftexchange/matching.py` | The draw: fair random assignments under the exchange's rules, feasibility explanations, test-mode statistics and repairs. Pure Python with no dependencies. |
 | `src/giftexchange/settings.py` | Django settings. Site values come from environment variables and secrets from files; see "Configuration" in the design. |
-| `src/giftexchange/accounts/` | Organisers, sign-in and invitations |
+| `src/giftexchange/accounts/` | Organizers, sign-in and invitations |
 | `src/giftexchange/http.py` | Security headers (a strict Content-Security-Policy, `noindex`) and the client's IP address behind Caddy |
 | `src/giftexchange/templates/`, `static/` | The base page layout and stylesheet; each app has its own templates |
-| `src/giftexchange/exchanges/` | Circles, people, rules, exchanges and participants (`models.py`); the organiser pages (`views.py`, `forms.py`); turning rules into a draw and saving it (`draws.py`); encrypting assignments (`secrecy.py`) |
+| `src/giftexchange/exchanges/` | Circles, people, rules, exchanges and participants (`models.py`); the organizer pages (`views.py`, `forms.py`); turning rules into a draw and saving it (`draws.py`); encrypting assignments (`secrecy.py`) |
 | `src/giftexchange/audit/` | A log of security-relevant actions |
 | `tests/` | Tests, including property-based tests with Hypothesis |
 | `docs/DESIGN.md` | Architecture, data model and screens |

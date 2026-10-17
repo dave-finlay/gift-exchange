@@ -45,7 +45,7 @@ def build_problem(exchange):
     """The matching problem for an exchange's participants and rules.
 
     A forced pairing wins over avoiding recent pairings: otherwise a
-    rejected forced pairing would tell the organiser who gave to whom last
+    rejected forced pairing would tell the organizer who gave to whom last
     time. Forced pairings that involve someone who isn't taking part are
     ignored. Raises RuleConflict if forced pairings break other rules.
     """

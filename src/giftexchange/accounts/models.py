@@ -32,7 +32,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    """An organiser. Participants don't have accounts."""
+    """An organizer. Participants don't have accounts."""
 
     # Stored in lower case, so it's unique regardless of case.
     email = models.EmailField(unique=True)
@@ -59,7 +59,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Invitation(models.Model):
-    """A single-use link that lets someone create an organiser account."""
+    """A single-use link that lets someone create an organizer account."""
 
     email = models.EmailField()
     token_hash = models.CharField(max_length=64, unique=True)
