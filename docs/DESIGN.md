@@ -46,7 +46,7 @@ Status: design, as of 2026-10-16. No code yet.
 | Domain | The operator's own domain, with DNS at Cloudflare |
 | Sign-in | Organisers: password (Argon2id), lockout after repeated failures (`django-axes`), optional two-factor codes. Invitation links are single use, expire after about 7 days, and are stored hashed. |
 | Admin | Django admin, reachable only through an SSH tunnel |
-| CI | GitHub Actions |
+| CI | GitHub Actions: ruff (lint, formatting) and pytest on every push to `main` and every pull request; read-only permissions; actions pinned to commit SHAs. Dependabot: weekly grouped updates for uv and GitHub Actions, plus immediate security updates. GitHub security features: CodeQL (Python and Actions), secret scanning with push protection, private vulnerability reporting. Dependabot was chosen over Renovate to start with, because it needs no app installed; revisit when image digests and auto-merge come in. |
 | Local development | OrbStack |
 
 Still open: Cloudflare proxy in front (optional), `django-allauth` or
