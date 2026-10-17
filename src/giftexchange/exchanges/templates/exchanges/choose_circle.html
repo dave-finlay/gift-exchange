@@ -1,0 +1,5 @@
+<form method="post" action="{% url 'exchange_circle' exchange.pk %}">
+  {% csrf_token %}
+  {% include "form.html" with form=choose %}
+  <button class="secondary">Use this circle</button>
+</form>

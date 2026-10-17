@@ -99,17 +99,21 @@ start, upgrade, back up and restore.
 ```
 User (organizer) ──< Invitation
    │
+   ├──< Exchange ──< Participant ──── Assignment (receiver encrypted)
+   │       │             └──< EmailLog
+   │       └── circle (optional while a draft)
+   │
    └──< Circle ──< Household
            ├──< Person ─── household (optional)
-           ├──< Rule   (giver Person → receiver Person, EXCLUDE | REQUIRE,
-           │            standing or for one exchange)
-           └──< Exchange ──< Participant ──── Assignment (receiver encrypted)
-                                 └──< EmailLog
+           └──< Rule   (giver Person → receiver Person, EXCLUDE | REQUIRE,
+                        standing or for one exchange)
 AuditEvent
 ```
 
-A **circle** is the lasting group ("the Smith family"): people, households and
-standing rules. An **exchange** is one event ("Christmas 2026"): who takes
+A **gift exchange** is the main thing: organizers come to create one, so
+the home page leads with it. A **circle** is the lasting group of people
+it's for ("the Smith family"): people, households and standing rules,
+reused from one gift exchange to the next. An **exchange** is one event ("Christmas 2026"): who takes
 part this time, one-off rules, the draw and the emails. The model is
 `Circle` rather than `Group` to avoid clashing with Django's
 `auth.Group`.
@@ -122,7 +126,7 @@ part this time, one-off rules, the draw and the emails. The model is
 | Household | circle, name | Members never give to each other, in either direction |
 | Person | circle, name, email, household (nullable) | Name unique within the circle. Email not unique, so a child can share a parent's address. |
 | Rule | circle, exchange (null means standing), giver, receiver, kind (EXCLUDE or REQUIRE), note | One direction each; the UI's "both ways" makes two rules |
-| Exchange | circle, name, gift_date, draw_date (optional, shown to participants), budget, note, status, confirm_first (default true), avoid_repeats, allow_mutual (default false), single_loop (default false), drawn_at, sent_at, archived_at | `avoid_repeats` is the number of previous exchanges in the circle whose pairings to avoid. `allow_mutual` allows A→B together with B→A. `single_loop` makes the draw one loop through everyone (A→B→C→…→A); when it's on, `allow_mutual` has no effect. |
+| Exchange | owner, circle (optional while a draft), name, gift_date (optional while a draft), draw_date (optional, shown to participants), budget, note, status, confirm_first (default true), avoid_repeats, allow_mutual (default false), single_loop (default false), drawn_at, sent_at, archived_at | `avoid_repeats` is the number of previous exchanges in the circle whose pairings to avoid. `allow_mutual` allows A→B together with B→A. `single_loop` makes the draw one loop through everyone (A→B→C→…→A); when it's on, `allow_mutual` has no effect. |
 | Participant | exchange, person, link_token_hash, link_rotated_at, response (pending, in, declined), responded_at, gift_status (not_yet, bought, sent), gift_status_at, revealed_at, withdraw_requested_at, withdrawn_at, created_at | Who takes part in this exchange; the private link points here |
 | GiftIdea | participant, text (up to 280 characters), created_at, updated_at | Ideas for yourself, seen only by your giver. Up to 10 per participant; deleted at archive. |
 | Assignment | giver (Participant, unique), receiver_ciphertext, created_at, updated_at | See "Assignment secrecy" |
@@ -255,9 +259,9 @@ only), to generate random groups and rules. They check that:
   only when recent pairings exist.
 - Names can hint at who gave to whom in recent exchanges (the rules
   avoid those pairings), so the "Show details" warning says so.
-- Setup can change only while the exchange is a Draft. People and rules
-  added to the circle later aren't added to existing exchanges
-  automatically; the "who's taking part" list shows them unticked.
+- Setup can change only while the exchange is a Draft. People added to
+  a circle join its draft gift exchanges (ticked), since those are still
+  being set up; gift exchanges that have started don't change.
 
 ### Organizer screens
 
@@ -265,9 +269,11 @@ Responsive. Setup is probably done on a laptop and checking progress on
 a phone, so both have to work. The organizer's own assignment arrives
 by email like everyone else's, and never appears on organizer screens.
 
-1. **Home.** Circles, each with its current exchange, its status and the
-   next step, e.g. "Christmas 2026 · Joining · 9 of 12 in · draw on 1
-   Nov". There's also "New circle".
+1. **Home.** Leads with **Create a gift exchange**, then the organizer's
+   gift exchanges (ended ones last), each with its circle, status and
+   date; later also the next step, e.g. "Joining · 9 of 12 in · draw on 1
+   Nov". Then their circles, and "New circle". Swiping a gift exchange
+   or a circle left leads to its delete confirmation.
 2. **Circle page.**
    - The circle's name (blank at creation means "My Circle"), renamed
      with the pencil next to it. Delete circle, after a confirmation
@@ -283,8 +289,14 @@ by email like everyone else's, and never appears on organizer screens.
    - **Paste a list:** lines of `Name, email`, like the old script's
      file.
    - Standing rules, offered as "both ways" or one way.
-   - Past exchanges, and "New exchange".
-3. **Exchange setup.** One page with sections, not a wizard:
+   - "Used by", linking to the gift exchanges that use the circle.
+3. **Gift exchange page.** "Create a gift exchange" makes a draft named
+   "My Gift Exchange" straight away and opens this page. One page with
+   sections, not a wizard:
+   - **Who's it for?** Choose one of the organizer's circles, or create
+     a new one (which opens the circle page to add people; its "Used by"
+     line links back). While it's a draft the circle can be changed,
+     which resets who's taking part and this gift exchange's own rules.
    - basics (name, gift date, draw date, budget, note with an email
      preview);
    - who's in (everyone in the circle ticked by default);
@@ -298,6 +310,9 @@ by email like everyone else's, and never appears on organizer screens.
      assignments, including the organizer's own if they take part.
    - The main button: "Send 'you're in' emails", or "Draw and send" when
      `confirm_first` is off.
+   - Delete gift exchange, after a confirmation page; not while it's
+     under way. Deleting a circle keeps its drafts (without a circle) and
+     deletes its ended gift exchanges.
 4. **Exchange dashboard.**
    - A banner for withdrawal requests.
    - One row per participant: response, email status (with bounces
@@ -415,6 +430,7 @@ These are settings, checked in forms and in the draw:
 
 - up to 5 circles per user;
 - up to 50 people per circle;
+- up to 10 gift exchanges per user that haven't ended, drafts included;
 - up to 4 exchanges per circle per year;
 - a daily cap on emails per exchange.
 

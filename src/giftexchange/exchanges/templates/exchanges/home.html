@@ -1,28 +1,35 @@
 {% extends "base.html" %}
-{% block title %}Your Circles · {% endblock %}
+{% block title %}Your Gift Exchanges · {% endblock %}
 {% block content %}
 <p>{{ SITE_NAME }} runs secret gift exchanges: everyone is given one person to buy for, and nobody, not even you, sees who has whom.</p>
-<h1>Your Circles</h1>
-<p class="muted">A circle is a group who exchange gifts, like a family or friends, with its households and rules kept from one gift exchange to the next.</p>
-{% for circle in circles %}
+<form method="post" action="{% url 'exchange_new' %}" class="actions">
+  {% csrf_token %}
+  <button class="big">Create a gift exchange</button>
+</form>
+
+<h1>Your Gift Exchanges</h1>
+{% for exchange in exchanges %}
   {# Tap to open; swipe left to delete (with a confirmation page). #}
+  <div class="swipe card-swipe">
+    <span class="swipe-action" aria-hidden="true">Delete</span>
+    <a class="card swipeable" href="{% url 'exchange' exchange.pk %}" data-swipe-left="{% url 'exchange_delete' exchange.pk %}">
+      <strong>{{ exchange.name }}</strong>
+      <small>{% if exchange.circle %}{{ exchange.circle.name }}{% else %}No circle yet{% endif %} · {{ exchange.get_status_display }}{% if exchange.gift_date %} · {{ exchange.gift_date|date:"j M Y" }}{% endif %}</small>
+    </a>
+  </div>
+{% empty %}
+  <p class="muted">None yet.</p>
+{% endfor %}
+
+<h2>Your Circles</h2>
+<p class="muted">A circle is a group of people who exchange gifts, like a family or friends. Its people, households and rules are kept for each gift exchange.</p>
+{% for circle in circles %}
   <div class="swipe card-swipe">
     <span class="swipe-action" aria-hidden="true">Delete</span>
     <a class="card swipeable" href="{% url 'circle' circle.pk %}" data-swipe-left="{% url 'circle_delete' circle.pk %}">
       <strong>{{ circle.name }}</strong>
-      {% with exchange=circle.exchanges.all|first %}
-        {% if exchange %}<small>{{ exchange.name }} · {{ exchange.get_status_display }} · {{ exchange.gift_date|date:"j M Y" }}</small>
-        {% else %}<small>No gift exchanges yet</small>{% endif %}
-      {% endwith %}
     </a>
   </div>
-{% empty %}
-  <p>You don't have any circles yet. Start by creating one.</p>
 {% endfor %}
-<h2>New Circle</h2>
-<form method="post" action="{% url 'circle_new' %}" class="card">
-  {% csrf_token %}
-  {% include "form.html" %}
-  <button>Create circle</button>
-</form>
+<p class="actions"><a class="button secondary" href="{% url 'circle_new' %}">New circle</a></p>
 {% endblock %}
