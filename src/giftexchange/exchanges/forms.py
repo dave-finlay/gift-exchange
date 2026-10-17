@@ -30,20 +30,40 @@ def check_room(circle, adding):
 
 
 class CircleForm(forms.ModelForm):
+    """A new circle's name is optional; renaming needs one."""
+
+    DEFAULT_NAME = "My Circle"
+
+    name = forms.CharField(max_length=100, required=False)
+
     class Meta:
         model = Circle
         fields = ["name"]
-        labels = {"name": "Name"}
-        help_texts = {"name": 'For example, "The Smith family".'}
 
     def __init__(self, *args, owner, **kwargs):
         super().__init__(*args, **kwargs)
         self.owner = owner
+        field = self.fields["name"]
+        if self.instance.pk is None:
+            field.label = "Name (optional)"
+            field.help_text = (
+                'For example, "The Smith family". '
+                f'Leave it blank for "{self.DEFAULT_NAME}".'
+            )
+        else:
+            field.required = True
 
     def clean_name(self):
         name = self.cleaned_data["name"].strip()
         circles = Circle.objects.filter(owner=self.owner).exclude(pk=self.instance.pk)
-        if circles.filter(name__iexact=name).exists():
+        taken = {n.lower() for n in circles.values_list("name", flat=True)}
+        if not name:
+            # "My Circle", then "My Circle 2", and so on.
+            name, number = self.DEFAULT_NAME, 1
+            while name.lower() in taken:
+                number += 1
+                name = f"{self.DEFAULT_NAME} {number}"
+        if name.lower() in taken:
             raise forms.ValidationError("You already have a circle with this name.")
         return name
 

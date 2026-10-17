@@ -6,6 +6,8 @@ urlpatterns = [
     path("", views.home, name="home"),
     path("circles/new/", views.circle_new, name="circle_new"),
     path("circles/<int:pk>/", views.circle, name="circle"),
+    path("circles/<int:pk>/edit/", views.circle_edit, name="circle_edit"),
+    path("circles/<int:pk>/delete/", views.circle_delete, name="circle_delete"),
     path("circles/<int:pk>/people/new/", views.person_new, name="person_new"),
     path(
         "circles/<int:circle_pk>/people/<int:pk>/",

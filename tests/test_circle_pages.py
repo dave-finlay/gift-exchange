@@ -264,3 +264,59 @@ def test_person_rows_link_to_edit_and_swipe_to_delete(client, circle):
     edit = reverse("person_edit", args=[circle.pk, alice.pk])
     delete = reverse("person_delete", args=[circle.pk, alice.pk])
     assert f'href="{edit}" data-swipe-left="{delete}"' in content
+
+
+def test_circle_name_is_optional(client, organizer):
+    client.post(reverse("circle_new"), {"name": ""})
+    client.post(reverse("circle_new"), {"name": "  "})
+    names = sorted(Circle.objects.values_list("name", flat=True))
+    assert names == ["My Circle", "My Circle 2"]
+
+
+def test_rename_circle(client, circle):
+    url = reverse("circle_edit", args=[circle.pk])
+    client.post(url, {"name": "The Smith Family"})
+    circle.refresh_from_db()
+    assert circle.name == "The Smith Family"
+    response = client.post(url, {"name": ""})
+    assert response.context["form"].errors
+    circle.refresh_from_db()
+    assert circle.name == "The Smith Family"
+
+
+def test_delete_circle_after_confirmation(client, circle):
+    url = reverse("circle_delete", args=[circle.pk])
+    assert client.get(url).status_code == 200
+    assert Circle.objects.exists()
+    response = client.post(url)
+    assert response.url == reverse("home")
+    assert not Circle.objects.exists()
+    assert not Person.objects.exists()
+
+
+def test_cannot_delete_a_circle_with_an_exchange_under_way(client, circle):
+    from giftexchange.exchanges.models import Exchange
+
+    Exchange.objects.create(
+        circle=circle, name="Christmas", gift_date="2026-12-25", status="joining"
+    )
+    response = client.post(reverse("circle_delete", args=[circle.pk]))
+    assert b"can't be deleted yet" in response.content
+    assert Circle.objects.exists()
+
+
+def test_cannot_rename_or_delete_another_organizers_circle(client, circle):
+    eve = User.objects.create_user("eve@example.org", "unused password")
+    client.force_login(eve)
+    for name in ["circle_edit", "circle_delete"]:
+        url = reverse(name, args=[circle.pk])
+        assert client.post(url, {"name": "Mine"}).status_code == 404
+    circle.refresh_from_db()
+    assert circle.name == "The Smiths"
+
+
+def test_home_cards_swipe_to_delete(client, circle):
+    content = client.get(reverse("home")).content.decode()
+    open_ = reverse("circle", args=[circle.pk])
+    delete = reverse("circle_delete", args=[circle.pk])
+    assert f'href="{open_}" data-swipe-left="{delete}"' in content

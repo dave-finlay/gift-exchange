@@ -269,6 +269,10 @@ by email like everyone else's, and never appears on organizer screens.
    next step, e.g. "Christmas 2026 · Joining · 9 of 12 in · draw on 1
    Nov". There's also "New circle".
 2. **Circle page.**
+   - The circle's name (blank at creation means "My Circle"), renamed
+     with the pencil next to it. Delete circle, after a confirmation
+     page; not while one of its gift exchanges is under way. On the home
+     page, swiping a circle left also leads to that confirmation.
    - People are grouped by household: add, edit, delete. (There's no
      "inactive" state: to leave someone out of one gift exchange, untick
      them there.)

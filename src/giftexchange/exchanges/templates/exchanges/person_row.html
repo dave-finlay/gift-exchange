@@ -1,7 +1,7 @@
 {# Tap the row to edit; swipe it left to delete (with a confirmation page). #}
 <li class="swipe">
   <span class="swipe-action" aria-hidden="true">Delete</span>
-  <a class="row person" href="{% url 'person_edit' circle.pk person.pk %}" data-swipe-left="{% url 'person_delete' circle.pk person.pk %}">
+  <a class="row person swipeable" href="{% url 'person_edit' circle.pk person.pk %}" data-swipe-left="{% url 'person_delete' circle.pk person.pk %}">
     <span>{{ person.name }} <small class="inline">{{ person.email }}</small></span>
     {% include "icons/pencil.svg" %}
   </a>

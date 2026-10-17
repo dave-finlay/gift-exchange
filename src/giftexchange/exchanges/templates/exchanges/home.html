@@ -5,13 +5,17 @@
 <h1>Your Circles</h1>
 <p class="muted">A circle is a group who exchange gifts, like a family or friends, with its households and rules kept from one gift exchange to the next.</p>
 {% for circle in circles %}
-  <a class="card" href="{% url 'circle' circle.pk %}">
-    <strong>{{ circle.name }}</strong>
-    {% with exchange=circle.exchanges.all|first %}
-      {% if exchange %}<small>{{ exchange.name }} · {{ exchange.get_status_display }} · {{ exchange.gift_date|date:"j M Y" }}</small>
-      {% else %}<small>No exchanges yet</small>{% endif %}
-    {% endwith %}
-  </a>
+  {# Tap to open; swipe left to delete (with a confirmation page). #}
+  <div class="swipe card-swipe">
+    <span class="swipe-action" aria-hidden="true">Delete</span>
+    <a class="card swipeable" href="{% url 'circle' circle.pk %}" data-swipe-left="{% url 'circle_delete' circle.pk %}">
+      <strong>{{ circle.name }}</strong>
+      {% with exchange=circle.exchanges.all|first %}
+        {% if exchange %}<small>{{ exchange.name }} · {{ exchange.get_status_display }} · {{ exchange.gift_date|date:"j M Y" }}</small>
+        {% else %}<small>No gift exchanges yet</small>{% endif %}
+      {% endwith %}
+    </a>
+  </div>
 {% empty %}
   <p>You don't have any circles yet. Start by creating one.</p>
 {% endfor %}

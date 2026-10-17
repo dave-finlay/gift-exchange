@@ -77,6 +77,43 @@ def circle(request, pk):
 
 
 @login_required
+def circle_edit(request, pk):
+    circle = own_circle(request, pk)
+    form = CircleForm(request.POST or None, instance=circle, owner=request.user)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect("circle", circle.pk)
+    return render(
+        request, "exchanges/circle_edit.html", {"circle": circle, "form": form}
+    )
+
+
+@login_required
+def circle_delete(request, pk):
+    """Delete a circle and everything in it, unless one of its gift
+    exchanges is under way: participants hold links to it."""
+    circle = own_circle(request, pk)
+    busy = circle.exchanges.filter(
+        status__in=[Exchange.Status.JOINING, Exchange.Status.SENT]
+    )
+    if request.method == "POST" and not busy.exists():
+        circle.delete()
+        record(request, "circle.delete", f"circle:{pk}")
+        messages.success(request, f"Deleted {circle.name}.")
+        return redirect("home")
+    return render(
+        request,
+        "exchanges/circle_delete.html",
+        {
+            "circle": circle,
+            "busy": [str(e) for e in busy],
+            "people": circle.people.count(),
+            "exchanges": circle.exchanges.count(),
+        },
+    )
+
+
+@login_required
 def person_new(request, pk):
     return person_form(request, own_circle(request, pk), Person())
 
