@@ -145,3 +145,17 @@ def test_bad_passwords_are_rejected(client, staff, password, again):
     assert response.status_code == 200
     assert response.context["form"].errors
     assert not User.objects.filter(email="bob@example.org").exists()
+
+
+@pytest.mark.parametrize(
+    "host, status",
+    [
+        ("example.org", 200),
+        ("evil.example", 400),
+        # Development extras (the tests run with development settings)
+        ("localhost", 200),
+        ("Some-Laptop.local", 200),
+    ],
+)
+def test_only_known_addresses_are_served(client, host, status):
+    assert client.get(reverse("signin"), HTTP_HOST=host).status_code == status
