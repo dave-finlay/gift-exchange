@@ -219,3 +219,46 @@ def test_remove_rule(client, circle):
     )
     client.post(reverse("rule_delete", args=[circle.pk, rule.pk]))
     assert not Rule.objects.exists()
+
+
+def test_delete_person(client, circle):
+    bob = person(circle, "Bob")
+    url = reverse("person_delete", args=[circle.pk, bob.pk])
+    assert client.get(url).status_code == 200  # A confirmation page
+    assert circle.people.filter(name="Bob").exists()
+    client.post(url)
+    assert not circle.people.filter(name="Bob").exists()
+
+
+def test_deleting_the_last_member_removes_the_household(client, circle):
+    for name in ["Alice", "Bob"]:
+        client.post(reverse("person_delete", args=[circle.pk, person(circle, name).pk]))
+    assert not circle.households.exists()
+
+
+def test_cannot_delete_someone_in_a_started_exchange(client, circle):
+    from giftexchange.exchanges.models import Exchange
+
+    bob = person(circle, "Bob")
+    exchange = Exchange.objects.create(
+        circle=circle, name="Christmas", gift_date="2026-12-25", status="sent"
+    )
+    exchange.participants.create(person=bob)
+    url = reverse("person_delete", args=[circle.pk, bob.pk])
+    response = client.post(url)
+    assert b"can't be deleted yet" in response.content
+    assert circle.people.filter(name="Bob").exists()
+
+
+def test_cannot_delete_another_organizers_person(client, circle):
+    eve = User.objects.create_user("eve@example.org", "unused password")
+    client.force_login(eve)
+    url = reverse("person_delete", args=[circle.pk, person(circle, "Bob").pk])
+    assert client.post(url).status_code == 404
+    assert circle.people.filter(name="Bob").exists()
+
+
+def test_header_has_home_and_a_menu(client, circle):
+    content = client.get(reverse("home")).content
+    assert b"Home</a>" in content
+    assert b'<details class="menu">' in content

@@ -11,13 +11,13 @@
 {% for household, members in households %}
   <div class="card">
     <strong>{{ household.name }}</strong>
-    <ul class="plain">{% for person in members %}{% include "exchanges/person_row.html" %}{% endfor %}</ul>
+    <ul class="plain tight">{% for person in members %}{% include "exchanges/person_row.html" %}{% endfor %}</ul>
   </div>
 {% endfor %}
 {% if on_their_own %}
   <div class="card">
     {% if households %}<strong>Not in a household</strong>{% endif %}
-    <ul class="plain">{% for person in on_their_own %}{% include "exchanges/person_row.html" %}{% endfor %}</ul>
+    <ul class="plain tight">{% for person in on_their_own %}{% include "exchanges/person_row.html" %}{% endfor %}</ul>
   </div>
 {% endif %}
 <p class="actions">
@@ -27,7 +27,7 @@
 {% if inactive %}
   <details>
     <summary>Not included in new exchanges ({{ inactive|length }})</summary>
-    <ul class="plain">{% for person in inactive %}{% include "exchanges/person_row.html" %}{% endfor %}</ul>
+    <ul class="plain tight">{% for person in inactive %}{% include "exchanges/person_row.html" %}{% endfor %}</ul>
   </details>
 {% endif %}
 

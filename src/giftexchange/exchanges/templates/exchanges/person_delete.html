@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Delete {{ person.name }} · {% endblock %}
+{% block content %}
+<p><a href="{% url 'person_edit' circle.pk person.pk %}">← {{ person.name }}</a></p>
+<h1>Delete {{ person.name }}?</h1>
+{% if busy %}
+  <p>{{ person.name }} is taking part in {{ busy|join:", " }}, which has already started, so they can't be deleted yet.</p>
+  <p class="muted">To leave them out of future gift exchanges instead, untick "Include in new exchanges".</p>
+{% else %}
+  <p>This removes {{ person.name }} from {{ circle.name }}, along with their rules{% if past %} and their part in past gift exchanges{% endif %}. It can't be undone.</p>
+  <p class="muted">To keep them but leave them out of future gift exchanges, untick "Include in new exchanges" instead.</p>
+  <form method="post" class="actions">
+    {% csrf_token %}
+    <button>Delete {{ person.name }}</button>
+    <a class="button secondary" href="{% url 'person_edit' circle.pk person.pk %}">Cancel</a>
+  </form>
+{% endif %}
+{% endblock %}

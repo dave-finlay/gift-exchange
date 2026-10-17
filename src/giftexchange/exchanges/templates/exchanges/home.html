@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Your Circles · {% endblock %}
 {% block content %}
+<p>{{ SITE_NAME }} runs secret gift exchanges: everyone is privately given one person to buy for, and nobody, not even you, sees who has whom.</p>
 <h1>Your Circles</h1>
+<p class="muted">A circle is a group who exchange gifts, like a family or friends, with its households and rules kept from one gift exchange to the next.</p>
 {% for circle in circles %}
   <a class="card" href="{% url 'circle' circle.pk %}">
     <strong>{{ circle.name }}</strong>
@@ -11,7 +13,7 @@
     {% endwith %}
   </a>
 {% empty %}
-  <p>A circle is a group of people who exchange gifts, like a family or a group of friends. Start by creating one.</p>
+  <p>You don't have any circles yet. Start by creating one.</p>
 {% endfor %}
 <h2>New Circle</h2>
 <form method="post" action="{% url 'circle_new' %}" class="card">

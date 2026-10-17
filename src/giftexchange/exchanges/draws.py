@@ -38,7 +38,13 @@ def recent_pairings(exchange):
     assignments = Assignment.objects.filter(
         giver__exchange__in=previous
     ).select_related("giver")
-    return {(a.giver.person_id, person_of[secrecy.receiver_id(a)]) for a in assignments}
+    pairings = set()
+    for a in assignments:
+        # Missing if the receiver has since been deleted.
+        receiver = person_of.get(secrecy.receiver_id(a))
+        if receiver is not None:
+            pairings.add((a.giver.person_id, receiver))
+    return pairings
 
 
 def build_problem(exchange):

@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from giftexchange import matching
 from giftexchange.exchanges import draws, secrecy
-from giftexchange.exchanges.models import Assignment, Participant, Rule
+from giftexchange.exchanges.models import Assignment, Exchange, Participant, Rule
 
 EXCLUDE, REQUIRE = Rule.Kind.EXCLUDE, Rule.Kind.REQUIRE
 
@@ -145,3 +145,12 @@ def test_forced_pairing_wins_over_avoiding_repeats(build):
     this_year = b.new_exchange(name="Next Christmas")
     b.rule(giver, receiver, REQUIRE, exchange=this_year)
     assert (giver, receiver) in allowed_names(b, this_year)
+
+
+def test_recent_pairings_skip_deleted_people(build):
+    b = build([["Alice"], ["Bob"], ["Carol"], ["Dan"]])
+    draws.draw(b.exchange, Random(1))
+    Exchange.objects.filter(pk=b.exchange.pk).update(status=Exchange.Status.ARCHIVED)
+    b.person.pop("Dan").delete()
+    this_year = b.new_exchange(name="Next")
+    assert all("Dan" not in pair for pair in allowed_names(b, this_year))
