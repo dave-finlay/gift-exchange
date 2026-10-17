@@ -10,8 +10,9 @@ this repository and run your own private gift-exchange site for your
 family, friends or community: one small server, a few euros a month, no
 ads, and your group's data stays on your own server. Then change it to
 suit your group.
-It's early days: the draw, the data model, sign-in, invitations and
-circles work; exchanges and emails are next.
+It's early days: the draw, the data model, sign-in, invitations,
+circles and exchange setup (with a "check the rules" test mode) work;
+emails and sending the draw are next.
 
 See [docs/DESIGN.md](docs/DESIGN.md) for the design.
 
@@ -40,7 +41,7 @@ DJANGO_DEBUG=1 uv run python manage.py runserver
 | `src/giftexchange/accounts/` | Organizers, sign-in and invitations |
 | `src/giftexchange/http.py` | Security headers (a strict Content-Security-Policy, `noindex`) and the client's IP address behind Caddy |
 | `src/giftexchange/templates/`, `static/` | The base page layout and stylesheet; each app has its own templates |
-| `src/giftexchange/exchanges/` | Circles, people, rules, exchanges and participants (`models.py`); the organizer pages (`views.py`, `forms.py`); turning rules into a draw and saving it (`draws.py`); encrypting assignments (`secrecy.py`) |
+| `src/giftexchange/exchanges/` | Circles, people, rules, exchanges and participants (`models.py`); the organizer pages (`views.py`, `forms.py`); turning rules into a draw and saving it (`draws.py`); test mode (`checks.py`); encrypting assignments (`secrecy.py`) |
 | `src/giftexchange/audit/` | A log of security-relevant actions |
 | `tests/` | Tests, including property-based tests with Hypothesis |
 | `docs/DESIGN.md` | Architecture, data model and screens |

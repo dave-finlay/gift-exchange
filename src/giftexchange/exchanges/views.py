@@ -9,7 +9,15 @@ from django.views.decorators.http import require_POST
 
 from giftexchange.audit.models import record
 
-from .forms import CircleForm, PasteForm, PersonForm, RuleForm
+from . import checks
+from .forms import (
+    CircleForm,
+    ExchangeForm,
+    ParticipantsForm,
+    PasteForm,
+    PersonForm,
+    RuleForm,
+)
 from .models import Circle, Exchange, Person, Rule
 
 
@@ -125,3 +133,118 @@ def rule_delete(request, circle_pk, pk):
     rule.delete()
     record(request, "rule.delete", f"rule:{pk}")
     return redirect("circle", circle.pk)
+
+
+# Exchanges
+
+
+def own_exchange(request, pk):
+    return get_object_or_404(
+        Exchange.objects.select_related("circle"), pk=pk, circle__owner=request.user
+    )
+
+
+def editable(request, exchange):
+    """Setup can change only while the exchange is a draft."""
+    if exchange.status == Exchange.Status.DRAFT:
+        return True
+    messages.error(request, "This exchange has started, so its setup is locked.")
+    return False
+
+
+@login_required
+def exchange_new(request, pk):
+    circle = own_circle(request, pk)
+    form = ExchangeForm(request.POST or None, circle=circle)
+    if request.method == "POST" and form.is_valid():
+        exchange = form.save()
+        return redirect("exchange", exchange.pk)
+    return render(
+        request, "exchanges/exchange_new.html", {"circle": circle, "form": form}
+    )
+
+
+@login_required
+def exchange(request, pk):
+    exchange = own_exchange(request, pk)
+    return setup_page(request, exchange)
+
+
+def setup_page(request, exchange, **forms):
+    """The exchange setup page. Test mode runs only when asked for, with
+    ?check; names only with ?details."""
+    check = None
+    if "check" in request.GET:
+        check = checks.check(exchange)
+    rules = exchange.rules.select_related("giver", "receiver").order_by(
+        "giver__name", "receiver__name"
+    )
+    context = {
+        "exchange": exchange,
+        "circle": exchange.circle,
+        "draft": exchange.status == Exchange.Status.DRAFT,
+        "basics": forms.get("basics")
+        or ExchangeForm(instance=exchange, circle=exchange.circle),
+        "people": forms.get("people") or ParticipantsForm(exchange=exchange),
+        "rules": rules,
+        "check": check,
+        "details": "details" in request.GET,
+    }
+    return render(request, "exchanges/exchange.html", context)
+
+
+@login_required
+@require_POST
+def exchange_basics(request, pk):
+    exchange = own_exchange(request, pk)
+    if not editable(request, exchange):
+        return redirect("exchange", pk)
+    form = ExchangeForm(request.POST, instance=exchange, circle=exchange.circle)
+    if not form.is_valid():
+        return setup_page(request, exchange, basics=form)
+    form.save()
+    messages.success(request, "Saved.")
+    return redirect("exchange", pk)
+
+
+@login_required
+@require_POST
+def exchange_people(request, pk):
+    exchange = own_exchange(request, pk)
+    if not editable(request, exchange):
+        return redirect("exchange", pk)
+    form = ParticipantsForm(request.POST, exchange=exchange)
+    if not form.is_valid():
+        return setup_page(request, exchange, people=form)
+    form.save()
+    messages.success(request, "Saved who's taking part.")
+    return redirect("exchange", pk)
+
+
+@login_required
+def exchange_rule_new(request, pk):
+    exchange = own_exchange(request, pk)
+    if request.method == "POST" and not editable(request, exchange):
+        return redirect("exchange", pk)
+    form = RuleForm(request.POST or None, circle=exchange.circle, exchange=exchange)
+    if request.method == "POST" and form.is_valid():
+        for rule in form.save():
+            record(request, "rule.add", f"rule:{rule.pk}")
+        return redirect("exchange", pk)
+    return render(
+        request,
+        "exchanges/rule_form.html",
+        {"circle": exchange.circle, "exchange": exchange, "form": form},
+    )
+
+
+@login_required
+@require_POST
+def exchange_rule_delete(request, pk, rule_pk):
+    exchange = own_exchange(request, pk)
+    if not editable(request, exchange):
+        return redirect("exchange", pk)
+    rule = get_object_or_404(Rule, pk=rule_pk, exchange=exchange)
+    rule.delete()
+    record(request, "rule.delete", f"rule:{rule_pk}")
+    return redirect("exchange", pk)

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}{{ exchange.name }} · {% endblock %}
+{% block content %}
+<p><a href="{% url 'circle' circle.pk %}">← {{ circle.name }}</a></p>
+<h1>{{ exchange.name }}</h1>
+<p class="muted">{{ exchange.get_status_display }} · gifts on {{ exchange.gift_date|date:"j M Y" }}</p>
+{% if not draft %}<p class="notice">This exchange has started, so its setup is locked.</p>{% endif %}
+
+<h2>Who's taking part</h2>
+<form method="post" action="{% url 'exchange_people' exchange.pk %}" class="card">
+  {% csrf_token %}
+  {% include "form.html" with form=people %}
+  {% if draft %}<button class="secondary">Save who's taking part</button>{% endif %}
+</form>
+
+<h2>Rules for this exchange</h2>
+<p class="muted">On top of the circle's rules and households. <a href="{% url 'circle' circle.pk %}">See the circle's rules</a>.</p>
+{% if rules %}
+  <div class="card"><ul class="plain">
+    {% for rule in rules %}
+      <li class="row">
+        <span>{{ rule.giver }} {% if rule.kind == "require" %}must give to{% else %}can't give to{% endif %} {{ rule.receiver }}
+          {% if rule.note %}<small>{{ rule.note }}</small>{% endif %}</span>
+        {% if draft %}<form method="post" action="{% url 'exchange_rule_delete' exchange.pk rule.pk %}">{% csrf_token %}<button class="link">Remove</button></form>{% endif %}
+      </li>
+    {% endfor %}
+  </ul></div>
+{% endif %}
+{% if draft %}<p class="actions"><a class="button secondary" href="{% url 'exchange_rule_new' exchange.pk %}">Add a rule</a></p>{% endif %}
+
+<h2 id="check">Check the rules</h2>
+<p class="muted">Runs a thousand practice draws to check that a draw is possible, and how predictable it is. Nothing is saved, and nobody is emailed.</p>
+{% if check %}
+  <div class="card">
+    {% if check.ok %}
+      <p><strong>✓ A draw is possible</strong> with {{ check.participants }} people taking part.</p>
+      {% if check.predictable %}
+        <p>{{ check.predictable|length }} {% if check.predictable|length == 1 %}person's assignment is{% else %}people's assignments are{% endif %} very predictable with these rules.</p>
+        {% if details %}
+          <ul>
+            {% for p in check.predictable %}
+              <li>{% if p.only %}{{ p.giver }} can only ever get {{ p.receiver }}{% else %}{{ p.giver }} gets {{ p.receiver }} in {% widthratio p.share 1 100 %}% of draws{% endif %}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p><a href="?check&amp;details#check">Show details</a><br><small>Names may reveal likely assignments, including your own if you're taking part, and hints about who gave to whom in recent exchanges.</small></p>
+        {% endif %}
+      {% else %}
+        <p>Nobody's assignment is easy to guess.</p>
+      {% endif %}
+      {% if not check.exact %}<p><small>These rules are tight, so the draw will be close to fair, but not exactly.</small></p>{% endif %}
+    {% else %}
+      <p><strong>No draw is possible.</strong></p>
+      <ul>{% for problem in check.problems %}<li>{{ problem }}</li>{% endfor %}</ul>
+      {% if check.hints %}<p>Things to try:</p><ul>{% for hint in check.hints %}<li>{{ hint }}</li>{% endfor %}</ul>{% endif %}
+    {% endif %}
+  </div>
+{% endif %}
+<form method="get" action="#check" class="actions"><input type="hidden" name="check" value=""><button class="secondary">{% if check %}Check again{% else %}Check the rules{% endif %}</button></form>
+
+<h2>Details and settings</h2>
+<form method="post" action="{% url 'exchange_basics' exchange.pk %}" class="card">
+  {% csrf_token %}
+  {% include "form.html" with form=basics %}
+  {% if draft %}<button>Save</button>{% endif %}
+</form>
+{% endblock %}
