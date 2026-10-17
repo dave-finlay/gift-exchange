@@ -14,13 +14,13 @@ The approach:
 1. Feasibility. Maximum bipartite matching (augmenting paths). If there's
    no perfect matching, Hall's theorem gives an explanation: a set of k
    givers who between them can only give to fewer than k people. If the
-   structure settings add constraints, a randomised backtracking search
+   structure settings add constraints, a randomized backtracking search
    either finds a valid draw or proves that none exists.
 2. A fair draw, by rejection sampling: shuffle the receivers (or, for a
    single loop, the order around the loop) and keep the result if it
    follows every rule. Every valid draw is then exactly equally likely.
    If the rules are so tight that this keeps failing, fall back to a
-   Markov chain: start from the draw the search found and randomise it
+   Markov chain: start from the draw the search found and randomize it
    with many small random changes that keep it valid. That's only
    approximately uniform, and the result says so.
 3. Test mode: many practice draws, counting how often each giver gets
@@ -507,7 +507,7 @@ def _search_matching(
 def _mix_matching(
     graph: _Graph, assignment: list[int], rng: Random, steps: int
 ) -> list[int]:
-    """Markov chain fallback: randomise a valid draw with small changes.
+    """Markov chain fallback: randomize a valid draw with small changes.
 
     Each step proposes swapping the receivers of two random givers, or
     rotating the receivers of three, and keeps the change only if the draw
@@ -596,7 +596,7 @@ def _search_loop(
     It builds the loop chain by chain from the first one. Each step tries
     the chains with the fewest onward options first (Warnsdorff's rule),
     and gives up on a branch as soon as some remaining chain has no
-    possible neighbour on either side.
+    possible neighbor on either side.
     """
     heads = [chain[0] for chain in chains]
     tails = [chain[-1] for chain in chains]

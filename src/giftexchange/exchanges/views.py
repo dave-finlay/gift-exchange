@@ -1,5 +1,5 @@
-"""Organiser screens. Every view finds the circle through the signed-in
-user, so nobody can reach another organiser's data by changing an ID."""
+"""Organizer screens. Every view finds the circle through the signed-in
+user, so nobody can reach another organizer's data by changing an ID."""
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required

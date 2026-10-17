@@ -1,1 +1,1 @@
-"""Organisers: users, sign-in and invitations."""
+"""Organizers: users, sign-in and invitations."""

@@ -8,15 +8,15 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def organiser(client):
+def organizer(client):
     user = User.objects.create_user("alice@example.org", "unused password")
     client.force_login(user)
     return user
 
 
 @pytest.fixture
-def circle(organiser):
-    circle = Circle.objects.create(owner=organiser, name="The Smiths")
+def circle(organizer):
+    circle = Circle.objects.create(owner=organizer, name="The Smiths")
     smiths = Household.objects.create(circle=circle, name="Smiths")
     for name, household in [("Alice", smiths), ("Bob", smiths), ("Carol", None)]:
         Person.objects.create(
@@ -39,14 +39,14 @@ def test_home_shows_only_your_circles(client, circle):
     assert list(response.context["circles"]) == [circle]
 
 
-def test_create_circle(client, organiser):
+def test_create_circle(client, organizer):
     response = client.post(reverse("circle_new"), {"name": "Friends"})
     circle = Circle.objects.get(name="Friends")
-    assert circle.owner == organiser
+    assert circle.owner == organizer
     assert response.url == reverse("circle", args=[circle.pk])
 
 
-def test_circle_limit(client, organiser, settings):
+def test_circle_limit(client, organizer, settings):
     settings.MAX_CIRCLES_PER_USER = 1
     client.post(reverse("circle_new"), {"name": "One"})
     response = client.post(reverse("circle_new"), {"name": "Two"})
@@ -54,7 +54,7 @@ def test_circle_limit(client, organiser, settings):
     assert Circle.objects.count() == 1
 
 
-def test_another_organisers_circle_is_not_found(client, circle):
+def test_another_organizers_circle_is_not_found(client, circle):
     rule = Rule.objects.create(
         circle=circle,
         giver=person(circle, "Alice"),
@@ -76,8 +76,8 @@ def test_another_organisers_circle_is_not_found(client, circle):
     assert Rule.objects.filter(pk=rule.pk).exists()
 
 
-def test_person_from_another_circle_is_not_found(client, circle, organiser):
-    mine = Circle.objects.create(owner=organiser, name="Friends")
+def test_person_from_another_circle_is_not_found(client, circle, organizer):
+    mine = Circle.objects.create(owner=organizer, name="Friends")
     url = reverse("person_edit", args=[mine.pk, person(circle, "Alice").pk])
     assert client.get(url).status_code == 404
 

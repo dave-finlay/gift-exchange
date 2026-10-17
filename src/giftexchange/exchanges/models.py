@@ -126,7 +126,7 @@ class Rule(models.Model):
     giver = models.ForeignKey(Person, related_name="+", on_delete=models.CASCADE)
     receiver = models.ForeignKey(Person, related_name="+", on_delete=models.CASCADE)
     kind = models.CharField(max_length=10, choices=Kind.choices)
-    # Private to the organiser, e.g. the reason for a forced pairing.
+    # Private to the organizer, e.g. the reason for a forced pairing.
     note = models.CharField(max_length=200, blank=True)
 
     class Meta:
@@ -161,7 +161,7 @@ class Rule(models.Model):
 class ParticipantQuerySet(models.QuerySet):
     def in_draw(self):
         """The participants a draw includes: not withdrawn, and not declined.
-        Before drawing, the organiser declines anyone who hasn't responded
+        Before drawing, the organizer declines anyone who hasn't responded
         and shouldn't be included."""
         return self.filter(withdrawn_at=None).exclude(
             response=Participant.Response.DECLINED

@@ -3,7 +3,7 @@
 This is the only module that decrypts receivers, and only two places may
 call it: the participant page (showing someone their own assignment) and
 draws.py (avoiding recent pairings, and repairs). Neither shows the result
-to an organiser. Organiser pages and the admin site never decrypt;
+to an organizer. Organizer pages and the admin site never decrypt;
 tests/test_secrecy.py checks who imports this module.
 """
 

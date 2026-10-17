@@ -82,7 +82,7 @@ def revoke(request, pk):
     invitation.revoked_at = timezone.now()
     invitation.save(update_fields=["revoked_at"])
     record(request, "invitation.revoke", f"invitation:{pk}")
-    messages.success(request, f"The invitation for {invitation.email} is cancelled.")
+    messages.success(request, f"The invitation for {invitation.email} is canceled.")
     return redirect("invitations")
 
 
