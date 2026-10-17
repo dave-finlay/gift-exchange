@@ -32,8 +32,7 @@ def basics(**changes):
     return {k: v for k, v in data.items() if v is not None}
 
 
-def test_new_exchange_includes_active_people(client, b):
-    grace = b.circle.people.create(name="Grace", email="g@example.org", active=False)
+def test_new_exchange_includes_everyone(client, b):
     response = client.post(
         reverse("exchange_new", args=[b.circle.pk]), basics(name="Birthdays")
     )
@@ -41,7 +40,6 @@ def test_new_exchange_includes_active_people(client, b):
     assert response.url == reverse("exchange", args=[exchange.pk])
     people = {p.person.name for p in exchange.participants.all()}
     assert people == set(b.person)
-    assert grace.name not in people
 
 
 def test_exchanges_per_year_limit(client, b, settings):

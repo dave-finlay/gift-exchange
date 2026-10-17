@@ -120,7 +120,7 @@ part this time, one-off rules, the draw and the emails. The model is
 | Invitation | email, token_hash, invited_by, created_at, expires_at, accepted_at, revoked_at | Single use; only the hash of the token is stored |
 | Circle | owner (User), name, created_at | One owner for now; co-organizers maybe later |
 | Household | circle, name | Members never give to each other, in either direction |
-| Person | circle, name, email, household (nullable), active | Name unique within the circle. Email not unique, so a child can share a parent's address. |
+| Person | circle, name, email, household (nullable) | Name unique within the circle. Email not unique, so a child can share a parent's address. |
 | Rule | circle, exchange (null means standing), giver, receiver, kind (EXCLUDE or REQUIRE), note | One direction each; the UI's "both ways" makes two rules |
 | Exchange | circle, name, gift_date, draw_date (optional, shown to participants), budget, note, status, confirm_first (default true), avoid_repeats, allow_mutual (default false), single_loop (default false), drawn_at, sent_at, archived_at | `avoid_repeats` is the number of previous exchanges in the circle whose pairings to avoid. `allow_mutual` allows A→B together with B→A. `single_loop` makes the draw one loop through everyone (A→B→C→…→A); when it's on, `allow_mutual` has no effect. |
 | Participant | exchange, person, link_token_hash, link_rotated_at, response (pending, in, declined), responded_at, gift_status (not_yet, bought, sent), gift_status_at, revealed_at, withdraw_requested_at, withdrawn_at, created_at | Who takes part in this exchange; the private link points here |
@@ -269,7 +269,9 @@ by email like everyone else's, and never appears on organizer screens.
    next step, e.g. "Christmas 2026 · Joining · 9 of 12 in · draw on 1
    Nov". There's also "New circle".
 2. **Circle page.**
-   - People are grouped by household: add, edit, deactivate, delete.
+   - People are grouped by household: add, edit, delete. (There's no
+     "inactive" state: to leave someone out of one gift exchange, untick
+     them there.)
      Deleting asks for confirmation, and isn't allowed while the person
      is in a gift exchange that has started (that's a withdrawal).
      Tapping a person's row edits them; swiping it left deletes (via the
@@ -281,7 +283,7 @@ by email like everyone else's, and never appears on organizer screens.
 3. **Exchange setup.** One page with sections, not a wizard:
    - basics (name, gift date, draw date, budget, note with an email
      preview);
-   - who's in (all active people ticked by default);
+   - who's in (everyone in the circle ticked by default);
    - rules for this exchange (with an optional private note, e.g. the
      reason for a forced pairing);
    - settings (avoid repeats, allow mutual pairs, single loop, confirm

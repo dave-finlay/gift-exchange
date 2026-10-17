@@ -51,9 +51,8 @@ def circle_new(request):
 def circle(request, pk):
     circle = own_circle(request, pk)
     people = circle.people.select_related("household").order_by("name")
-    active = [p for p in people if p.active]
     households = {}
-    for person in active:
+    for person in people:
         households.setdefault(person.household, []).append(person)
     grouped = sorted(
         ((h, members) for h, members in households.items() if h),
@@ -71,7 +70,6 @@ def circle(request, pk):
             "circle": circle,
             "households": grouped,
             "on_their_own": households.get(None, []),
-            "inactive": [p for p in people if not p.active],
             "rules": rules,
             "exchanges": circle.exchanges.order_by("-gift_date"),
         },

@@ -125,22 +125,9 @@ def test_moving_the_last_member_removes_the_household(client, circle):
             "name": "Carol",
             "email": "carol@example.org",
             "household": "",
-            "active": "on",
         },
     )
     assert not circle.households.filter(name="Carol's").exists()
-
-
-def test_deactivate(client, circle):
-    bob = person(circle, "Bob")
-    client.post(
-        reverse("person_edit", args=[circle.pk, bob.pk]),
-        {"name": "Bob", "email": "bob@example.org", "household": "Smiths"},
-    )
-    bob.refresh_from_db()
-    assert not bob.active
-    response = client.get(reverse("circle", args=[circle.pk]))
-    assert [p.name for p in response.context["inactive"]] == ["Bob"]
 
 
 def test_paste_a_list(client, circle):

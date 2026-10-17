@@ -24,12 +24,6 @@
   <a class="button" href="{% url 'person_new' circle.pk %}">Add a person</a>
   <a class="button secondary" href="{% url 'paste' circle.pk %}">Paste a list</a>
 </p>
-{% if inactive %}
-  <details>
-    <summary>Not included in new exchanges ({{ inactive|length }})</summary>
-    <ul class="plain tight">{% for person in inactive %}{% include "exchanges/person_row.html" %}{% endfor %}</ul>
-  </details>
-{% endif %}
 
 <h2>Rules</h2>
 <p class="muted">These apply to every exchange in this circle. People in the same household never give to each other, without needing a rule.</p>
