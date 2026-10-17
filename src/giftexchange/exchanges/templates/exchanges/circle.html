@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ circle.name }} · {% endblock %}
+{% block swipe_left %}{% url 'home' %}{% endblock %}
 {% block content %}
-<p><a href="{% url 'home' %}">← Your circles</a></p>
 <h1>{{ circle.name }}</h1>
 
 <h2>People</h2>
