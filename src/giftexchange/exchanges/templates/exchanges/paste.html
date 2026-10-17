@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}Paste a list · {% endblock %}
+{% block title %}Paste a List · {% endblock %}
 {% block content %}
 <p><a href="{% url 'circle' circle.pk %}">← {{ circle.name }}</a></p>
-<h1>Paste a list</h1>
+<h1>Paste a List</h1>
 <form method="post" class="card">
   {% csrf_token %}
   {% include "form.html" %}

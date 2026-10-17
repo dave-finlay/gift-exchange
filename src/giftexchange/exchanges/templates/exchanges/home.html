@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% block title %}Your circles · {% endblock %}
+{% block title %}Your Circles · {% endblock %}
 {% block content %}
-<h1>Your circles</h1>
+<h1>Your Circles</h1>
 {% for circle in circles %}
   <a class="card" href="{% url 'circle' circle.pk %}">
     <strong>{{ circle.name }}</strong>
@@ -13,7 +13,7 @@
 {% empty %}
   <p>A circle is a group of people who exchange gifts, like a family or a group of friends. Start by creating one.</p>
 {% endfor %}
-<h2>New circle</h2>
+<h2>New Circle</h2>
 <form method="post" action="{% url 'circle_new' %}" class="card">
   {% csrf_token %}
   {% include "form.html" %}

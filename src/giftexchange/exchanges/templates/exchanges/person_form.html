@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}{% if person.pk %}{{ person.name }}{% else %}Add a person{% endif %} · {% endblock %}
+{% block title %}{% if person.pk %}{{ person.name }}{% else %}Add a Person{% endif %} · {% endblock %}
 {% block content %}
 <p><a href="{% url 'circle' circle.pk %}">← {{ circle.name }}</a></p>
-<h1>{% if person.pk %}{{ person.name }}{% else %}Add a person{% endif %}</h1>
+<h1>{% if person.pk %}{{ person.name }}{% else %}Add a Person{% endif %}</h1>
 <form method="post" class="card">
   {% csrf_token %}
   {% include "form.html" %}

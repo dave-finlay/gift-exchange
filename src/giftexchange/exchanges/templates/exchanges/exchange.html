@@ -6,14 +6,14 @@
 <p class="muted">{{ exchange.get_status_display }} · gifts on {{ exchange.gift_date|date:"j M Y" }}</p>
 {% if not draft %}<p class="notice">This exchange has started, so its setup is locked.</p>{% endif %}
 
-<h2>Who's taking part</h2>
+<h2>Who's Taking Part</h2>
 <form method="post" action="{% url 'exchange_people' exchange.pk %}" class="card">
   {% csrf_token %}
   {% include "form.html" with form=people %}
   {% if draft %}<button class="secondary">Save who's taking part</button>{% endif %}
 </form>
 
-<h2>Rules for this exchange</h2>
+<h2>Rules for This Exchange</h2>
 <p class="muted">On top of the circle's rules and households. <a href="{% url 'circle' circle.pk %}">See the circle's rules</a>.</p>
 {% if rules %}
   <div class="card"><ul class="plain">
@@ -28,7 +28,7 @@
 {% endif %}
 {% if draft %}<p class="actions"><a class="button secondary" href="{% url 'exchange_rule_new' exchange.pk %}">Add a rule</a></p>{% endif %}
 
-<h2 id="check">Check the rules</h2>
+<h2 id="check">Check the Rules</h2>
 <p class="muted">Runs a thousand practice draws to check that a draw is possible, and how predictable it is. Nothing is saved, and nobody is emailed.</p>
 {% if check %}
   <div class="card">
@@ -58,7 +58,7 @@
 {% endif %}
 <form method="get" action="#check" class="actions"><input type="hidden" name="check" value=""><button class="secondary">{% if check %}Check again{% else %}Check the rules{% endif %}</button></form>
 
-<h2>Details and settings</h2>
+<h2>Details and Settings</h2>
 <form method="post" action="{% url 'exchange_basics' exchange.pk %}" class="card">
   {% csrf_token %}
   {% include "form.html" with form=basics %}

@@ -33,7 +33,7 @@ def test_lockout_after_five_failures(client):
         sign_in(client, "alice@example.org", "wrong")
     response = sign_in(client, "alice@example.org", PASSWORD)
     assert response.status_code == 429
-    assert b"Too many attempts" in response.content
+    assert b"Too Many Attempts" in response.content
 
 
 def test_pages_need_sign_in(client):
