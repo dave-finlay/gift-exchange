@@ -66,8 +66,8 @@ variables. The repository has a commented `site.env.example`.
 | Setting | Example | Used by |
 |---|---|---|
 | `SITE_DOMAIN` | `giftexchange.org` | Caddy's site address (`{$SITE_DOMAIN}` in the Caddyfile), Django's `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`, links in emails |
-| `SITE_NAME` | `Gift exchange` | Page titles, email subjects and signatures |
-| `EMAIL_FROM` | `Gift exchange <hello@giftexchange.org>` | Sender of all emails; must be on a domain verified with the email provider |
+| `SITE_NAME` | `Gift Exchange` | Page titles, email subjects and signatures |
+| `EMAIL_FROM` | `Gift Exchange <hello@giftexchange.org>` | Sender of all emails; must be on a domain verified with the email provider |
 | `OPERATOR_NAME`, `OPERATOR_EMAIL` | | The privacy note and the contact address shown to users |
 | `TIME_ZONE` | `Europe/Dublin` | Default for dates; organizers can set their own |
 | `LITESTREAM_BUCKET`, `BACKUP_BUCKET`, `B2_ENDPOINT` | | Backups |

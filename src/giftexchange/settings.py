@@ -67,7 +67,7 @@ if DEBUG:
 # Site
 
 SITE_DOMAIN = env("SITE_DOMAIN", "localhost" if DEBUG else None)
-SITE_NAME = env("SITE_NAME", "Gift exchange")
+SITE_NAME = env("SITE_NAME", "Gift Exchange")
 EMAIL_FROM = env("EMAIL_FROM", f"{SITE_NAME} <hello@{SITE_DOMAIN}>")
 DEFAULT_FROM_EMAIL = EMAIL_FROM
 OPERATOR_NAME = env("OPERATOR_NAME", "")
