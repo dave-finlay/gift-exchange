@@ -246,6 +246,16 @@ only), to generate random groups and rules. They check that:
   result, e.g. "with these rules, Alice gets Dan in 85% of draws", or
   "Alice can only ever get Dan".
 - It warns when the draw would only be approximately uniform.
+- Details (`checks.py`): 1,000 practice draws. "Very predictable" means
+  one receiver in at least 75% of them. Givers with a forced pairing are
+  left out, since that's predictable on purpose. When no draw is
+  possible, it suggests what to change; "avoid fewer previous exchanges"
+  only when recent pairings exist.
+- Names can hint at who gave to whom in recent exchanges (the rules
+  avoid those pairings), so the "Show details" warning says so.
+- Setup can change only while the exchange is a Draft. People and rules
+  added to the circle later aren't added to existing exchanges
+  automatically; the "who's taking part" list shows them unticked.
 
 ### Organizer screens
 
@@ -398,6 +408,8 @@ These are settings, checked in forms and in the draw:
 ## Next
 
 - Email templates.
-- Organizer screens: exchange setup (with test mode), then the
-  dashboard. Sign-in, invitations and the circle page are done.
+- Sending: "Draw and send" (and "Send 'you're in' emails"), which needs
+  the email work.
+- Organizer screens: the dashboard. Sign-in, invitations, the circle
+  page and exchange setup (with test mode) are done.
 - The container image, grype scanning and deployment.

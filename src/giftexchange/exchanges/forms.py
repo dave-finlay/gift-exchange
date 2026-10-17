@@ -4,8 +4,9 @@ from django import forms
 from django.conf import settings
 from django.core.validators import validate_email
 from django.db import transaction
+from django.db.models import Q
 
-from .models import Circle, Household, Person, Rule
+from .models import Circle, Exchange, Household, Person, Rule
 
 
 def household_named(circle, name):
@@ -168,7 +169,8 @@ class PasteForm(forms.Form):
 
 
 class RuleForm(forms.Form):
-    """A standing rule. "Both ways" makes two rules."""
+    """A standing rule, or with `exchange`, a rule for that exchange only.
+    "Both ways" makes two rules."""
 
     KINDS = [
         (Rule.Kind.EXCLUDE, "can't give to"),
@@ -187,12 +189,25 @@ class RuleForm(forms.Form):
         help_text="Private to you, e.g. the reason for the rule.",
     )
 
-    def __init__(self, *args, circle, **kwargs):
+    def __init__(self, *args, circle, exchange=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.circle = circle
-        people = circle.people.filter(active=True).order_by("name")
+        self.exchange = exchange
+        if exchange:
+            people = circle.people.filter(participations__exchange=exchange)
+        else:
+            people = circle.people.filter(active=True)
+        people = people.order_by("name")
         self.fields["giver"].queryset = people
         self.fields["receiver"].queryset = people
+
+    def rules_in_force(self):
+        """The rules this one must be consistent with: standing rules, plus
+        this exchange's own."""
+        scope = Q(exchange=None)
+        if self.exchange:
+            scope |= Q(exchange=self.exchange)
+        return Rule.objects.filter(scope, circle=self.circle)
 
     def pairs(self):
         giver, receiver = self.cleaned_data["giver"], self.cleaned_data["receiver"]
@@ -208,9 +223,9 @@ class RuleForm(forms.Form):
             return cleaned
         if giver == receiver:
             raise forms.ValidationError("Choose two different people.")
-        standing = Rule.objects.filter(circle=self.circle, exchange=None)
+        rules = self.rules_in_force()
         for g, r in self.pairs():
-            if standing.filter(giver=g, receiver=r).exists():
+            if rules.filter(giver=g, receiver=r).exists():
                 raise forms.ValidationError(f"There's already a rule for {g} and {r}.")
         if kind == Rule.Kind.REQUIRE:
             if cleaned.get("both_ways"):
@@ -219,7 +234,7 @@ class RuleForm(forms.Form):
                 raise forms.ValidationError(
                     f"{giver} and {receiver} are in the same household."
                 )
-            required = standing.filter(kind=Rule.Kind.REQUIRE)
+            required = rules.filter(kind=Rule.Kind.REQUIRE)
             if required.filter(giver=giver).exists():
                 raise forms.ValidationError(f"{giver} already must give to someone.")
             if required.filter(receiver=receiver).exists():
@@ -231,6 +246,7 @@ class RuleForm(forms.Form):
         return [
             Rule.objects.create(
                 circle=self.circle,
+                exchange=self.exchange,
                 giver=g,
                 receiver=r,
                 kind=self.cleaned_data["kind"],
@@ -238,3 +254,110 @@ class RuleForm(forms.Form):
             )
             for g, r in self.pairs()
         ]
+
+
+class ExchangeForm(forms.ModelForm):
+    """The basics and settings of an exchange."""
+
+    class Meta:
+        model = Exchange
+        fields = [
+            "name",
+            "gift_date",
+            "draw_date",
+            "budget",
+            "note",
+            "confirm_first",
+            "avoid_repeats",
+            "allow_mutual",
+            "single_loop",
+        ]
+        widgets = {
+            # Browsers' date pickers need ISO dates.
+            "gift_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "draw_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+            "avoid_repeats": forms.NumberInput(attrs={"min": 0, "max": 5}),
+        }
+        labels = {
+            "draw_date": "Draw date (optional)",
+            "budget": "Budget (optional)",
+            "note": "Note to everyone (optional)",
+            "confirm_first": "Ask people to confirm they're in before the draw",
+            "avoid_repeats": "Avoid pairings from the last … exchanges",
+            "allow_mutual": "Allow mutual pairs (A gives to B, and B gives to A)",
+            "single_loop": "One single loop through everyone (A → B → C → … → A)",
+        }
+        help_texts = {
+            "name": 'For example, "Christmas 2026".',
+            "draw_date": "Shown to participants. You start the draw yourself.",
+            "budget": 'For example, "About $30".',
+            "note": "Included in the emails.",
+            "avoid_repeats": "0 to allow repeats.",
+            "single_loop": "With a single loop, mutual pairs can't happen anyway.",
+        }
+
+    def __init__(self, *args, circle, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.circle = circle
+
+    def clean(self):
+        cleaned = super().clean()
+        gift_date, draw_date = cleaned.get("gift_date"), cleaned.get("draw_date")
+        if gift_date and draw_date and draw_date > gift_date:
+            self.add_error("draw_date", "The draw has to be before the gift date.")
+        if gift_date and self.instance.pk is None:
+            limit = settings.MAX_EXCHANGES_PER_CIRCLE_PER_YEAR
+            same_year = self.circle.exchanges.filter(gift_date__year=gift_date.year)
+            if same_year.count() >= limit:
+                raise forms.ValidationError(
+                    f"A circle can have up to {limit} exchanges a year."
+                )
+        return cleaned
+
+    @transaction.atomic
+    def save(self):
+        is_new = self.instance.pk is None
+        self.instance.circle = self.circle
+        exchange = super().save()
+        if is_new:
+            for person in self.circle.people.filter(active=True):
+                exchange.participants.create(person=person)
+        return exchange
+
+
+class ParticipantsForm(forms.Form):
+    """Who's taking part: a tick box for each person in the circle."""
+
+    people = forms.ModelMultipleChoiceField(
+        queryset=Person.objects.none(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label="Taking part",
+    )
+
+    def __init__(self, *args, exchange, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.exchange = exchange
+        taking_part = Q(participations__exchange=exchange)
+        self.fields["people"].queryset = (
+            exchange.circle.people.filter(Q(active=True) | taking_part)
+            .distinct()
+            .order_by("name")
+        )
+        self.initial["people"] = list(
+            exchange.participants.values_list("person_id", flat=True)
+        )
+
+    @transaction.atomic
+    def save(self):
+        chosen = set(self.cleaned_data["people"])
+        current = {
+            p.person: p for p in self.exchange.participants.select_related("person")
+        }
+        for person, participant in current.items():
+            if person not in chosen:
+                participant.delete()
+        for person in chosen - current.keys():
+            self.exchange.participants.create(person=person)
+        # Rules for this exchange only matter while both people take part,
+        # so they're kept: ticking someone again brings them back.

@@ -48,8 +48,9 @@
 
 <h2>Exchanges</h2>
 {% for exchange in exchanges %}
-  <div class="card"><strong>{{ exchange.name }}</strong> <small>{{ exchange.get_status_display }} · {{ exchange.gift_date|date:"j M Y" }}</small></div>
+  <a class="card" href="{% url 'exchange' exchange.pk %}"><strong>{{ exchange.name }}</strong> <small>{{ exchange.get_status_display }} · {{ exchange.gift_date|date:"j M Y" }}</small></a>
 {% empty %}
   <p class="muted">None yet.</p>
 {% endfor %}
+<p class="actions"><a class="button" href="{% url 'exchange_new' circle.pk %}">New exchange</a></p>
 {% endblock %}

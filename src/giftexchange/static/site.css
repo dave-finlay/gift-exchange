@@ -122,3 +122,8 @@ button.link {
 .errorlist { color: var(--error); padding-left: 1.25rem; margin: 0.25rem 0 0; }
 .errors .errorlist { padding-left: 0; list-style: none; }
 .copy { word-break: break-all; font-family: ui-monospace, monospace; font-size: 0.875rem; }
+
+/* Tick-box lists (CheckboxSelectMultiple) */
+.field div label { display: block; font-weight: normal; padding: 0.25rem 0; }
+.field div label input { margin-right: 0.5rem; }
+input[type=checkbox] { width: 1.1rem; height: 1.1rem; vertical-align: -0.15rem; }
