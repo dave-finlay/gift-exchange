@@ -30,6 +30,10 @@ uv run ruff format .       # format
 DJANGO_DEBUG=1 uv run python manage.py migrate
 DJANGO_DEBUG=1 uv run python manage.py createsuperuser
 DJANGO_DEBUG=1 uv run python manage.py runserver
+
+# To try pages on a phone on the same Wi-Fi, listen on the local network,
+# then open http://<your-computer>.local:8000 or http://<its address>:8000
+DJANGO_DEBUG=1 uv run python manage.py runserver 0.0.0.0:8000
 ```
 
 ## Layout

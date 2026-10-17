@@ -16,6 +16,7 @@ back to fixed development values. Without it they're an error.
 import base64
 import hashlib
 import os
+import socket
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
@@ -32,6 +33,22 @@ def env(name, default=None):
 
 def env_int(name, default):
     return int(env(name, str(default)))
+
+
+def env_list(name):
+    return [item.strip() for item in env(name, "").split(",") if item.strip()]
+
+
+def local_network_address():
+    """This computer's address on the local network, so a phone on the same
+    Wi-Fi can reach the development server. Connecting a UDP socket sends
+    nothing; it only picks the network interface."""
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("192.0.2.1", 9))  # A documentation address
+            return s.getsockname()[0]
+    except OSError:
+        return None
 
 
 DEBUG = env("DJANGO_DEBUG", "0") == "1"
@@ -73,10 +90,18 @@ DEFAULT_FROM_EMAIL = EMAIL_FROM
 OPERATOR_NAME = env("OPERATOR_NAME", "")
 OPERATOR_EMAIL = env("OPERATOR_EMAIL", "")
 
-ALLOWED_HOSTS = [SITE_DOMAIN]
+# Requests for any other address are refused. Links are built from the
+# address a request came in on, so a site can answer to several domains
+# (EXTRA_DOMAINS), each giving links on its own domain.
+SITE_DOMAINS = [SITE_DOMAIN, *env_list("EXTRA_DOMAINS")]
+ALLOWED_HOSTS = list(SITE_DOMAINS)
 if DEBUG:
-    ALLOWED_HOSTS += ["localhost", "127.0.0.1", "[::1]"]
-CSRF_TRUSTED_ORIGINS = [f"https://{SITE_DOMAIN}"]
+    # Development: this computer by any name, including its .local name
+    # and its address on the local network, for trying pages on a phone.
+    ALLOWED_HOSTS += ["localhost", "127.0.0.1", "[::1]", ".local"]
+    if address := local_network_address():
+        ALLOWED_HOSTS.append(address)
+CSRF_TRUSTED_ORIGINS = [f"https://{domain}" for domain in SITE_DOMAINS]
 
 # Size limits
 
