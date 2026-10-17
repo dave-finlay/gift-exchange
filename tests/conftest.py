@@ -26,7 +26,11 @@ class Build:
 
     def new_exchange(self, name="Christmas", **fields):
         exchange = Exchange.objects.create(
-            circle=self.circle, name=name, gift_date="2026-12-25", **fields
+            owner=self.circle.owner,
+            circle=self.circle,
+            name=name,
+            gift_date="2026-12-25",
+            **fields,
         )
         for person in self.person.values():
             exchange.participants.create(person=person)

@@ -1,9 +1,11 @@
-"""Organizer screens. Every view finds the circle through the signed-in
-user, so nobody can reach another organizer's data by changing an ID."""
+"""Organizer screens. Every view finds gift exchanges and circles through
+the signed-in user, so nobody can reach another organizer's data by
+changing an ID."""
 
+from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Prefetch
+from django.db.models import Case, Value, When
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -11,13 +13,16 @@ from giftexchange.audit.models import record
 
 from . import checks
 from .forms import (
+    CircleChoiceForm,
     CircleForm,
     ExchangeForm,
     ParticipantsForm,
     PasteForm,
     PersonForm,
     RuleForm,
+    new_exchange,
     remove_empty_households,
+    use_circle,
 )
 from .models import Circle, Exchange, Person, Rule
 
@@ -28,14 +33,17 @@ def own_circle(request, pk):
 
 @login_required
 def home(request):
-    latest = Exchange.objects.order_by("-gift_date")
-    circles = (
-        Circle.objects.filter(owner=request.user)
-        .prefetch_related(Prefetch("exchanges", queryset=latest))
-        .order_by("name")
+    """Gift exchanges first (ended ones last), then circles."""
+    ended = Case(When(status=Exchange.Status.ARCHIVED, then=Value(1)), default=0)
+    exchanges = (
+        request.user.exchanges.select_related("circle")
+        .annotate(ended=ended)
+        .order_by("ended", "-created_at")
     )
-    form = CircleForm(owner=request.user)
-    return render(request, "exchanges/home.html", {"circles": circles, "form": form})
+    circles = request.user.circles.order_by("name")
+    return render(
+        request, "exchanges/home.html", {"exchanges": exchanges, "circles": circles}
+    )
 
 
 @login_required
@@ -71,7 +79,7 @@ def circle(request, pk):
             "households": grouped,
             "on_their_own": households.get(None, []),
             "rules": rules,
-            "exchanges": circle.exchanges.order_by("-gift_date"),
+            "exchanges": circle.exchanges.order_by("-created_at"),
         },
     )
 
@@ -90,13 +98,15 @@ def circle_edit(request, pk):
 
 @login_required
 def circle_delete(request, pk):
-    """Delete a circle and everything in it, unless one of its gift
-    exchanges is under way: participants hold links to it."""
+    """Delete a circle and its people, unless one of its gift exchanges is
+    under way: participants hold links to it. Ended gift exchanges go with
+    it; drafts stay, without a circle."""
     circle = own_circle(request, pk)
     busy = circle.exchanges.filter(
         status__in=[Exchange.Status.JOINING, Exchange.Status.SENT]
     )
     if request.method == "POST" and not busy.exists():
+        circle.exchanges.filter(status=Exchange.Status.ARCHIVED).delete()
         circle.delete()
         record(request, "circle.delete", f"circle:{pk}")
         messages.success(request, f"Deleted {circle.name}.")
@@ -108,7 +118,10 @@ def circle_delete(request, pk):
             "circle": circle,
             "busy": [str(e) for e in busy],
             "people": circle.people.count(),
-            "exchanges": circle.exchanges.count(),
+            "drafts": [
+                str(e) for e in circle.exchanges.filter(status=Exchange.Status.DRAFT)
+            ],
+            "ended": circle.exchanges.filter(status=Exchange.Status.ARCHIVED).count(),
         },
     )
 
@@ -197,33 +210,33 @@ def rule_delete(request, circle_pk, pk):
     return redirect("circle", circle.pk)
 
 
-# Exchanges
+# Gift exchanges
 
 
 def own_exchange(request, pk):
     return get_object_or_404(
-        Exchange.objects.select_related("circle"), pk=pk, circle__owner=request.user
+        Exchange.objects.select_related("circle", "owner"), pk=pk, owner=request.user
     )
 
 
 def editable(request, exchange):
-    """Setup can change only while the exchange is a draft."""
+    """Setup can change only while the gift exchange is a draft."""
     if exchange.status == Exchange.Status.DRAFT:
         return True
-    messages.error(request, "This exchange has started, so its setup is locked.")
+    messages.error(request, "This gift exchange has started, so it's locked.")
     return False
 
 
 @login_required
-def exchange_new(request, pk):
-    circle = own_circle(request, pk)
-    form = ExchangeForm(request.POST or None, circle=circle)
-    if request.method == "POST" and form.is_valid():
-        exchange = form.save()
-        return redirect("exchange", exchange.pk)
-    return render(
-        request, "exchanges/exchange_new.html", {"circle": circle, "form": form}
-    )
+@require_POST
+def exchange_new(request):
+    """Create a draft straight away and open it: its page asks the rest."""
+    try:
+        exchange = new_exchange(request.user)
+    except forms.ValidationError as error:
+        messages.error(request, error.messages[0])
+        return redirect("home")
+    return redirect("exchange", exchange.pk)
 
 
 @login_required
@@ -233,10 +246,10 @@ def exchange(request, pk):
 
 
 def setup_page(request, exchange, **forms):
-    """The exchange setup page. Test mode runs only when asked for, with
+    """The gift exchange page. Test mode runs only when asked for, with
     ?check; names only with ?details."""
     check = None
-    if "check" in request.GET:
+    if "check" in request.GET and exchange.circle:
         check = checks.check(exchange)
     rules = exchange.rules.select_related("giver", "receiver").order_by(
         "giver__name", "receiver__name"
@@ -245,8 +258,9 @@ def setup_page(request, exchange, **forms):
         "exchange": exchange,
         "circle": exchange.circle,
         "draft": exchange.status == Exchange.Status.DRAFT,
-        "basics": forms.get("basics")
-        or ExchangeForm(instance=exchange, circle=exchange.circle),
+        "choose": forms.get("choose") or CircleChoiceForm(exchange=exchange),
+        "has_circles": request.user.circles.exists(),
+        "basics": forms.get("basics") or ExchangeForm(instance=exchange),
         "people": forms.get("people") or ParticipantsForm(exchange=exchange),
         "rules": rules,
         "check": check,
@@ -257,11 +271,60 @@ def setup_page(request, exchange, **forms):
 
 @login_required
 @require_POST
+def exchange_circle(request, pk):
+    """Choose (or change) the circle a draft gift exchange is for."""
+    exchange = own_exchange(request, pk)
+    if not editable(request, exchange):
+        return redirect("exchange", pk)
+    form = CircleChoiceForm(request.POST, exchange=exchange)
+    if not form.is_valid():
+        return setup_page(request, exchange, choose=form)
+    if form.cleaned_data["circle"] != exchange.circle:
+        use_circle(exchange, form.cleaned_data["circle"])
+    return redirect("exchange", pk)
+
+
+@login_required
+@require_POST
+def exchange_circle_new(request, pk):
+    """Start a new circle for a draft gift exchange, then add its people.
+    The circle page links back to the gift exchange."""
+    exchange = own_exchange(request, pk)
+    if not editable(request, exchange):
+        return redirect("exchange", pk)
+    form = CircleForm({"name": ""}, owner=request.user)
+    if not form.is_valid():
+        messages.error(request, form.errors.as_text())
+        return redirect("exchange", pk)
+    circle = form.save()
+    use_circle(exchange, circle)
+    messages.success(request, f"Now add the people taking part in {exchange.name}.")
+    return redirect("circle", circle.pk)
+
+
+@login_required
+def exchange_delete(request, pk):
+    """Delete a gift exchange, unless it's under way: participants hold
+    links to it."""
+    exchange = own_exchange(request, pk)
+    busy = exchange.status in (Exchange.Status.JOINING, Exchange.Status.SENT)
+    if request.method == "POST" and not busy:
+        exchange.delete()
+        record(request, "exchange.delete", f"exchange:{pk}")
+        messages.success(request, f"Deleted {exchange.name}.")
+        return redirect("home")
+    return render(
+        request, "exchanges/exchange_delete.html", {"exchange": exchange, "busy": busy}
+    )
+
+
+@login_required
+@require_POST
 def exchange_basics(request, pk):
     exchange = own_exchange(request, pk)
     if not editable(request, exchange):
         return redirect("exchange", pk)
-    form = ExchangeForm(request.POST, instance=exchange, circle=exchange.circle)
+    form = ExchangeForm(request.POST, instance=exchange)
     if not form.is_valid():
         return setup_page(request, exchange, basics=form)
     form.save()
@@ -273,7 +336,7 @@ def exchange_basics(request, pk):
 @require_POST
 def exchange_people(request, pk):
     exchange = own_exchange(request, pk)
-    if not editable(request, exchange):
+    if not exchange.circle or not editable(request, exchange):
         return redirect("exchange", pk)
     form = ParticipantsForm(request.POST, exchange=exchange)
     if not form.is_valid():
@@ -286,6 +349,8 @@ def exchange_people(request, pk):
 @login_required
 def exchange_rule_new(request, pk):
     exchange = own_exchange(request, pk)
+    if not exchange.circle:
+        return redirect("exchange", pk)
     if request.method == "POST" and not editable(request, exchange):
         return redirect("exchange", pk)
     form = RuleForm(request.POST or None, circle=exchange.circle, exchange=exchange)

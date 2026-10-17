@@ -1,11 +1,38 @@
 {% extends "base.html" %}
 {% block title %}{{ exchange.name }} · {% endblock %}
+{% block swipe_left %}{% url 'home' %}{% endblock %}
 {% block content %}
-<p><a href="{% url 'circle' circle.pk %}">← {{ circle.name }}</a></p>
 <h1>{{ exchange.name }}</h1>
-<p class="muted">{{ exchange.get_status_display }} · gifts on {{ exchange.gift_date|date:"j M Y" }}</p>
-{% if not draft %}<p class="notice">This exchange has started, so its setup is locked.</p>{% endif %}
+<p class="muted">{{ exchange.get_status_display }}{% if exchange.gift_date %} · gifts on {{ exchange.gift_date|date:"j M Y" }}{% else %} · no gift date yet{% endif %}</p>
+{% if not draft %}<p class="notice">This gift exchange has started, so it's locked.</p>{% endif %}
 
+<h2>Who's It For?</h2>
+<div class="card">
+  {% if circle %}
+    <p class="row"><span>The people in <a href="{% url 'circle' circle.pk %}">{{ circle.name }}</a></span> <a href="{% url 'circle' circle.pk %}">Edit people</a></p>
+    {% if draft %}
+      <details>
+        <summary>Use a different circle</summary>
+        {% include "exchanges/choose_circle.html" %}
+        <p><small>Changing the circle resets who's taking part and this gift exchange's own rules.</small></p>
+      </details>
+    {% endif %}
+  {% elif draft %}
+    {% if has_circles %}
+      <p>Choose the circle of people taking part.</p>
+      {% include "exchanges/choose_circle.html" %}
+      <p class="muted">Or start a new one:</p>
+    {% else %}
+      <p>Start by creating the circle of people taking part: your family, friends or group.</p>
+    {% endif %}
+    <form method="post" action="{% url 'exchange_circle_new' exchange.pk %}" class="actions">
+      {% csrf_token %}
+      <button class="{% if has_circles %}secondary{% endif %}">Create a new circle</button>
+    </form>
+  {% endif %}
+</div>
+
+{% if circle %}
 <h2>Who's Taking Part</h2>
 <form method="post" action="{% url 'exchange_people' exchange.pk %}" class="card">
   {% csrf_token %}
@@ -13,7 +40,7 @@
   {% if draft %}<button class="secondary">Save who's taking part</button>{% endif %}
 </form>
 
-<h2>Rules for This Exchange</h2>
+<h2>Rules for This Gift Exchange</h2>
 <p class="muted">On top of the circle's rules and households. <a href="{% url 'circle' circle.pk %}">See the circle's rules</a>.</p>
 {% if rules %}
   <div class="card"><ul class="plain">
@@ -58,10 +85,14 @@
 {% endif %}
 <form method="get" action="#check" class="actions"><input type="hidden" name="check" value=""><button class="secondary">{% if check %}Check again{% else %}Check the rules{% endif %}</button></form>
 
-<h2>Details and Settings</h2>
+{% endif %}
+
+<h2 id="details">Details and Settings</h2>
 <form method="post" action="{% url 'exchange_basics' exchange.pk %}" class="card">
   {% csrf_token %}
   {% include "form.html" with form=basics %}
   {% if draft %}<button>Save</button>{% endif %}
 </form>
+
+<p class="actions danger-zone"><a class="button secondary" href="{% url 'exchange_delete' exchange.pk %}">Delete gift exchange</a></p>
 {% endblock %}

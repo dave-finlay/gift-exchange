@@ -228,7 +228,7 @@ def test_cannot_delete_someone_in_a_started_exchange(client, circle):
 
     bob = person(circle, "Bob")
     exchange = Exchange.objects.create(
-        circle=circle, name="Christmas", gift_date="2026-12-25", status="sent"
+        owner=circle.owner, circle=circle, name="Christmas", status="sent"
     )
     exchange.participants.create(person=bob)
     url = reverse("person_delete", args=[circle.pk, bob.pk])
@@ -298,7 +298,7 @@ def test_cannot_delete_a_circle_with_an_exchange_under_way(client, circle):
     from giftexchange.exchanges.models import Exchange
 
     Exchange.objects.create(
-        circle=circle, name="Christmas", gift_date="2026-12-25", status="joining"
+        owner=circle.owner, circle=circle, name="Christmas", status="joining"
     )
     response = client.post(reverse("circle_delete", args=[circle.pk]))
     assert b"can't be deleted yet" in response.content

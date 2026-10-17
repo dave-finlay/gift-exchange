@@ -26,8 +26,15 @@ urlpatterns = [
         views.rule_delete,
         name="rule_delete",
     ),
-    path("circles/<int:pk>/exchanges/new/", views.exchange_new, name="exchange_new"),
+    path("exchanges/new/", views.exchange_new, name="exchange_new"),
     path("exchanges/<int:pk>/", views.exchange, name="exchange"),
+    path("exchanges/<int:pk>/circle/", views.exchange_circle, name="exchange_circle"),
+    path(
+        "exchanges/<int:pk>/circle/new/",
+        views.exchange_circle_new,
+        name="exchange_circle_new",
+    ),
+    path("exchanges/<int:pk>/delete/", views.exchange_delete, name="exchange_delete"),
     path("exchanges/<int:pk>/basics/", views.exchange_basics, name="exchange_basics"),
     path("exchanges/<int:pk>/people/", views.exchange_people, name="exchange_people"),
     path(

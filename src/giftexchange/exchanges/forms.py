@@ -19,6 +19,23 @@ def household_named(circle, name):
     return existing or Household.objects.create(circle=circle, name=name)
 
 
+def numbered(name, taken):
+    """`name`, or "name 2", "name 3"… if that's taken (ignoring case)."""
+    taken = {t.lower() for t in taken}
+    candidate, number = name, 1
+    while candidate.lower() in taken:
+        number += 1
+        candidate = f"{name} {number}"
+    return candidate
+
+
+def join_drafts(person):
+    """A new person starts off taking part in the circle's draft gift
+    exchanges, which are still being set up."""
+    for exchange in person.circle.exchanges.filter(status=Exchange.Status.DRAFT):
+        exchange.participants.get_or_create(person=person)
+
+
 def remove_empty_households(circle):
     circle.households.filter(members=None).delete()
 
@@ -58,11 +75,7 @@ class CircleForm(forms.ModelForm):
         circles = Circle.objects.filter(owner=self.owner).exclude(pk=self.instance.pk)
         taken = {n.lower() for n in circles.values_list("name", flat=True)}
         if not name:
-            # "My Circle", then "My Circle 2", and so on.
-            name, number = self.DEFAULT_NAME, 1
-            while name.lower() in taken:
-                number += 1
-                name = f"{self.DEFAULT_NAME} {number}"
+            name = numbered(self.DEFAULT_NAME, taken)
         if name.lower() in taken:
             raise forms.ValidationError("You already have a circle with this name.")
         return name
@@ -117,9 +130,12 @@ class PersonForm(forms.ModelForm):
     @transaction.atomic
     def save(self):
         person = self.instance
+        is_new = person.pk is None
         person.circle = self.circle
         person.household = household_named(self.circle, self.cleaned_data["household"])
         person.save()
+        if is_new:
+            join_drafts(person)
         remove_empty_households(self.circle)
         return person
 
@@ -176,12 +192,13 @@ class PasteForm(forms.Form):
     @transaction.atomic
     def save(self):
         for name, email, household in self.cleaned_data["text"]:
-            Person.objects.create(
+            person = Person.objects.create(
                 circle=self.circle,
                 name=name,
                 email=email,
                 household=household_named(self.circle, household),
             )
+            join_drafts(person)
         return len(self.cleaned_data["text"])
 
 
@@ -271,8 +288,67 @@ class RuleForm(forms.Form):
         ]
 
 
+DEFAULT_EXCHANGE_NAME = "My Gift Exchange"
+
+
+def check_yearly_limit(circle, gift_date, exchange):
+    limit = settings.MAX_EXCHANGES_PER_CIRCLE_PER_YEAR
+    if not (circle and gift_date):
+        return
+    same_year = circle.exchanges.filter(gift_date__year=gift_date.year)
+    if same_year.exclude(pk=exchange.pk).count() >= limit:
+        raise forms.ValidationError(
+            f"A circle can have up to {limit} gift exchanges a year."
+        )
+
+
+def new_exchange(owner):
+    """A new draft gift exchange, named "My Gift Exchange" (or "… 2", …)."""
+    limit = settings.MAX_EXCHANGES_PER_USER
+    current = owner.exchanges.exclude(status=Exchange.Status.ARCHIVED)
+    if current.count() >= limit:
+        raise forms.ValidationError(f"You can have up to {limit} gift exchanges.")
+    names = owner.exchanges.values_list("name", flat=True)
+    return Exchange.objects.create(
+        owner=owner, name=numbered(DEFAULT_EXCHANGE_NAME, names)
+    )
+
+
+@transaction.atomic
+def use_circle(exchange, circle):
+    """Set (or change) the circle a draft gift exchange is for: everyone in
+    it starts off taking part, and rules for the old circle's people go."""
+    exchange.participants.all().delete()
+    exchange.rules.all().delete()
+    exchange.circle = circle
+    exchange.save(update_fields=["circle"])
+    for person in circle.people.all():
+        exchange.participants.create(person=person)
+
+
+class CircleChoiceForm(forms.Form):
+    """Which of the organizer's circles a gift exchange is for."""
+
+    circle = forms.ModelChoiceField(
+        queryset=Circle.objects.none(), label="Circle", empty_label=None
+    )
+
+    def __init__(self, *args, exchange, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.exchange = exchange
+        circles = exchange.owner.circles.order_by("name")
+        self.fields["circle"].queryset = circles
+        if exchange.circle_id:
+            self.initial["circle"] = exchange.circle_id
+
+    def clean_circle(self):
+        circle = self.cleaned_data["circle"]
+        check_yearly_limit(circle, self.exchange.gift_date, self.exchange)
+        return circle
+
+
 class ExchangeForm(forms.ModelForm):
-    """The basics and settings of an exchange."""
+    """The basics and settings of a gift exchange."""
 
     class Meta:
         model = Exchange
@@ -294,6 +370,7 @@ class ExchangeForm(forms.ModelForm):
             "avoid_repeats": forms.NumberInput(attrs={"min": 0, "max": 5}),
         }
         labels = {
+            "gift_date": "Gift date",
             "draw_date": "Draw date (optional)",
             "budget": "Budget (optional)",
             "note": "Note to everyone (optional)",
@@ -311,33 +388,13 @@ class ExchangeForm(forms.ModelForm):
             "single_loop": "With a single loop, mutual pairs can't happen anyway.",
         }
 
-    def __init__(self, *args, circle, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.circle = circle
-
     def clean(self):
         cleaned = super().clean()
         gift_date, draw_date = cleaned.get("gift_date"), cleaned.get("draw_date")
         if gift_date and draw_date and draw_date > gift_date:
             self.add_error("draw_date", "The draw has to be before the gift date.")
-        if gift_date and self.instance.pk is None:
-            limit = settings.MAX_EXCHANGES_PER_CIRCLE_PER_YEAR
-            same_year = self.circle.exchanges.filter(gift_date__year=gift_date.year)
-            if same_year.count() >= limit:
-                raise forms.ValidationError(
-                    f"A circle can have up to {limit} exchanges a year."
-                )
+        check_yearly_limit(self.instance.circle, gift_date, self.instance)
         return cleaned
-
-    @transaction.atomic
-    def save(self):
-        is_new = self.instance.pk is None
-        self.instance.circle = self.circle
-        exchange = super().save()
-        if is_new:
-            for person in self.circle.people.all():
-                exchange.participants.create(person=person)
-        return exchange
 
 
 class ParticipantsForm(forms.Form):
@@ -353,7 +410,9 @@ class ParticipantsForm(forms.Form):
     def __init__(self, *args, exchange, **kwargs):
         super().__init__(*args, **kwargs)
         self.exchange = exchange
-        self.fields["people"].queryset = exchange.circle.people.order_by("name")
+        if exchange.circle:
+            people = exchange.circle.people.order_by("name")
+            self.fields["people"].queryset = people
         self.initial["people"] = list(
             exchange.participants.values_list("person_id", flat=True)
         )

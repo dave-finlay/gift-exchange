@@ -189,3 +189,5 @@ a.person:hover .icon { color: var(--accent); }
 .icon-link { color: var(--muted); display: inline-flex; }
 .icon-link:hover { color: var(--accent); }
 .danger-zone { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+
+button.big { font-size: 1.125rem; padding: 0.8rem 1.4rem; }

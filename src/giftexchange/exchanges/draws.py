@@ -24,7 +24,7 @@ class RuleConflict(Exception):
 def recent_pairings(exchange):
     """(giver, receiver) Person IDs from the circle's last `avoid_repeats`
     drawn exchanges. Never shown to anyone."""
-    if not exchange.avoid_repeats:
+    if not exchange.avoid_repeats or not exchange.circle_id:
         return set()
     previous = list(
         Exchange.objects.filter(circle_id=exchange.circle_id, drawn_at__isnull=False)

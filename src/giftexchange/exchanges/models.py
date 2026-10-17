@@ -70,7 +70,8 @@ class Person(models.Model):
 
 
 class Exchange(models.Model):
-    """One event, e.g. "Christmas 2026"."""
+    """One gift exchange, e.g. "Christmas 2026": the main thing organizers
+    create. A draft may not have a circle or a gift date yet."""
 
     class Status(models.TextChoices):
         DRAFT = "draft"
@@ -78,11 +79,19 @@ class Exchange(models.Model):
         SENT = "sent"
         ARCHIVED = "archived"
 
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name="exchanges", on_delete=models.CASCADE
+    )
+    # The people it's for. Deleting a circle leaves a draft without one.
     circle = models.ForeignKey(
-        Circle, related_name="exchanges", on_delete=models.CASCADE
+        Circle,
+        null=True,
+        blank=True,
+        related_name="exchanges",
+        on_delete=models.SET_NULL,
     )
     name = models.CharField(max_length=100)
-    gift_date = models.DateField()
+    gift_date = models.DateField(null=True, blank=True)
     draw_date = models.DateField(null=True, blank=True)
     budget = models.CharField(max_length=50, blank=True)
     note = models.TextField(blank=True)
