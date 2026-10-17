@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Rename {{ circle.name }} · {% endblock %}
+{% block content %}
+<p><a href="{% url 'circle' circle.pk %}">← {{ circle.name }}</a></p>
+<h1>Rename Circle</h1>
+<form method="post" class="card">
+  {% csrf_token %}
+  {% include "form.html" %}
+  <button>Save</button>
+</form>
+{% endblock %}

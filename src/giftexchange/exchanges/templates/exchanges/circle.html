@@ -2,7 +2,7 @@
 {% block title %}{{ circle.name }} · {% endblock %}
 {% block swipe_left %}{% url 'home' %}{% endblock %}
 {% block content %}
-<h1>{{ circle.name }}</h1>
+<h1 class="title-row">{{ circle.name }} <a href="{% url 'circle_edit' circle.pk %}" class="icon-link" title="Rename">{% include "icons/pencil.svg" %}</a></h1>
 
 <h2>People</h2>
 {% if not households and not on_their_own %}
@@ -47,4 +47,6 @@
   <p class="muted">None yet.</p>
 {% endfor %}
 <p class="actions"><a class="button" href="{% url 'exchange_new' circle.pk %}">New Gift Exchange</a></p>
+
+<p class="actions danger-zone"><a class="button secondary" href="{% url 'circle_delete' circle.pk %}">Delete circle</a></p>
 {% endblock %}
