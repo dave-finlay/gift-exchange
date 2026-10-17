@@ -12,6 +12,11 @@ urlpatterns = [
         views.person_edit,
         name="person_edit",
     ),
+    path(
+        "circles/<int:circle_pk>/people/<int:pk>/delete/",
+        views.person_delete,
+        name="person_delete",
+    ),
     path("circles/<int:pk>/paste/", views.paste, name="paste"),
     path("circles/<int:pk>/rules/new/", views.rule_new, name="rule_new"),
     path(

@@ -268,7 +268,9 @@ by email like everyone else's, and never appears on organizer screens.
    next step, e.g. "Christmas 2026 · Joining · 9 of 12 in · draw on 1
    Nov". There's also "New circle".
 2. **Circle page.**
-   - People are grouped by household: add, edit, deactivate.
+   - People are grouped by household: add, edit, deactivate, delete.
+     Deleting asks for confirmation, and isn't allowed while the person
+     is in a gift exchange that has started (that's a withdrawal).
    - **Paste a list:** lines of `Name, email`, like the old script's
      file.
    - Standing rules, offered as "both ways" or one way.

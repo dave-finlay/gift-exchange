@@ -9,5 +9,6 @@
   <datalist id="households">{% for name in households %}<option value="{{ name }}">{% endfor %}</datalist>
   <button>Save</button>
 </form>
+{% if person.pk %}<p class="actions"><a class="button secondary" href="{% url 'person_delete' circle.pk person.pk %}">Delete {{ person.name }}</a></p>{% endif %}
 {% if not person.pk %}<p class="muted">People can share an email address, for example a child and a parent. Each still gets their own email.</p>{% endif %}
 {% endblock %}

@@ -17,6 +17,7 @@ from .forms import (
     PasteForm,
     PersonForm,
     RuleForm,
+    remove_empty_households,
 )
 from .models import Circle, Exchange, Person, Rule
 
@@ -98,6 +99,32 @@ def person_form(request, circle, person):
         request,
         "exchanges/person_form.html",
         {"circle": circle, "form": form, "person": person, "households": households},
+    )
+
+
+@login_required
+def person_delete(request, circle_pk, pk):
+    """Delete a person, unless they're in a gift exchange that has started:
+    that needs a withdrawal instead, so their giver gets someone new."""
+    circle = own_circle(request, circle_pk)
+    person = get_object_or_404(Person, pk=pk, circle=circle)
+    exchanges = Exchange.objects.filter(participants__person=person)
+    busy = exchanges.filter(status__in=[Exchange.Status.JOINING, Exchange.Status.SENT])
+    if request.method == "POST" and not busy.exists():
+        person.delete()
+        remove_empty_households(circle)
+        record(request, "person.delete", f"person:{pk}")
+        messages.success(request, f"Deleted {person.name}.")
+        return redirect("circle", circle.pk)
+    return render(
+        request,
+        "exchanges/person_delete.html",
+        {
+            "circle": circle,
+            "person": person,
+            "busy": [str(e) for e in busy],
+            "past": exchanges.filter(status=Exchange.Status.ARCHIVED).exists(),
+        },
     )
 
 
