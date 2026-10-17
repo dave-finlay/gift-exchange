@@ -1,0 +1,25 @@
+name: Dependabot auto-merge
+
+# Turns on auto-merge for Dependabot's pull requests. GitHub then merges
+# each one once the checks that main requires (CI's test job) have passed.
+
+on: pull_request
+
+permissions: {}
+
+jobs:
+  auto-merge:
+    # The pull request's author, not github.actor, which can be someone
+    # else re-running the workflow.
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Merge once CI passes
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
