@@ -19,3 +19,6 @@ secrets/
 .vscode/
 *.iml
 .DS_Store
+
+# Local database
+data/

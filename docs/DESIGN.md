@@ -77,6 +77,15 @@ mounted with Compose `secrets` (see the Secrets row above). The rule of
 thumb: if leaking it would matter, it's a secret file; otherwise it can
 go in `site.env`.
 
+| Secret file | Contents |
+|---|---|
+| `django_secret_key` | Django's `SECRET_KEY`. Any further lines are older keys, kept as `SECRET_KEY_FALLBACKS` while rotating. |
+| `assignment_keys` | Fernet keys for encrypting assignments, newest first. The first encrypts; all of them decrypt. |
+
+Each file holds one value per line, newest first. With `DJANGO_DEBUG=1`
+(development and tests), missing files fall back to fixed development
+values; in production they're an error.
+
 **Self-hosting documentation** is part of the product: what to buy (a
 server, a domain, a B2 account, an email provider account), which DNS
 records to create, how to fill in `site.env` and the secrets, and how to
@@ -126,9 +135,12 @@ part this time, one-off rules, the draw and the emails. The model is
   - no EXCLUDE rule applies to G→R, either standing or for this exchange;
   - G→R didn't happen in the circle's last `avoid_repeats` exchanges.
 - **Forced pairings.** A REQUIRE rule fixes G→R. It's rejected if it
-  conflicts with any of the rules above, including same household, or with
-  another REQUIRE rule that has the same giver or the same receiver. With
-  mutual pairs off, REQUIRE rules A→B and B→A are rejected together.
+  conflicts with the same-household or EXCLUDE rules, or with another
+  REQUIRE rule that has the same giver or the same receiver. With mutual
+  pairs off, REQUIRE rules A→B and B→A are rejected together. A forced
+  pairing wins over avoiding recent pairings: rejecting it would tell the
+  organiser who gave to whom last time. Forced pairings involving someone
+  who isn't taking part are ignored.
 - **Structure.** By default no mutual pairs are allowed (if A gives to B,
   B doesn't give to A). Optionally the draw must be a single loop.
 
@@ -156,9 +168,12 @@ part this time, one-off rules, the draw and the emails. The model is
   `MultiFernet.encrypt("exchange_id:giver_id:receiver_id")`. The IDs are
   checked when decrypting, so an encrypted value can't be copied to a
   different row.
-- Exactly one code path decrypts: showing a participant their own
-  assignment, reached through their private link. Organiser pages and the
-  admin site never decrypt. Tests check this.
+- One module decrypts (`secrecy.py`), and only two places use it:
+  showing a participant their own assignment, reached through their
+  private link; and the draw, which needs recent pairings for
+  `avoid_repeats` and the current draw for repairs. Neither shows the
+  result to the organiser. Organiser pages and the admin site never
+  decrypt. A test checks which modules import `secrecy.py`.
 - The database can't enforce "each person receives exactly once" because
   receivers are encrypted. The draw checks that the whole result is a
   valid assignment before encrypting, and saves it in one transaction.
@@ -380,4 +395,6 @@ These are settings, checked in forms and in the draw:
 ## Next
 
 - Email templates.
-- Repository setup: git, project layout, `uv`, a first version of CI.
+- Organiser screens, starting with sign-in, invitations and the circle
+  page.
+- The container image, grype scanning and deployment.
