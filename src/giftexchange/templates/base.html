@@ -6,8 +6,9 @@
   <meta name="robots" content="noindex, nofollow">
   <title>{% block title %}{% endblock %}{{ SITE_NAME }}</title>
   <link rel="stylesheet" href="{% static 'site.css' %}">
+  <script src="{% static 'swipe.js' %}" defer></script>
 </head>
-<body>
+<body data-swipe-left="{% block swipe_left %}{% endblock %}">
   <header class="bar">
     {% if user.is_authenticated %}
       <a class="brand" href="{% url 'home' %}">⌂ Home</a>

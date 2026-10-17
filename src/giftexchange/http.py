@@ -2,9 +2,11 @@
 
 from django.conf import settings
 
-# No scripts, no third-party anything. Pages work without JavaScript.
+# Nothing third-party, and no inline scripts. Pages work without
+# JavaScript; the site's own small scripts only add conveniences, such as
+# swiping between pages.
 CSP = (
-    "default-src 'none'; style-src 'self'; img-src 'self'; "
+    "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; "
     "form-action 'self'; frame-ancestors 'none'; base-uri 'none'"
 )
 # The admin site needs its own scripts.

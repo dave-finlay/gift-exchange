@@ -56,6 +56,9 @@ a { color: var(--accent); }
 .menu summary { cursor: pointer; list-style: none; color: var(--accent); }
 .menu summary::-webkit-details-marker { display: none; }
 .menu summary::after { content: " ▾"; }
+/* Tap anywhere else to close it: while open, the summary covers the page
+   with an invisible layer, and tapping that toggles the menu shut. */
+.menu[open] summary::before { content: ""; position: fixed; inset: 0; z-index: 5; cursor: default; }
 .menu nav {
   position: absolute;
   right: 0;

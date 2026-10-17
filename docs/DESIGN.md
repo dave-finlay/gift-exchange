@@ -308,7 +308,8 @@ to everyone.
 ### Participant page
 
 Mobile-first and one column, because most people open it from an email on
-a phone. Plain wording. Works without JavaScript; no third-party scripts or
+a phone. Plain wording. Works without JavaScript (the site's own small
+scripts only add conveniences, like swiping); no third-party scripts or
 fonts; strict Content-Security-Policy.
 
 **Getting in.** The private link is the participant's only identity.

@@ -262,3 +262,10 @@ def test_header_has_home_and_a_menu(client, circle):
     content = client.get(reverse("home")).content
     assert b"Home</a>" in content
     assert b'<details class="menu">' in content
+
+
+def test_swiping_left_on_a_circle_goes_home(client, circle):
+    content = client.get(reverse("circle", args=[circle.pk])).content
+    assert f'data-swipe-left="{reverse("home")}"'.encode() in content
+    home = client.get(reverse("home")).content
+    assert b'data-swipe-left=""' in home

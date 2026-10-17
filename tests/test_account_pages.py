@@ -44,7 +44,8 @@ def test_pages_need_sign_in(client):
 
 def test_security_headers(client):
     response = client.get(reverse("signin"))
-    assert "script-src" not in response["Content-Security-Policy"]
+    assert "script-src 'self';" in response["Content-Security-Policy"]
+    assert "unsafe" not in response["Content-Security-Policy"]
     assert "default-src 'none'" in response["Content-Security-Policy"]
     assert response["X-Robots-Tag"] == "noindex, nofollow"
     assert response["Referrer-Policy"] == "same-origin"
