@@ -44,13 +44,14 @@ Status: design, as of 2026-10-16. No code yet.
 | Secrets | Master copies in KeePassXC. A script on the Mac reads them with `keepassxc-cli` and installs them over SSH into `/etc/gift-exchange/secrets/` (root-owned, readable only by the container's user). Mounted per service with Compose `secrets`, never as environment variables. CI never sees production secrets. |
 | Email | Brevo over its HTTPS API, via `django-anymail`. Emails carry a private link, not the assignment. Link and open tracking are off. The API key is limited by Brevo's Authorized IPs setting. |
 | Domain | The operator's own domain, with DNS at Cloudflare |
-| Sign-in | Organisers: password (Argon2id), lockout after repeated failures (`django-axes`), optional two-factor codes. Invitation links are single use, expire after about 7 days, and are stored hashed. |
+| Sign-in | Organisers: password (Argon2id), lockout after repeated failures (`django-axes`), optional two-factor codes. Invitation links are single use, expire after about 7 days, and are stored hashed. Only staff (the site's operator) can invite, for now. The new link is shown once, for the operator to send; emailing it comes with the email work. Plain Django sign-in views; two-factor codes come later, with `django-otp`. |
 | Admin | Django admin, reachable only through an SSH tunnel |
 | CI | GitHub Actions: ruff (lint, formatting) and pytest on every push to `main` and every pull request; read-only permissions; actions pinned to commit SHAs. Dependabot: weekly grouped updates for uv and GitHub Actions, plus immediate security updates. GitHub security features: CodeQL (Python and Actions), secret scanning with push protection, private vulnerability reporting. Rulesets on `main`: CI's `test` job must pass (repository admins can still push directly), and no force-pushes or deletion. Dependabot's pull requests merge automatically once CI passes (a small workflow turns on GitHub's auto-merge). A merge made that way doesn't trigger workflows on `main`, because it's made with the workflow's own token, so the image build and deploy will need a GitHub App token or another trigger. Dependabot was chosen over Renovate to start with, because it needs no app installed; revisit when image digests come in. A cooldown (waiting a few days before taking a new release) is on hold for now. |
 | Local development | OrbStack |
 
-Still open: Cloudflare proxy in front (optional), `django-allauth` or
-plain Django with `django-otp`.
+Still open: Cloudflare proxy in front (optional); serving static files
+(WhiteNoise in the app, or Caddy from a shared volume), to decide with the
+container image.
 
 ## Configuration
 
@@ -304,7 +305,9 @@ fonts; strict Content-Security-Policy.
   single-use.
 - On the first visit, the app swaps the token for a session cookie
   limited to that exchange, and redirects to a clean URL.
-- The page sets `Referrer-Policy: no-referrer` and `noindex`. Caddy's
+- Every page sets `Referrer-Policy: same-origin`, so URLs are never sent
+  to other sites, and `noindex`. Not `no-referrer`: with it, browsers send
+  `Origin: null` on form posts, which fails Django's CSRF check. Caddy's
   access logs are set up not to record the token.
 - When people share an email address, each still gets their own email and
   link, and the subject names them ("For Frank: …").
@@ -395,6 +398,6 @@ These are settings, checked in forms and in the draw:
 ## Next
 
 - Email templates.
-- Organiser screens, starting with sign-in, invitations and the circle
-  page.
+- Organiser screens: exchange setup (with test mode), then the
+  dashboard. Sign-in, invitations and the circle page are done.
 - The container image, grype scanning and deployment.

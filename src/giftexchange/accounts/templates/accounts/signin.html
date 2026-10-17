@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Sign in · {% endblock %}
+{% block content %}
+<h1>Sign in</h1>
+<form method="post" class="card">
+  {% csrf_token %}
+  {% include "form.html" %}
+  <input type="hidden" name="next" value="{{ next }}">
+  <button>Sign in</button>
+</form>
+<p class="muted">This site is invite-only. Taking part in an exchange doesn't need an account: just use the link in your email.</p>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Invitations · {% endblock %}
+{% block content %}
+<h1>Invitations</h1>
+{% if link %}
+  <div class="card">
+    <p><strong>Send this link to them.</strong> It works once, for {{ days }} days. It won't be shown again.</p>
+    <p class="copy">{{ link }}</p>
+  </div>
+{% endif %}
+<form method="post" class="card">
+  {% csrf_token %}
+  {% include "form.html" %}
+  <button>Create invitation link</button>
+</form>
+<h2>Waiting to be accepted</h2>
+{% if pending %}
+  <ul class="plain">
+    {% for invitation in pending %}
+      <li class="row">
+        <span>{{ invitation.email }} <small>expires {{ invitation.expires_at|date:"j M" }}</small></span>
+        <form method="post" action="{% url 'revoke_invitation' invitation.pk %}">{% csrf_token %}<button class="link">Cancel</button></form>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="muted">None.</p>
+{% endif %}
+{% endblock %}

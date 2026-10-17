@@ -105,6 +105,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "axes",
     "giftexchange.accounts",
     "giftexchange.exchanges",
     "giftexchange.audit",
@@ -118,6 +119,9 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "giftexchange.http.security_headers",
+    # Last, as django-axes requires.
+    "axes.middleware.AxesMiddleware",
 ]
 
 ROOT_URLCONF = "giftexchange.urls"
@@ -126,13 +130,14 @@ WSGI_APPLICATION = "giftexchange.wsgi.application"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "giftexchange.http.site",
             ],
         },
     },
@@ -163,6 +168,25 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Sign-in
 
 AUTH_USER_MODEL = "accounts.User"
+
+LOGIN_URL = "signin"
+LOGIN_REDIRECT_URL = "home"
+LOGOUT_REDIRECT_URL = "signin"
+
+AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+# Lockout after repeated failed sign-ins (django-axes): 5 failures from one
+# IP address, or for one email address, lock it out for an hour.
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = 1
+AXES_LOCKOUT_PARAMETERS = ["ip_address", "username"]
+AXES_RESET_ON_SUCCESS = True
+AXES_LOCKOUT_TEMPLATE = "accounts/locked_out.html"
+AXES_CLIENT_IP_CALLABLE = "giftexchange.http.client_ip"
+AXES_USERNAME_FORM_FIELD = "username"
 
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.Argon2PasswordHasher",
@@ -195,15 +219,22 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = DATA_DIR / "static"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Security. Caddy terminates HTTPS, redirects plain HTTP and sets HSTS; it
 # tells Django the original scheme in X-Forwarded-Proto.
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# Caddy replaces X-Forwarded-For with the real client address, so it can be
+# trusted in production. In development nothing sets it.
+TRUST_X_FORWARDED_FOR = env("TRUST_X_FORWARDED_FOR", "0" if DEBUG else "1") == "1"
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_HTTPONLY = True
-SECURE_REFERRER_POLICY = "no-referrer"
+# Never send our URLs (which may hold private tokens) to other sites.
+# Not "no-referrer": browsers then send "Origin: null" on form posts,
+# which fails Django's CSRF check.
+SECURE_REFERRER_POLICY = "same-origin"
 X_FRAME_OPTIONS = "DENY"
 
 # Caddy, not Django, handles HSTS (W004) and the redirect to HTTPS (W008).

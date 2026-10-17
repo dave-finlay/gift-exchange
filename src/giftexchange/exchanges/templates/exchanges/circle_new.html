@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}New circle · {% endblock %}
+{% block content %}
+<h1>New circle</h1>
+<form method="post" class="card">
+  {% csrf_token %}
+  {% include "form.html" %}
+  <button>Create circle</button>
+</form>
+{% endblock %}
