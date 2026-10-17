@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Create your account · {% endblock %}
+{% block content %}
+<h1>Create your account</h1>
+<p>You've been invited to run gift exchanges on {{ SITE_NAME }}. You'll sign in as <strong>{{ form.email }}</strong>.</p>
+<form method="post" class="card">
+  {% csrf_token %}
+  {% include "form.html" %}
+  <button>Create account</button>
+</form>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Add a rule · {% endblock %}
+{% block content %}
+<p><a href="{% url 'circle' circle.pk %}">← {{ circle.name }}</a></p>
+<h1>Add a rule</h1>
+<form method="post" class="card">
+  {% csrf_token %}
+  {% include "form.html" %}
+  <button>Add rule</button>
+</form>
+<p class="muted">Use "must give to" sparingly: the more rules there are, the easier it is to guess who has whom.</p>
+{% endblock %}

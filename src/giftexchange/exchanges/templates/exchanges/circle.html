@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ circle.name }} · {% endblock %}
+{% block content %}
+<p><a href="{% url 'home' %}">← Your circles</a></p>
+<h1>{{ circle.name }}</h1>
+
+<h2>People</h2>
+{% if not households and not on_their_own %}
+  <p class="muted">Nobody yet. Add people one at a time, or paste a list.</p>
+{% endif %}
+{% for household, members in households %}
+  <div class="card">
+    <strong>{{ household.name }}</strong>
+    <ul class="plain">{% for person in members %}{% include "exchanges/person_row.html" %}{% endfor %}</ul>
+  </div>
+{% endfor %}
+{% if on_their_own %}
+  <div class="card">
+    {% if households %}<strong>Not in a household</strong>{% endif %}
+    <ul class="plain">{% for person in on_their_own %}{% include "exchanges/person_row.html" %}{% endfor %}</ul>
+  </div>
+{% endif %}
+<p class="actions">
+  <a class="button" href="{% url 'person_new' circle.pk %}">Add a person</a>
+  <a class="button secondary" href="{% url 'paste' circle.pk %}">Paste a list</a>
+</p>
+{% if inactive %}
+  <details>
+    <summary>Not included in new exchanges ({{ inactive|length }})</summary>
+    <ul class="plain">{% for person in inactive %}{% include "exchanges/person_row.html" %}{% endfor %}</ul>
+  </details>
+{% endif %}
+
+<h2>Rules</h2>
+<p class="muted">These apply to every exchange in this circle. People in the same household never give to each other, without needing a rule.</p>
+{% if rules %}
+  <div class="card"><ul class="plain">
+    {% for rule in rules %}
+      <li class="row">
+        <span>{{ rule.giver }} {% if rule.kind == "require" %}must give to{% else %}can't give to{% endif %} {{ rule.receiver }}
+          {% if rule.note %}<small>{{ rule.note }}</small>{% endif %}</span>
+        <form method="post" action="{% url 'rule_delete' circle.pk rule.pk %}">{% csrf_token %}<button class="link">Remove</button></form>
+      </li>
+    {% endfor %}
+  </ul></div>
+{% endif %}
+<p class="actions"><a class="button secondary" href="{% url 'rule_new' circle.pk %}">Add a rule</a></p>
+
+<h2>Exchanges</h2>
+{% for exchange in exchanges %}
+  <div class="card"><strong>{{ exchange.name }}</strong> <small>{{ exchange.get_status_display }} · {{ exchange.gift_date|date:"j M Y" }}</small></div>
+{% empty %}
+  <p class="muted">None yet.</p>
+{% endfor %}
+{% endblock %}

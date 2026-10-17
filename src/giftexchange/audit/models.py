@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from giftexchange.http import client_ip
+
 
 class AuditEvent(models.Model):
     """Sign-ins, invitations, draws, sends, rule changes, withdrawals and
@@ -21,5 +23,10 @@ class AuditEvent(models.Model):
         return f"{self.action} {self.target}"
 
 
-def record(action, *, actor=None, target="", ip=None):
-    return AuditEvent.objects.create(action=action, actor=actor, target=target, ip=ip)
+def record(request, action, target="", *, actor=None):
+    """Record an action by the signed-in user (or `actor`) from a request."""
+    if actor is None and request.user.is_authenticated:
+        actor = request.user
+    return AuditEvent.objects.create(
+        action=action, actor=actor, target=str(target), ip=client_ip(request)
+    )

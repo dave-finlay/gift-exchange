@@ -1,8 +1,8 @@
 from datetime import timedelta
 
 import pytest
-from django.contrib.auth import authenticate
 from django.db import IntegrityError
+from django.urls import reverse
 from django.utils import timezone
 
 from giftexchange.accounts.models import Invitation, User
@@ -10,9 +10,13 @@ from giftexchange.accounts.models import Invitation, User
 pytestmark = pytest.mark.django_db
 
 
-def test_email_is_case_insensitive():
+def test_email_is_case_insensitive(client):
     User.objects.create_user("Alice@Example.org", "a long password")
-    assert authenticate(username="ALICE@example.ORG", password="a long password")
+    response = client.post(
+        reverse("signin"),
+        {"username": "ALICE@example.ORG", "password": "a long password"},
+    )
+    assert response.status_code == 302
     with pytest.raises(IntegrityError):
         User.objects.create_user("alice@example.org", "another password")
 

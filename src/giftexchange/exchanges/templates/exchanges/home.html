@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Your circles · {% endblock %}
+{% block content %}
+<h1>Your circles</h1>
+{% for circle in circles %}
+  <a class="card" href="{% url 'circle' circle.pk %}">
+    <strong>{{ circle.name }}</strong>
+    {% with exchange=circle.exchanges.all|first %}
+      {% if exchange %}<small>{{ exchange.name }} · {{ exchange.get_status_display }} · {{ exchange.gift_date|date:"j M Y" }}</small>
+      {% else %}<small>No exchanges yet</small>{% endif %}
+    {% endwith %}
+  </a>
+{% empty %}
+  <p>A circle is a group of people who exchange gifts, like a family or a group of friends. Start by creating one.</p>
+{% endfor %}
+<h2>New circle</h2>
+<form method="post" action="{% url 'circle_new' %}" class="card">
+  {% csrf_token %}
+  {% include "form.html" %}
+  <button>Create circle</button>
+</form>
+{% endblock %}

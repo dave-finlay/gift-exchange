@@ -1,0 +1,29 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{% block title %}{% endblock %}{{ SITE_NAME }}</title>
+  <link rel="stylesheet" href="{% static 'site.css' %}">
+</head>
+<body>
+  <header class="bar">
+    <a class="brand" href="{% url 'home' %}">{{ SITE_NAME }}</a>
+    {% if user.is_authenticated %}
+      <nav>
+        {% if user.is_staff %}<a href="{% url 'invitations' %}">Invitations</a>{% endif %}
+        <a href="{% url 'password_change' %}">Password</a>
+        <form method="post" action="{% url 'signout' %}">{% csrf_token %}<button class="link">Sign out</button></form>
+      </nav>
+    {% endif %}
+  </header>
+  <main>
+    {% for message in messages %}<p class="notice">{{ message }}</p>{% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+  {% if OPERATOR_EMAIL %}
+    <footer>Run by {{ OPERATOR_NAME|default:OPERATOR_EMAIL }} · <a href="mailto:{{ OPERATOR_EMAIL }}">{{ OPERATOR_EMAIL }}</a></footer>
+  {% endif %}
+</body>
+</html>
