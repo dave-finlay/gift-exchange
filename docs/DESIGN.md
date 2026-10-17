@@ -41,7 +41,7 @@ Status: design, as of 2026-10-16. No code yet.
 | App | Django 5.2 LTS under gunicorn (2–3 sync workers), dependencies managed with `uv` (`uv.lock`), base image `python:3.13-slim` |
 | Database | SQLite in WAL mode, with a busy timeout and Django's `"transaction_mode": "IMMEDIATE"` |
 | Backups | Backblaze B2 (Amsterdam). Layer 1: Litestream continuous replication, in its own container, with a one-off restore container before the app starts. Layer 2: a nightly `sqlite3 .backup`, encrypted with `age` (the server holds only the public key), in a separate bucket with 30-day Object Lock and a write-only key. 30-day retention. A weekly automated restore test reports to healthchecks.io. |
-| Secrets | Master copies in KeePassXC. A script on the Mac reads them with `keepassxc-cli` and installs them over SSH into `/etc/gift-exchanger/secrets/` (root-owned, readable only by the container's user). Mounted per service with Compose `secrets`, never as environment variables. CI never sees production secrets. |
+| Secrets | Master copies in KeePassXC. A script on the Mac reads them with `keepassxc-cli` and installs them over SSH into `/etc/gift-exchange/secrets/` (root-owned, readable only by the container's user). Mounted per service with Compose `secrets`, never as environment variables. CI never sees production secrets. |
 | Email | Brevo over its HTTPS API, via `django-anymail`. Emails carry a private link, not the assignment. Link and open tracking are off. The API key is limited by Brevo's Authorized IPs setting. |
 | Domain | The operator's own domain, with DNS at Cloudflare |
 | Sign-in | Organisers: password (Argon2id), lockout after repeated failures (`django-axes`), optional two-factor codes. Invitation links are single use, expire after about 7 days, and are stored hashed. |
@@ -51,6 +51,36 @@ Status: design, as of 2026-10-16. No code yet.
 
 Still open: Cloudflare proxy in front (optional), `django-allauth` or
 plain Django with `django-otp`.
+
+## Configuration
+
+Everyone who self-hosts runs the same code and the same container image.
+Anything specific to one installation comes from configuration at deploy
+time, never from the code or the image. Tests use `example.org`.
+
+**Site settings** aren't secret. They live in one file on the server,
+`/etc/gift-exchange/site.env`, passed to the containers as environment
+variables. The repository has a commented `site.env.example`.
+
+| Setting | Example | Used by |
+|---|---|---|
+| `SITE_DOMAIN` | `giftexchange.org` | Caddy's site address (`{$SITE_DOMAIN}` in the Caddyfile), Django's `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`, links in emails |
+| `SITE_NAME` | `Gift exchange` | Page titles, email subjects and signatures |
+| `EMAIL_FROM` | `Gift exchange <hello@giftexchange.org>` | Sender of all emails; must be on a domain verified with the email provider |
+| `OPERATOR_NAME`, `OPERATOR_EMAIL` | | The privacy note and the contact address shown to users |
+| `TIME_ZONE` | `Europe/Dublin` | Default for dates; organisers can set their own |
+| `LITESTREAM_BUCKET`, `BACKUP_BUCKET`, `B2_ENDPOINT` | | Backups |
+| Size limits | | Optional overrides of the defaults in "Size limits" |
+
+**Secrets** stay separate, as files under `/etc/gift-exchange/secrets/`
+mounted with Compose `secrets` (see the Secrets row above). The rule of
+thumb: if leaking it would matter, it's a secret file; otherwise it can
+go in `site.env`.
+
+**Self-hosting documentation** is part of the product: what to buy (a
+server, a domain, a B2 account, an email provider account), which DNS
+records to create, how to fill in `site.env` and the secrets, and how to
+start, upgrade, back up and restore.
 
 ## Data model
 
