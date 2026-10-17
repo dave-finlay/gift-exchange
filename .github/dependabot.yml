@@ -1,0 +1,19 @@
+# Weekly dependency updates, one grouped pull request per ecosystem.
+# Security updates for known vulnerabilities come separately, as soon as
+# an advisory is published (enabled in the repository settings).
+version: 2
+updates:
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      python:
+        patterns: ["*"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
