@@ -5,10 +5,9 @@
 <h1>Delete {{ person.name }}?</h1>
 {% if busy %}
   <p>{{ person.name }} is taking part in {{ busy|join:", " }}, which has already started, so they can't be deleted yet.</p>
-  <p class="muted">To leave them out of future gift exchanges instead, untick "Include in new exchanges".</p>
 {% else %}
   <p>This removes {{ person.name }} from {{ circle.name }}, along with their rules{% if past %} and their part in past gift exchanges{% endif %}. It can't be undone.</p>
-  <p class="muted">To keep them but leave them out of future gift exchanges, untick "Include in new exchanges" instead.</p>
+  <p class="muted">To leave them out of just one gift exchange, untick them under "Who's Taking Part" on its page instead.</p>
   <form method="post" class="actions">
     {% csrf_token %}
     <button>Delete {{ person.name }}</button>

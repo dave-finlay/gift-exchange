@@ -69,21 +69,18 @@ class PersonForm(forms.ModelForm):
         widget=forms.TextInput(attrs={"list": "households"}),
     )
 
-    field_order = ["name", "email", "household", "active"]
+    field_order = ["name", "email", "household"]
 
     class Meta:
         model = Person
         # The household is a name here, not the model's field.
-        fields = ["name", "email", "active"]
-        labels = {"active": "Include in new exchanges"}
+        fields = ["name", "email"]
 
     def __init__(self, *args, circle, **kwargs):
         super().__init__(*args, **kwargs)
         self.circle = circle
         if self.instance.household:
             self.initial["household"] = self.instance.household.name
-        if self.instance.pk is None:
-            del self.fields["active"]
 
     def clean_name(self):
         name = self.cleaned_data["name"].strip()
@@ -193,11 +190,9 @@ class RuleForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.circle = circle
         self.exchange = exchange
+        people = circle.people.order_by("name")
         if exchange:
-            people = circle.people.filter(participations__exchange=exchange)
-        else:
-            people = circle.people.filter(active=True)
-        people = people.order_by("name")
+            people = people.filter(participations__exchange=exchange)
         self.fields["giver"].queryset = people
         self.fields["receiver"].queryset = people
 
@@ -320,7 +315,7 @@ class ExchangeForm(forms.ModelForm):
         self.instance.circle = self.circle
         exchange = super().save()
         if is_new:
-            for person in self.circle.people.filter(active=True):
+            for person in self.circle.people.all():
                 exchange.participants.create(person=person)
         return exchange
 
@@ -338,12 +333,7 @@ class ParticipantsForm(forms.Form):
     def __init__(self, *args, exchange, **kwargs):
         super().__init__(*args, **kwargs)
         self.exchange = exchange
-        taking_part = Q(participations__exchange=exchange)
-        self.fields["people"].queryset = (
-            exchange.circle.people.filter(Q(active=True) | taking_part)
-            .distinct()
-            .order_by("name")
-        )
+        self.fields["people"].queryset = exchange.circle.people.order_by("name")
         self.initial["people"] = list(
             exchange.participants.values_list("person_id", flat=True)
         )

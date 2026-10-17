@@ -54,7 +54,6 @@ class Person(models.Model):
         related_name="members",
         on_delete=models.SET_NULL,
     )
-    active = models.BooleanField(default=True)
 
     class Meta:
         verbose_name_plural = "people"
