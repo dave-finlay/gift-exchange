@@ -169,12 +169,6 @@ def test_delete_gift_exchange(client, b):
     assert b.circle.people.count() == 6  # The circle stays
 
 
-def test_cannot_delete_a_gift_exchange_under_way(client, b):
-    Exchange.objects.filter(pk=b.exchange.pk).update(status=Exchange.Status.SENT)
-    client.post(reverse("exchange_delete", args=[b.exchange.pk]))
-    assert Exchange.objects.exists()
-
-
 def test_deleting_a_circle_keeps_drafts_and_removes_ended(client, b):
     ended = b.new_exchange(name="Last year", status=Exchange.Status.ARCHIVED)
     client.post(reverse("circle_delete", args=[b.circle.pk]))

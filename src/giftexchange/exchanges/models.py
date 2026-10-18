@@ -268,6 +268,7 @@ class EmailLog(models.Model):
         REASSIGNMENT = "reassignment"
         REMOVED = "removed"
         REMINDER = "reminder"
+        CALLED_OFF = "called_off"
 
     class Status(models.TextChoices):
         SENT = "sent"
