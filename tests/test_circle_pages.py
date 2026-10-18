@@ -328,3 +328,13 @@ def test_home_cards_swipe_to_delete(client, circle):
     open_ = reverse("circle", args=[circle.pk])
     delete = reverse("circle_delete", args=[circle.pk])
     assert f'href="{open_}" data-swipe-left="{delete}"' in content
+
+
+def test_pasting_huge_lines_stays_fast():
+    import time
+
+    from giftexchange.exchanges.forms import split_line
+
+    started = time.perf_counter()
+    assert split_line("a" + " " * 200_000 + "x" + "\t" * 200_000) is None
+    assert time.perf_counter() - started < 0.5

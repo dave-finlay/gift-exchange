@@ -1,5 +1,3 @@
-import re
-
 from django import forms
 from django.conf import settings
 from django.core.validators import validate_email
@@ -140,29 +138,38 @@ class PersonForm(forms.ModelForm):
         return person
 
 
-# Commas and tabs separate fields; a run of them (with any spaces) counts
-# as one, since lines copied from spreadsheets and emails mix them.
-SEPARATORS = re.compile(r"\s*[,\t][,\t\s]*")
-# "Name <email>", as copied from an email's To line
-NAME_AND_BRACKETED = re.compile(r"^(?P<name>.*?)\s*<(?P<email>[^<>]+)>$")
-# "Name email", separated only by spaces
-NAME_AND_EMAIL = re.compile(r"^(?P<name>.*\S)\s+(?P<email>\S+@\S+)$")
-
-
 def split_line(line):
-    """A pasted line's (name, email, household) fields, or None."""
-    line = line.strip()
-    first, *rest = SEPARATORS.split(line, maxsplit=1)
-    for pattern in (NAME_AND_BRACKETED, NAME_AND_EMAIL):
-        match = pattern.match(first)
-        if match and "@" not in match["name"]:
-            fields = [match["name"].strip(" \"'"), match["email"], *rest]
-            break
-    else:
-        fields = SEPARATORS.split(line)
-    if len(fields) not in (2, 3) or not fields[0] or not fields[1]:
+    """A pasted line's (name, email, household) fields, or None.
+
+    Commas and tabs separate fields, and a run of them counts as one,
+    since lines copied from spreadsheets and emails mix them. "Name email"
+    and "Name <email>" (from an email's To line) work too. Plain string
+    operations, not regular expressions, so time stays linear in the
+    line's length whatever is pasted.
+    """
+    fields = [f.strip() for f in line.replace("\t", ",").split(",")]
+    fields = [f for f in fields if f]
+    if fields and (name_email := _name_and_email(fields[0])):
+        fields = [*name_email, *fields[1:]]
+    if len(fields) not in (2, 3):
         return None
     return (*fields, "")[:3]
+
+
+def _name_and_email(text):
+    """ "Name <email>" or "Name email" split into (name, email), or None."""
+    if text.endswith(">") and "<" in text:
+        name, _, email = text[:-1].rpartition("<")
+    else:
+        words = text.rsplit(None, 1)
+        if len(words) != 2:
+            return None
+        name, email = words
+    name = name.strip().strip("\"'").strip()
+    email = email.strip()
+    if not name or "@" not in email or "@" in name:
+        return None
+    return name, email
 
 
 class PasteForm(forms.Form):
@@ -171,6 +178,7 @@ class PasteForm(forms.Form):
 
     text = forms.CharField(
         label="One person per line",
+        max_length=20_000,
         widget=forms.Textarea(
             attrs={
                 "placeholder": "Alice, alice@example.org, Smiths\nBob, bob@example.org"
