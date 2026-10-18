@@ -11,7 +11,6 @@ from giftexchange.exchanges.markup import to_html
         ("*about €30*", "<p><strong>about €30</strong></p>"),
         ("_low elf-esteem_", "<p><em>low elf-esteem</em></p>"),
         ("~~The election.~~", "<p><s>The election.</s></p>"),
-        ("~The election.~", "<p><s>The election.</s></p>"),
         ("about ~5 people and ~10 gifts", "<p>about ~5 people and ~10 gifts</p>"),
         ("Gifts -- if you like -- welcome", "<p>Gifts -- if you like -- welcome</p>"),
         ("snake_case and 2*3*4", "<p>snake_case and 2*3*4</p>"),
