@@ -8,14 +8,18 @@
 </form>
 
 <h1>Your Gift Exchanges</h1>
-{% for exchange in exchanges %}
-  {# Tap to open; swipe left to delete (with a confirmation page). #}
+{% for exchange, line, action in cards %}
+  {# Tap to open; the button takes the next step; swipe left to delete. #}
   <div class="swipe card-swipe">
     <span class="swipe-action" aria-hidden="true">Delete</span>
-    <a class="card swipeable" href="{% url 'exchange' exchange.pk %}" data-swipe-left="{% url 'exchange_delete' exchange.pk %}">
-      <strong>{{ exchange.name }}</strong>
-      <small>{% if exchange.circle %}{{ exchange.circle.name }}{% else %}No circle yet{% endif %} · {{ exchange.get_status_display }}{% if exchange.gift_date %} · {{ exchange.gift_date|date:"j M Y" }}{% endif %}</small>
-    </a>
+    <div class="card swipeable" data-swipe-left="{% url 'exchange_delete' exchange.pk %}">
+      <a class="card-link" href="{% url 'exchange' exchange.pk %}">
+        <strong>{{ exchange.name }}</strong>
+        <small>{% if exchange.circle %}{{ exchange.circle.name }}{% else %}No circle yet{% endif %} · {{ exchange.get_status_display }}{% if exchange.gift_date %} · {{ exchange.gift_date|date:"j M Y" }}{% endif %}</small>
+        {% if line %}<small>{{ line }}</small>{% endif %}
+      </a>
+      {% if action %}<p class="card-action"><a class="button" href="{{ action.1 }}">{{ action.0 }}</a></p>{% endif %}
+    </div>
   </div>
 {% empty %}
   <p class="muted">None yet.</p>

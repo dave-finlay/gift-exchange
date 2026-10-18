@@ -7,6 +7,8 @@ from django.conf import settings
 # swiping between pages.
 CSP = (
     "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; "
+    # The email preview, shown inside the send and draw summary pages
+    "frame-src 'self'; "
     "form-action 'self'; frame-ancestors 'none'; base-uri 'none'"
 )
 # The admin site needs its own scripts.

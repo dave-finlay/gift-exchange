@@ -278,10 +278,15 @@ a phone, so both have to work. The organizer's own assignment arrives
 by email like everyone else's, and never appears on organizer screens.
 
 1. **Home.** Leads with **Create a gift exchange**, then the organizer's
-   gift exchanges (ended ones last), each with its circle, status and
-   date; later also the next step, e.g. "Joining · 9 of 12 in · draw on 1
-   Nov". Then their circles, and "New circle". Swiping a gift exchange
-   or a circle left leads to its delete confirmation.
+   gift exchanges (ended ones last). Actions on a gift exchange start
+   here: each card shows its circle, status ("Draft", "Asking who's in",
+   "Drawn", "Ended"), date and progress ("5 of 7 in", "3 of 7 have
+   looked · 2 gifts bought"), and a button for the next step: **Draw and
+   send** (or **Send "Are you in?"**, then **Draw and send**), then **End
+   gift exchange**. Each opens a summary page (see below). Tapping a
+   card opens the gift exchange. Then their circles, and "New circle".
+   Swiping a gift exchange or a circle left leads to its delete
+   confirmation.
 2. **Circle page.**
    - The circle's name (blank at creation means "My Circle"), renamed
      with the pencil next to it. Delete circle, after a confirmation
@@ -300,8 +305,12 @@ by email like everyone else's, and never appears on organizer screens.
    - Standing rules, offered as "both ways" or one way.
    - "Used by", linking to the gift exchanges that use the circle.
 3. **Gift exchange page.** "Create a gift exchange" makes a draft named
-   "My Gift Exchange" straight away and opens this page. One page with
-   sections, not a wizard:
+   "My Gift Exchange" straight away and opens this page. While it's a
+   draft, it's a data entry form: one page with sections, not a wizard,
+   and one **Save** (and Cancel) at the bottom, both going home. "Add a
+   rule" and "Check the rules" save the form first, so nothing typed is
+   lost. Once it's under way, tapping the card shows its **progress**
+   instead (see the dashboard below). Sections:
    - **Who's it for?** Choose one of the organizer's circles, or create
      a new one (which opens the circle page to add people; its "Used by"
      line links back). Once chosen, the circle is shown as a card with
@@ -333,7 +342,15 @@ by email like everyone else's, and never appears on organizer screens.
      off" email, with no link, to everyone still in it. Deleting a circle
      does the same for its gift exchanges under way, deletes its ended
      ones, and keeps its drafts (without a circle).
-4. **Exchange dashboard.**
+   **Summary pages**, before anything is sent: who gets an email (names
+   and addresses), anything missing or a rules problem, the email itself
+   (the preview, shown in the page), then the button to go ahead, or
+   Cancel. **End gift exchange** has one too: everyone's link then says
+   it has ended, nobody is emailed, and its pairings still count for
+   "avoid repeats".
+4. **Exchange dashboard** (the progress page, once under way; so far it
+   lists each person's answer, whether they've looked, gift status, and
+   failed emails and requests to be taken out).
    - A banner for withdrawal requests.
    - One row per participant: response, email status (with bounces
      flagged, plus "fix email", which re-sends to that person only),

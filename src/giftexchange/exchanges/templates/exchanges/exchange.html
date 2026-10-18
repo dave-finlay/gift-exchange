@@ -2,9 +2,7 @@
 {% block title %}{{ exchange.name }} · {% endblock %}
 {% block swipe_left %}{% url 'home' %}{% endblock %}
 {% block content %}
-<h1 class="title-row">{{ exchange.name }} <a href="{% url 'exchange_rename' exchange.pk %}" class="icon-link" title="Rename">{% include "icons/pencil.svg" %}</a></h1>
-<p class="muted">{{ exchange.get_status_display }}{% if exchange.gift_date %} · gifts on {{ exchange.gift_date|date:"j M Y" }}{% else %} · no gift date yet{% endif %}</p>
-{% if not draft %}<p class="notice">This gift exchange has started, so it's locked.</p>{% endif %}
+{% include "exchanges/exchange_header.html" %}
 
 <h2>Who's It For?</h2>
 {% if circle %}
@@ -31,57 +29,30 @@
 </div>
 {% endif %}
 
-{% if progress is not None %}
-<h2>Progress</h2>
-{% if exchange.status == "joining" %}
-  <p class="actions"><a class="button" href="{% url 'exchange_draw' exchange.pk %}">Draw and send</a></p>
-{% endif %}
-<div class="card">
-  <ul class="plain progress">
-    {% for p in progress %}
-      <li>
-        <strong>{{ p.person.name }}</strong>
-        <small>
-          {% if exchange.status == "joining" %}
-            {% if p.response == "in" %}✓ In{% elif p.response == "declined" %}Not this time{% else %}No answer yet{% endif %}
-          {% elif p.response == "declined" %}Not taking part
-          {% else %}
-            {% if p.revealed_at %}✓ Has looked{% else %}Hasn't looked yet{% endif %} · Gift: {{ p.get_gift_status_display|lower }}
-          {% endif %}
-          {% if p.latest_email.status == "failed" %} · <span class="warning">Email failed</span>{% elif p.latest_email.status == "bounced" %} · <span class="warning">Email bounced</span>{% endif %}
-          {% if p.withdraw_requested_at and not p.withdrawn_at %} · <span class="warning">Asked to be taken out</span>{% endif %}
-        </small>
-      </li>
-    {% endfor %}
-  </ul>
-</div>
-{% endif %}
-
-{% if circle and draft %}
-<h2>Who's Taking Part</h2>
-<form method="post" action="{% url 'exchange_people' exchange.pk %}" class="card">
+<form id="setup" method="post" action="{% url 'exchange_save' exchange.pk %}">
   {% csrf_token %}
-  {% include "form.html" with form=people %}
-  {% if draft %}<button class="secondary">Save who's taking part</button>{% endif %}
-</form>
+  {% if circle %}
+    <h2>Who's Taking Part</h2>
+    <div class="card">{% include "form.html" with form=people %}</div>
 
-<h2>Rules for This Gift Exchange</h2>
-<p class="muted">On top of the circle's rules and households. <a href="{% url 'circle' circle.pk %}">See the circle's rules</a>.</p>
-{% if rules %}
-  <div class="card"><ul class="plain">
-    {% for rule in rules %}
-      <li class="row">
-        <span>{{ rule.giver }} {% if rule.kind == "require" %}must give to{% else %}can't give to{% endif %} {{ rule.receiver }}
-          {% if rule.note %}<small>{{ rule.note }}</small>{% endif %}</span>
-        {% if draft %}<form method="post" action="{% url 'exchange_rule_delete' exchange.pk rule.pk %}">{% csrf_token %}<button class="link">Remove</button></form>{% endif %}
-      </li>
-    {% endfor %}
-  </ul></div>
-{% endif %}
-{% if draft %}<p class="actions"><a class="button secondary" href="{% url 'exchange_rule_new' exchange.pk %}">Add a rule</a></p>{% endif %}
+    <h2>Rules for This Gift Exchange</h2>
+    <p class="muted">On top of the circle's rules and households. <a href="{% url 'circle' circle.pk %}">See the circle's rules</a>.</p>
+    {% if rules %}
+      <div class="card"><ul class="plain">
+        {% for rule in rules %}
+          <li class="row">
+            <span>{{ rule.giver }} {% if rule.kind == "require" %}must give to{% else %}can't give to{% endif %} {{ rule.receiver }}
+              {% if rule.note %}<small>{{ rule.note }}</small>{% endif %}</span>
+            <button class="link" form="remove-rule-{{ rule.pk }}">Remove</button>
+          </li>
+        {% endfor %}
+      </ul></div>
+    {% endif %}
+    {# These save the form first, so nothing typed is lost. #}
+    <p class="actions"><button class="secondary" name="then" value="add_rule">Add a rule</button></p>
 
-<h2 id="check">Check the Rules</h2>
-<p class="muted">Runs a thousand practice draws to check that a draw is possible, and how predictable it is. Nothing is saved, and nobody is emailed.</p>
+    <h2 id="check">Check the Rules</h2>
+    <p class="muted">Runs a thousand practice draws to check that a draw is possible, and how predictable it is. Nothing is sent.</p>
 {% if check %}
   <div class="card">
     {% if check.ok %}
@@ -108,29 +79,17 @@
     {% endif %}
   </div>
 {% endif %}
-<form method="get" action="#check" class="actions"><input type="hidden" name="check" value=""><button class="secondary">{% if check %}Check again{% else %}Check the rules{% endif %}</button></form>
-
-<h2>Send</h2>
-<div class="card">
-  {% if exchange.confirm_first %}
-    <p>First, everyone gets an email asking whether they're in. You draw the names once they've answered.</p>
-    <p class="actions"><a class="button" href="{% url 'exchange_send_join' exchange.pk %}">Send “Are you in?” emails</a>
-    <a class="button secondary" href="{% url 'exchange_preview' exchange.pk 'join' %}">Preview emails</a></p>
-  {% else %}
-    <p>Draw the names and email everyone their private link.</p>
-    <p class="actions"><a class="button" href="{% url 'exchange_draw' exchange.pk %}">Draw and send</a>
-    <a class="button secondary" href="{% url 'exchange_preview' exchange.pk 'assignment' %}">Preview email</a></p>
+    <p class="actions"><button class="secondary" name="then" value="check">{% if check %}Check again{% else %}Check the rules{% endif %}</button></p>
   {% endif %}
-  <p><small>To change the emails' messages, see Details and Settings below.</small></p>
-</div>
-{% endif %}
 
-<h2 id="details">Details and Settings</h2>
-<form method="post" action="{% url 'exchange_basics' exchange.pk %}" class="card">
-  {% csrf_token %}
-  {% include "form.html" with form=basics %}
-  {% if draft %}<button>Save</button>{% endif %}
+  <h2 id="details">Details and Settings</h2>
+  <div class="card">{% include "form.html" with form=basics %}</div>
+
+  <p class="actions"><button>Save</button> <a class="button secondary" href="{% url 'home' %}">Cancel</a></p>
 </form>
+{% for rule in rules %}
+  <form id="remove-rule-{{ rule.pk }}" method="post" action="{% url 'exchange_rule_delete' exchange.pk rule.pk %}">{% csrf_token %}</form>
+{% endfor %}
 
 <p class="actions danger-zone"><a class="button secondary" href="{% url 'exchange_delete' exchange.pk %}">Delete gift exchange</a></p>
 {% endblock %}

@@ -416,3 +416,20 @@ def test_preview_is_only_for_the_organizer(client, b):
     eve = User.objects.create_user("eve@example.org", "unused password")
     client.force_login(eve)
     assert client.get(url).status_code == 404
+
+
+def test_summary_pages_list_recipients_and_show_the_email(client, b):
+    page = client.get(reverse("exchange_send_join", args=[b.exchange.pk]))
+    content = page.content.decode()
+    assert "alice@example.org" in content and "frank@example.org" in content
+    preview = reverse("exchange_preview", args=[b.exchange.pk, "join"]) + "?embed"
+    assert f'<iframe class="email-preview" src="{preview}"' in content
+    assert "Subject: <strong>Are you in? Christmas</strong>" in content
+    assert "frame-src 'self'" in page["Content-Security-Policy"]
+    embedded = client.get(preview)
+    assert embedded["X-Frame-Options"] == "SAMEORIGIN"
+    assert "frame-ancestors 'self'" in embedded["Content-Security-Policy"]
+    assert (
+        b"Hi Alice," in embedded.content and b"Preview \xc2\xb7" not in embedded.content
+    )
+    assert not mail.outbox

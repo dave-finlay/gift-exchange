@@ -75,9 +75,9 @@ class Exchange(models.Model):
 
     class Status(models.TextChoices):
         DRAFT = "draft"
-        JOINING = "joining"
-        SENT = "sent"
-        ARCHIVED = "archived"
+        JOINING = "joining", "Asking who's in"
+        SENT = "sent", "Drawn"
+        ARCHIVED = "archived", "Ended"
 
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL, related_name="exchanges", on_delete=models.CASCADE

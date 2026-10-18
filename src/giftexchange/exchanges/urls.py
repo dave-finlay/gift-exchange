@@ -58,8 +58,8 @@ urlpatterns = [
     ),
     path("you/<int:pk>/gift/", participant.gift_status, name="participant_gift_status"),
     path("you/<int:pk>/withdraw/", participant.withdraw, name="participant_withdraw"),
-    path("exchanges/<int:pk>/basics/", views.exchange_basics, name="exchange_basics"),
-    path("exchanges/<int:pk>/people/", views.exchange_people, name="exchange_people"),
+    path("exchanges/<int:pk>/save/", views.exchange_save, name="exchange_save"),
+    path("exchanges/<int:pk>/end/", views.exchange_end, name="exchange_end"),
     path(
         "exchanges/<int:pk>/rules/new/",
         views.exchange_rule_new,
