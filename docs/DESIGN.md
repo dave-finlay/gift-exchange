@@ -23,7 +23,7 @@ Status: design, as of 2026-10-16. No code yet.
   Carol"), and avoid repeating recent years' pairings.
 - **Test mode.** Check the rules ahead of time without making the real
   draw.
-- **Friendly emails** with the organizer's note.
+- **Friendly emails** with the organizer's message, signed with their name.
 - **Free, no ads, no unrelated email.**
 - **Invite-only.** The operator invites people they know; they create a
   login and run their own exchanges. Participants need no account.
@@ -126,7 +126,7 @@ part this time, one-off rules, the draw and the emails. The model is
 | Household | circle, name | Members never give to each other, in either direction |
 | Person | circle, name, email, household (nullable) | Name unique within the circle. Email not unique, so a child can share a parent's address. |
 | Rule | circle, exchange (null means standing), giver, receiver, kind (EXCLUDE or REQUIRE), note | One direction each; the UI's "both ways" makes two rules |
-| Exchange | owner, circle (optional while a draft), name, gift_date (optional while a draft), draw_date (optional, shown to participants), budget, note, status, confirm_first (default true), avoid_repeats, allow_mutual (default false), single_loop (default false), drawn_at, sent_at, archived_at | `avoid_repeats` is the number of previous exchanges in the circle whose pairings to avoid. `allow_mutual` allows A→B together with B→A. `single_loop` makes the draw one loop through everyone (A→B→C→…→A); when it's on, `allow_mutual` has no effect. |
+| Exchange | owner, circle (optional while a draft), name, gift_date (optional while a draft), draw_date (optional, shown to participants), budget, note (the message with the draw), join_note (the message in the "Are you in?" email), status, confirm_first (default false), avoid_repeats, allow_mutual (default false), single_loop (default false), drawn_at, sent_at, archived_at | `avoid_repeats` is the number of previous exchanges in the circle whose pairings to avoid. `allow_mutual` allows A→B together with B→A. `single_loop` makes the draw one loop through everyone (A→B→C→…→A); when it's on, `allow_mutual` has no effect. |
 | Participant | exchange, person, link_rotated_at, response (pending, in, declined), responded_at, gift_status (not_yet, bought, sent), gift_status_at, revealed_at, withdraw_requested_at, withdrawn_at, created_at | Who takes part in this exchange; the private link points here |
 | GiftIdea | participant, text (up to 280 characters), created_at, updated_at | Ideas for yourself, seen only by your giver. Up to 10 per participant; deleted at archive. |
 | Assignment | giver (Participant, unique), receiver_ciphertext, created_at, updated_at | See "Assignment secrecy" |
@@ -156,7 +156,9 @@ part this time, one-off rules, the draw and the emails. The model is
 `Draft` → `Joining` → `Sent` → `Archived`
 
 - **Draft:** edit participants and rules, run test mode.
-- **Joining** (only if `confirm_first`): "you're in" emails have gone out.
+- **Joining** (only if `confirm_first`, which is off by default: many
+  groups have agreed beforehand and just want the draw; it suits looser
+  groups, where the email is the first they hear of it): "you're in" emails have gone out.
   Participants confirm or decline, and add gift ideas. These emails also
   confirm that addresses work. Before drawing, the organizer decides
   whether to include or leave out anyone who hasn't responded. Without
@@ -307,7 +309,14 @@ by email like everyone else's, and never appears on organizer screens.
      them. The circle can't be changed afterwards (too unusual to offer).
    - the name, renamed with the pencil next to it at any stage
      (participants see the new name on their page);
-   - basics (gift date, draw date, budget, note with an email preview);
+   - basics (gift date, draw date, budget) and two messages: one in the
+     draw email (also shown on everyone's page), one in the optional "Are
+     you in?" email. Messages allow `*bold*`, `_italic_`, `~~crossed
+     out~~`, https links and paragraphs; everything else, HTML included,
+     is shown as typed (`markup.py`). **Preview emails** shows each email
+     exactly as it will be sent, addressed to one of the people taking
+     part. Emails end with the organizer's name, then a small "Sent with
+     Gift Exchange" line.
    - who's in (everyone in the circle ticked by default);
    - rules for this exchange (with an optional private note, e.g. the
      reason for a forced pairing);

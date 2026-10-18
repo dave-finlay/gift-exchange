@@ -2,4 +2,4 @@
 {% block body %}<p>{{ organizer }} has added you to <strong>{{ exchange.name }}</strong>, a gift exchange: everyone buys a gift for one other person, and it's a secret who has whom.</p>
 <p>Let {{ organizer }} know if you're in, and add a few gift ideas for whoever gets you.</p>{% endblock %}
 {% block button %}Are you in?{% endblock %}
-{% block footer %}{% if exchange.draw_date %}The names will be drawn on {{ exchange.draw_date|date:"j F" }}.{% endif %}{% endblock %}
+{% block dates %}{% if exchange.draw_date %} The names will be drawn on {{ exchange.draw_date|date:"j F" }}.{% endif %}{% endblock %}

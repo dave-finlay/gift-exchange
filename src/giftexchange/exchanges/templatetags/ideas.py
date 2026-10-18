@@ -22,3 +22,11 @@ def https_links(text):
         last = match.end()
     parts.append(escape(text[last:]))
     return mark_safe("".join(parts))
+
+
+@register.filter
+def message(text):
+    """An organizer's message, with its few formatting markers."""
+    from giftexchange.exchanges.markup import to_html
+
+    return to_html(text)

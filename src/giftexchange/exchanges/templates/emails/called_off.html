@@ -6,7 +6,8 @@
     <p>Hi {{ person.name }},</p>
     <p>{{ organizer }} has called off <strong>{{ exchange.name }}</strong>. There's nothing more you need to do{% if exchange.status == "sent" %}, and you don't need to buy a gift{% endif %}.</p>
     <p>If you have any questions, just reply to this email to reach {{ organizer }}.</p>
-    <p style="color:#5d636b;font-size:14px;">{{ site_name }}, on behalf of {{ organizer }}</p>
+    <p>{{ organizer }}</p>
+    <p style="margin-top:32px;padding-top:12px;border-top:1px solid #dcd9d2;color:#5d636b;font-size:13px;">Sent with {{ site_name }}.</p>
   </div>
 </body>
 </html>

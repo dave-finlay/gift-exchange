@@ -4,5 +4,8 @@
 
 If you have any questions, just reply to this email to reach {{ organizer }}.
 
-{{ site_name }}, on behalf of {{ organizer }}
+{{ organizer }}
+
+--
+Sent with {{ site_name }}.
 {% endautoescape %}

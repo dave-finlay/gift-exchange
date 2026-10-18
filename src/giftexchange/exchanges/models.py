@@ -94,11 +94,16 @@ class Exchange(models.Model):
     gift_date = models.DateField(null=True, blank=True)
     draw_date = models.DateField(null=True, blank=True)
     budget = models.CharField(max_length=50, blank=True)
+    # The organizer's message with the draw (also on everyone's page), and
+    # in the optional "Are you in?" email. See markup.py for formatting.
     note = models.TextField(blank=True)
+    join_note = models.TextField(blank=True)
     status = models.CharField(
         max_length=10, choices=Status.choices, default=Status.DRAFT
     )
-    confirm_first = models.BooleanField(default=True)
+    # Off by default: many groups have agreed beforehand, and just want the
+    # draw. On, everyone first gets an "Are you in?" email.
+    confirm_first = models.BooleanField(default=False)
     # How many of the circle's previous exchanges to avoid repeating
     # pairings from.
     avoid_repeats = models.PositiveSmallIntegerField(

@@ -412,6 +412,7 @@ class ExchangeForm(forms.ModelForm):
             "budget",
             "note",
             "confirm_first",
+            "join_note",
             "avoid_repeats",
             "allow_mutual",
             "single_loop",
@@ -421,13 +422,15 @@ class ExchangeForm(forms.ModelForm):
             "gift_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "draw_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "avoid_repeats": forms.NumberInput(attrs={"min": 0, "max": 5}),
+            "join_note": forms.Textarea(attrs={"rows": 4}),
         }
         labels = {
             "gift_date": "Gift date",
             "draw_date": "Draw date (optional)",
             "budget": "Budget (optional)",
-            "note": "Note to everyone (optional)",
-            "confirm_first": "Ask people to confirm they're in before the draw",
+            "note": "Message with the draw (optional)",
+            "confirm_first": "First, ask people whether they're in",
+            "join_note": "Message in the “Are you in?” email (optional)",
             "avoid_repeats": "Avoid pairings from the last … exchanges",
             "allow_mutual": "Allow mutual pairs (A gives to B, and B gives to A)",
             "single_loop": "One single loop through everyone (A → B → C → … → A)",
@@ -435,13 +438,24 @@ class ExchangeForm(forms.ModelForm):
         help_texts = {
             "draw_date": "Shown to participants. You start the draw yourself.",
             "budget": 'For example, "About $30".',
-            "note": "Included in the emails.",
+            "note": "In everyone's email when the names are drawn, and on their "
+            "page. *bold*, _italic_, ~~crossed out~~; links work.",
+            "confirm_first": "An extra email before the draw, for groups that "
+            "haven't agreed yet. People answer, and add gift ideas.",
+            "join_note": "Only used if you ask first. Same formatting.",
             "avoid_repeats": "0 to allow repeats.",
             "single_loop": "With a single loop, mutual pairs can't happen anyway.",
         }
 
+    MAX_MESSAGE_LENGTH = 3000
+
     def clean(self):
         cleaned = super().clean()
+        for field in ("note", "join_note"):
+            if len(cleaned.get(field) or "") > self.MAX_MESSAGE_LENGTH:
+                self.add_error(
+                    field, f"Up to {self.MAX_MESSAGE_LENGTH} characters, please."
+                )
         gift_date, draw_date = cleaned.get("gift_date"), cleaned.get("draw_date")
         if gift_date and draw_date and draw_date > gift_date:
             self.add_error("draw_date", "The draw has to be before the gift date.")

@@ -23,7 +23,7 @@ FAMILY = [["Alice", "Bob"], ["Carol", "Dan"], ["Erin"], ["Frank"]]
 
 @pytest.fixture
 def b(build, client):
-    b = build(FAMILY)
+    b = build(FAMILY, confirm_first=True)  # Tests start with "Are you in?"
     b.circle.owner.display_name = "Olive"
     b.circle.owner.save()
     client.force_login(b.circle.owner)
@@ -349,3 +349,70 @@ def test_calling_off_respects_the_daily_email_limit(client, b, settings):
     assert Exchange.objects.exists()  # Not deleted: the emails couldn't go
     client.post(reverse("exchange_delete", args=[b.exchange.pk]))
     assert not Exchange.objects.exists()  # Quietly is still possible
+
+
+# Messages, sign-off and preview
+
+
+def test_emails_are_signed_by_the_organizer_with_their_message(client, b):
+    Exchange.objects.filter(pk=b.exchange.pk).update(
+        join_note="Are you *in*?", note="Have fun _shopping_!"
+    )
+    send_join(client, b)
+    join = email_to("Alice")
+    assert "Are you *in*?" in join.body  # Plain text: as typed
+    assert "<strong>in</strong>" in join.alternatives[0][0]
+    assert "Have fun" not in join.body  # That's the draw's message
+    assert join.body.rstrip().endswith(
+        "Olive\n\n--\nSent with Gift Exchange. This link is just for you, "
+        "so please don't forward it."
+    )
+    assert "on behalf" not in join.body
+    mail.outbox.clear()
+    draw(client, b)
+    drawn_email = email_to("Alice")
+    assert "Have fun _shopping_!" in drawn_email.body
+    assert "<em>shopping</em>" in drawn_email.alternatives[0][0]
+    assert "Are you *in*?" not in drawn_email.body
+
+
+def test_participant_page_shows_the_latest_message(client, b):
+    Exchange.objects.filter(pk=b.exchange.pk).update(
+        join_note="Join *now*", note="Drawn!"
+    )
+    send_join(client, b)
+    browser, url = open_page(email_to("Alice"))
+    assert b"Join <strong>now</strong>" in browser.get(url).content
+    draw(client, b)
+    page = browser.get(url).content
+    assert b"Drawn!" in page and b"Join" not in page
+
+
+def test_new_gift_exchanges_draw_without_asking_first(client, b):
+    client.post(reverse("exchange_new"))
+    assert Exchange.objects.latest("pk").confirm_first is False
+
+
+@pytest.mark.parametrize("kind", ["join", "assignment"])
+def test_preview_emails(client, b, kind):
+    Exchange.objects.filter(pk=b.exchange.pk).update(note="Wrap it *nicely*")
+    response = client.get(reverse("exchange_preview", args=[b.exchange.pk, kind]))
+    content = response.content.decode()
+    assert "Hi Alice," in content  # The first person taking part
+    assert "Subject: <strong" in content
+    assert "style-src 'unsafe-inline'" in response["Content-Security-Policy"]
+    assert "script-src" not in response["Content-Security-Policy"]
+    if kind == "assignment":
+        assert "<strong>nicely</strong>" in content
+    assert not mail.outbox and not EmailLog.objects.exists()
+
+
+def test_preview_is_only_for_the_organizer(client, b):
+    url = reverse("exchange_preview", args=[b.exchange.pk, "assignment"])
+    assert (
+        client.get(reverse("exchange_preview", args=[b.exchange.pk, "x"])).status_code
+        == 404
+    )
+    eve = User.objects.create_user("eve@example.org", "unused password")
+    client.force_login(eve)
+    assert client.get(url).status_code == 404

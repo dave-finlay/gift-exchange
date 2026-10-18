@@ -114,11 +114,14 @@
 <div class="card">
   {% if exchange.confirm_first %}
     <p>First, everyone gets an email asking whether they're in. You draw the names once they've answered.</p>
-    <a class="button" href="{% url 'exchange_send_join' exchange.pk %}">Send “Are you in?” emails</a>
+    <p class="actions"><a class="button" href="{% url 'exchange_send_join' exchange.pk %}">Send “Are you in?” emails</a>
+    <a class="button secondary" href="{% url 'exchange_preview' exchange.pk 'join' %}">Preview emails</a></p>
   {% else %}
     <p>Draw the names and email everyone their private link.</p>
-    <a class="button" href="{% url 'exchange_draw' exchange.pk %}">Draw and send</a>
+    <p class="actions"><a class="button" href="{% url 'exchange_draw' exchange.pk %}">Draw and send</a>
+    <a class="button secondary" href="{% url 'exchange_preview' exchange.pk 'assignment' %}">Preview email</a></p>
   {% endif %}
+  <p><small>To change the emails' messages, see Details and Settings below.</small></p>
 </div>
 {% endif %}
 
