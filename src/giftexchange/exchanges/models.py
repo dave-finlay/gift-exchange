@@ -195,10 +195,8 @@ class Participant(models.Model):
     person = models.ForeignKey(
         Person, related_name="participations", on_delete=models.CASCADE
     )
-    # Set when the first email goes out; a new link replaces it.
-    link_token_hash = models.CharField(
-        max_length=64, null=True, blank=True, unique=True
-    )
+    # Changing this invalidates the participant's old private links; see
+    # links.py.
     link_rotated_at = models.DateTimeField(null=True, blank=True)
     response = models.CharField(
         max_length=10, choices=Response.choices, default=Response.PENDING
@@ -276,6 +274,7 @@ class EmailLog(models.Model):
         DELIVERED = "delivered"
         BOUNCED = "bounced"
         COMPLAINT = "complaint"
+        FAILED = "failed"  # The provider refused it
 
     participant = models.ForeignKey(
         Participant, related_name="emails", on_delete=models.CASCADE

@@ -10,9 +10,9 @@ this repository and run your own private gift-exchange site for your
 family, friends or community: one small server, a few euros a month, no
 ads, and your group's data stays on your own server. Then change it to
 suit your group.
-It's early days: the draw, the data model, sign-in, invitations,
-circles and exchange setup (with a "check the rules" test mode) work;
-emails and sending the draw are next.
+It's early days, but the main flow works: organizers set up a gift
+exchange, everyone gets an email with a private link, and the draw is
+made and sent. Withdrawals, reminders and deployment are next.
 
 See [docs/DESIGN.md](docs/DESIGN.md) for the design.
 
@@ -30,6 +30,8 @@ uv run ruff format .       # format
 DJANGO_DEBUG=1 uv run python manage.py migrate
 DJANGO_DEBUG=1 uv run python manage.py createsuperuser
 DJANGO_DEBUG=1 uv run python manage.py runserver
+# Emails aren't sent in development: each is saved as a .eml file in
+# data/emails, which opens in any mail app.
 
 # To try pages on a phone on the same Wi-Fi, listen on the local network,
 # then open http://<your-computer>.local:8000 or http://<its address>:8000

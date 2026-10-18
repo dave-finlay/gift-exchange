@@ -1,0 +1,96 @@
+"""Emails to participants. They carry a private link, never the assignment
+itself, so the email provider never learns who has whom."""
+
+import logging
+from datetime import timedelta
+from email.utils import formataddr, parseaddr
+
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils import timezone
+
+from . import links
+from .models import EmailLog
+
+logger = logging.getLogger(__name__)
+
+
+class TooManyEmails(Exception):
+    pass
+
+
+def organizer_name(exchange):
+    return exchange.owner.display_name or exchange.owner.email
+
+
+def sender(exchange):
+    """ "Bob via Gift Exchange <hello@…>": the site's address, with the
+    organizer's name, since it's sent on their behalf."""
+    _, address = parseaddr(settings.EMAIL_FROM)
+    return formataddr((f"{organizer_name(exchange)} via {settings.SITE_NAME}", address))
+
+
+def check_daily_limit(exchange, adding):
+    limit = settings.MAX_EMAILS_PER_EXCHANGE_PER_DAY
+    since = timezone.now() - timedelta(days=1)
+    sent = EmailLog.objects.filter(
+        participant__exchange=exchange, sent_at__gte=since
+    ).count()
+    if sent + adding > limit:
+        raise TooManyEmails(
+            f"A gift exchange can send up to {limit} emails a day. Try again tomorrow."
+        )
+
+
+def send(request, exchange, participants, kind):
+    """Send one `kind` email (join, assignment, …) to each participant.
+    Returns how many failed; each attempt is logged, without its body."""
+    participants = list(participants)
+    check_daily_limit(exchange, len(participants))
+    # People sharing an address each get their own email, named in the
+    # subject.
+    addresses = [p.person.email.lower() for p in exchange.participants.all()]
+    failed = 0
+    for participant in participants:
+        person = participant.person
+        link = request.build_absolute_uri(
+            reverse("participant_link", args=[links.token(participant)])
+        )
+        context = {
+            "exchange": exchange,
+            "person": person,
+            "organizer": organizer_name(exchange),
+            "link": link,
+            "site_name": settings.SITE_NAME,
+        }
+        subject = render_to_string(f"emails/{kind}_subject.txt", context).strip()
+        if addresses.count(person.email.lower()) > 1:
+            subject = f"For {person.name}: {subject}"
+        message = EmailMultiAlternatives(
+            subject=subject,
+            body=render_to_string(f"emails/{kind}.txt", context),
+            from_email=sender(exchange),
+            to=[formataddr((person.name, person.email))],
+            reply_to=[exchange.owner.email],
+        )
+        message.attach_alternative(
+            render_to_string(f"emails/{kind}.html", context), "text/html"
+        )
+        status, message_id = EmailLog.Status.SENT, ""
+        try:
+            message.send()
+            anymail = getattr(message, "anymail_status", None)
+            message_id = (anymail and anymail.message_id) or ""
+        except Exception:
+            logger.exception("Sending a %s email failed", kind)
+            status = EmailLog.Status.FAILED
+            failed += 1
+        EmailLog.objects.create(
+            participant=participant,
+            kind=kind,
+            status=status,
+            provider_message_id=message_id,
+        )
+    return failed

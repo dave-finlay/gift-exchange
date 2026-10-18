@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import participant, views
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -35,6 +35,23 @@ urlpatterns = [
         name="exchange_circle_new",
     ),
     path("exchanges/<int:pk>/delete/", views.exchange_delete, name="exchange_delete"),
+    path(
+        "exchanges/<int:pk>/send/", views.exchange_send_join, name="exchange_send_join"
+    ),
+    path("exchanges/<int:pk>/draw/", views.exchange_draw, name="exchange_draw"),
+    # Participants
+    path("p/<str:token>/", participant.open_link, name="participant_link"),
+    path("you/<int:pk>/", participant.page, name="participant"),
+    path("you/<int:pk>/respond/", participant.respond, name="participant_respond"),
+    path("you/<int:pk>/reveal/", participant.reveal, name="participant_reveal"),
+    path("you/<int:pk>/ideas/", participant.add_idea, name="participant_add_idea"),
+    path(
+        "you/<int:pk>/ideas/<int:idea_pk>/delete/",
+        participant.delete_idea,
+        name="participant_delete_idea",
+    ),
+    path("you/<int:pk>/gift/", participant.gift_status, name="participant_gift_status"),
+    path("you/<int:pk>/withdraw/", participant.withdraw, name="participant_withdraw"),
     path("exchanges/<int:pk>/basics/", views.exchange_basics, name="exchange_basics"),
     path("exchanges/<int:pk>/people/", views.exchange_people, name="exchange_people"),
     path(

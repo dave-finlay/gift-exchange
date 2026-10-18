@@ -191,3 +191,13 @@ a.person:hover .icon { color: var(--accent); }
 .danger-zone { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--line); }
 
 button.big { font-size: 1.125rem; padding: 0.8rem 1.4rem; }
+
+/* The participant page */
+.reveal { text-align: center; padding: 1.5rem 1rem; }
+.reveal ul { text-align: left; }
+.receiver { font-size: 2rem; font-weight: 700; margin: 0.25rem 0 1rem; }
+.choices { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.note { white-space: normal; }
+details.danger-zone summary { cursor: pointer; color: var(--muted); }
+.progress li small { display: block; }
+.warning { color: var(--error); font-weight: 600; }

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load ideas %}
+{% block title %}{{ exchange.name }} · {% endblock %}
+{% block content %}
+<h1>{{ exchange.name }}</h1>
+<p class="muted">Hi {{ participant.person.name }}. Organized by {{ organizer }}.<br>
+  {% if exchange.gift_date %}Gifts on {{ exchange.gift_date|date:"l j F" }}{% if days > 1 %}, in {{ days }} days{% elif days == 1 %}, tomorrow{% elif days == 0 %}, today{% endif %}.{% endif %}
+  {% if exchange.budget %}Budget: {{ exchange.budget }}.{% endif %}</p>
+
+{% if participant.withdrawn_at %}
+  <div class="card"><p>You're no longer taking part in {{ exchange.name }}.</p></div>
+{% elif not drawn %}
+  {# Joining: are you in? #}
+  <div class="card">
+    {% if participant.response == "pending" %}
+      <p>{{ organizer }} has added you to {{ exchange.name }}. <strong>Are you in?</strong></p>
+    {% elif participant.response == "in" %}
+      <p><strong>✓ You're in.</strong> {% if exchange.draw_date %}The names will be drawn on {{ exchange.draw_date|date:"j F" }}, and you'll get an email.{% else %}You'll get an email when the names are drawn.{% endif %}</p>
+    {% else %}
+      <p>You said <strong>not this time</strong>. You can change your mind until the names are drawn.</p>
+    {% endif %}
+    <form method="post" action="{% url 'participant_respond' participant.pk %}" class="actions">
+      {% csrf_token %}
+      {% if participant.response != "in" %}<button name="response" value="in">I'm in</button>{% endif %}
+      {% if participant.response != "declined" %}<button name="response" value="declined" class="secondary">Not this time</button>{% endif %}
+    </form>
+  </div>
+{% elif in_draw %}
+  {# Drawn: who you're buying for #}
+  <div class="card reveal">
+    <p class="muted">You're buying for…</p>
+    {% if receiver %}
+      <p class="receiver">{{ receiver.person.name }}</p>
+      {% with ideas=receiver.gift_ideas.all %}
+        {% if ideas %}
+          <p>Their gift ideas:</p>
+          <ul>{% for idea in ideas %}<li>{{ idea.text|https_links }}</li>{% endfor %}</ul>
+        {% else %}
+          <p class="muted">They haven't added any gift ideas yet. Check back later.</p>
+        {% endif %}
+      {% endwith %}
+    {% else %}
+      <form method="post" action="{% url 'participant_reveal' participant.pk %}">
+        {% csrf_token %}
+        <button class="big">Tap to reveal</button>
+      </form>
+    {% endif %}
+  </div>
+
+  <h2>Your Gift</h2>
+  <form method="post" action="{% url 'participant_gift_status' participant.pk %}" class="card">
+    {% csrf_token %}
+    <div class="choices">
+      {% for value, label in statuses %}
+        <button name="gift_status" value="{{ value }}" class="{% if participant.gift_status != value %}secondary{% endif %}">{{ label }}</button>
+      {% endfor %}
+    </div>
+    <p><small>Only {{ organizer }} sees this, to know how things are going. It doesn't say who your gift is for.</small></p>
+  </form>
+{% else %}
+  <div class="card"><p>You're not taking part in {{ exchange.name }} this time.</p></div>
+{% endif %}
+
+{% if not participant.withdrawn_at and participant.response != "declined" %}
+  <h2>Your Gift Ideas</h2>
+  <div class="card">
+    <p class="muted">Only the person buying for you sees these.</p>
+    {% if ideas %}
+      <ul class="plain">
+        {% for idea in ideas %}
+          <li class="row"><span>{{ idea.text|https_links }}</span>
+            <form method="post" action="{% url 'participant_delete_idea' participant.pk idea.pk %}">{% csrf_token %}<button class="link">Remove</button></form></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if can_add_idea %}
+      <form method="post" action="{% url 'participant_add_idea' participant.pk %}">
+        {% csrf_token %}
+        {% include "form.html" with form=idea_form %}
+        <button class="secondary">Add</button>
+      </form>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% if exchange.note %}
+  <h2>From {{ organizer }}</h2>
+  <div class="card note">{{ exchange.note|linebreaksbr }}</div>
+{% endif %}
+
+<h2>Who's Taking Part</h2>
+<p>{{ names|join:", " }}</p>
+
+{% if drawn and in_draw and not participant.withdrawn_at %}
+  <details class="danger-zone">
+    <summary>Can't take part anymore?</summary>
+    {% if participant.withdraw_requested_at %}
+      <p>You've asked {{ organizer }} to take you out. They'll sort it out, and whoever was buying for you will get someone new.</p>
+    {% else %}
+      <p>This asks {{ organizer }} to take you out. Whoever was buying for you will get someone new.</p>
+      <form method="post" action="{% url 'participant_withdraw' participant.pk %}">
+        {% csrf_token %}
+        <button class="secondary">Ask {{ organizer }} to take me out</button>
+      </form>
+    {% endif %}
+  </details>
+{% endif %}
+{% endblock %}

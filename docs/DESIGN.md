@@ -42,7 +42,7 @@ Status: design, as of 2026-10-16. No code yet.
 | Database | SQLite in WAL mode, with a busy timeout and Django's `"transaction_mode": "IMMEDIATE"` |
 | Backups | Backblaze B2 (Amsterdam). Layer 1: Litestream continuous replication, in its own container, with a one-off restore container before the app starts. Layer 2: a nightly `sqlite3 .backup`, encrypted with `age` (the server holds only the public key), in a separate bucket with 30-day Object Lock and a write-only key. 30-day retention. A weekly automated restore test reports to healthchecks.io. |
 | Secrets | Master copies in KeePassXC. A script on the Mac reads them with `keepassxc-cli` and installs them over SSH into `/etc/gift-exchange/secrets/` (root-owned, readable only by the container's user). Mounted per service with Compose `secrets`, never as environment variables. CI never sees production secrets. |
-| Email | Brevo over its HTTPS API, via `django-anymail`. Emails carry a private link, not the assignment. Link and open tracking are off. The API key is limited by Brevo's Authorized IPs setting. |
+| Email | Brevo over its HTTPS API, via `django-anymail`. Emails carry a private link, not the assignment. Link and open tracking must be turned off in Brevo's settings (Anymail can't turn them off per message for Brevo), or Brevo would rewrite the private links. Emails come from the site's address as "Organizer via Gift Exchange", with Reply-To set to the organizer. Without the API key, development saves each email as a .eml file in `data/emails`. The API key is limited by Brevo's Authorized IPs setting. |
 | Domain | The operator's own domain, with DNS at Cloudflare |
 | Sign-in | Organizers: password (Argon2id), lockout after repeated failures (`django-axes`), optional two-factor codes. Invitation links are single use, expire after about 7 days, and are stored hashed. Only staff (the site's operator) can invite, for now. The new link is shown once, for the operator to send; emailing it comes with the email work. Plain Django sign-in views; two-factor codes come later, with `django-otp`. |
 | Admin | Django admin, reachable only through an SSH tunnel |
@@ -127,10 +127,10 @@ part this time, one-off rules, the draw and the emails. The model is
 | Person | circle, name, email, household (nullable) | Name unique within the circle. Email not unique, so a child can share a parent's address. |
 | Rule | circle, exchange (null means standing), giver, receiver, kind (EXCLUDE or REQUIRE), note | One direction each; the UI's "both ways" makes two rules |
 | Exchange | owner, circle (optional while a draft), name, gift_date (optional while a draft), draw_date (optional, shown to participants), budget, note, status, confirm_first (default true), avoid_repeats, allow_mutual (default false), single_loop (default false), drawn_at, sent_at, archived_at | `avoid_repeats` is the number of previous exchanges in the circle whose pairings to avoid. `allow_mutual` allows A→B together with B→A. `single_loop` makes the draw one loop through everyone (A→B→C→…→A); when it's on, `allow_mutual` has no effect. |
-| Participant | exchange, person, link_token_hash, link_rotated_at, response (pending, in, declined), responded_at, gift_status (not_yet, bought, sent), gift_status_at, revealed_at, withdraw_requested_at, withdrawn_at, created_at | Who takes part in this exchange; the private link points here |
+| Participant | exchange, person, link_rotated_at, response (pending, in, declined), responded_at, gift_status (not_yet, bought, sent), gift_status_at, revealed_at, withdraw_requested_at, withdrawn_at, created_at | Who takes part in this exchange; the private link points here |
 | GiftIdea | participant, text (up to 280 characters), created_at, updated_at | Ideas for yourself, seen only by your giver. Up to 10 per participant; deleted at archive. |
 | Assignment | giver (Participant, unique), receiver_ciphertext, created_at, updated_at | See "Assignment secrecy" |
-| EmailLog | participant, kind (join, assignment, reassignment, removed, reminder), sent_at, provider_message_id, status (sent, delivered, bounced, complaint) | Never stores email bodies. Statuses come from Brevo webhooks. |
+| EmailLog | participant, kind (join, assignment, reassignment, removed, reminder), sent_at, provider_message_id, status (sent, delivered, bounced, complaint, failed) | Never stores email bodies. Statuses come from Brevo webhooks. |
 | AuditEvent | actor, action, target, created_at, ip | Sign-ins, invitations, draws, sends, rule changes, withdrawals, admin actions |
 
 ### Rules
@@ -185,8 +185,14 @@ part this time, one-off rules, the draw and the emails. The model is
   receivers are encrypted. The draw checks that the whole result is a
   valid assignment before encrypting, and saves it in one transaction.
 - The draw uses `secrets.SystemRandom`. Seeds are never logged or stored.
-- Private links are 32-byte random tokens, stored hashed. "Re-send my
-  link" issues a new token, so old forwarded links stop working.
+- Private links carry the participant's ID and a version, signed with the
+  site's secret key (`links.py`); nothing about them is stored. So every
+  email to a participant (the first, the draw, reminders) can carry the
+  same working link. "Get a new link" changes the version
+  (`link_rotated_at`), so old forwarded links stop working. (Earlier
+  plan: random tokens stored hashed, but then a link could never be sent
+  again.) Anyone with the secret key could make links, but they could
+  also forge sessions, so it's no extra exposure.
 
 ### Matching algorithm
 
@@ -437,9 +443,12 @@ These are settings, checked in forms and in the draw:
 
 ## Next
 
-- Email templates.
-- Sending: "Draw and send" (and "Send 'you're in' emails"), which needs
-  the email work.
-- Organizer screens: the dashboard. Sign-in, invitations, the circle
-  page and exchange setup (with test mode) are done.
+- A real send through Brevo: a new API key, the sender domain's DNS
+  records, tracking off.
+- Withdrawals and late joiners (the repair), reminders, "get a new link",
+  re-sending a failed email, ending a gift exchange and archiving.
+- Done: sign-in, invitations, circles, gift exchange setup with test
+  mode, "Are you in?" and "Draw and send" emails, the participant page
+  (answer, gift ideas, tap to reveal, gift status, asking to be taken
+  out) and a progress list for the organizer.
 - The container image, grype scanning and deployment.
