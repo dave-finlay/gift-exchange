@@ -7,17 +7,15 @@
 {% if not draft %}<p class="notice">This gift exchange has started, so it's locked.</p>{% endif %}
 
 <h2>Who's It For?</h2>
+{% if circle %}
+  {# Tap to see and edit the circle's people. #}
+  <a class="card" href="{% url 'circle' circle.pk %}">
+    <strong>{{ circle.name }}</strong>
+    <small>{% if names %}{{ names|join:", " }}{% if more %} and {{ more }} more{% endif %}{% else %}Nobody yet: tap to add people{% endif %}</small>
+  </a>
+{% else %}
 <div class="card">
-  {% if circle %}
-    <p class="row"><span>The people in <a href="{% url 'circle' circle.pk %}">{{ circle.name }}</a></span> <a href="{% url 'circle' circle.pk %}">Edit people</a></p>
-    {% if draft %}
-      <details>
-        <summary>Use a different circle</summary>
-        {% include "exchanges/choose_circle.html" %}
-        <p><small>Changing the circle resets who's taking part and this gift exchange's own rules.</small></p>
-      </details>
-    {% endif %}
-  {% elif draft %}
+  {% if draft %}
     {% if has_circles %}
       <p>Choose the circle of people taking part.</p>
       {% include "exchanges/choose_circle.html" %}
@@ -31,6 +29,7 @@
     </form>
   {% endif %}
 </div>
+{% endif %}
 
 {% if circle %}
 <h2>Who's Taking Part</h2>

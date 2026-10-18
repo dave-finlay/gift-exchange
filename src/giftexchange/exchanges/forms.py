@@ -316,10 +316,8 @@ def new_exchange(owner):
 
 @transaction.atomic
 def use_circle(exchange, circle):
-    """Set (or change) the circle a draft gift exchange is for: everyone in
-    it starts off taking part, and rules for the old circle's people go."""
-    exchange.participants.all().delete()
-    exchange.rules.all().delete()
+    """Set the circle a draft gift exchange is for: everyone in it starts
+    off taking part."""
     exchange.circle = circle
     exchange.save(update_fields=["circle"])
     for person in circle.people.all():
@@ -336,10 +334,7 @@ class CircleChoiceForm(forms.Form):
     def __init__(self, *args, exchange, **kwargs):
         super().__init__(*args, **kwargs)
         self.exchange = exchange
-        circles = exchange.owner.circles.order_by("name")
-        self.fields["circle"].queryset = circles
-        if exchange.circle_id:
-            self.initial["circle"] = exchange.circle_id
+        self.fields["circle"].queryset = exchange.owner.circles.order_by("name")
 
     def clean_circle(self):
         circle = self.cleaned_data["circle"]

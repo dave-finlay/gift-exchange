@@ -245,6 +245,9 @@ def exchange(request, pk):
     return setup_page(request, exchange)
 
 
+NAMES_ON_CARD = 8
+
+
 def setup_page(request, exchange, **forms):
     """The gift exchange page. Test mode runs only when asked for, with
     ?check; names only with ?details."""
@@ -254,9 +257,17 @@ def setup_page(request, exchange, **forms):
     rules = exchange.rules.select_related("giver", "receiver").order_by(
         "giver__name", "receiver__name"
     )
+    names = []
+    if exchange.circle:
+        names = list(
+            exchange.circle.people.order_by("name").values_list("name", flat=True)
+        )
     context = {
         "exchange": exchange,
         "circle": exchange.circle,
+        # Some of the circle's people, for its card
+        "names": names[:NAMES_ON_CARD],
+        "more": max(0, len(names) - NAMES_ON_CARD),
         "draft": exchange.status == Exchange.Status.DRAFT,
         "choose": forms.get("choose") or CircleChoiceForm(exchange=exchange),
         "has_circles": request.user.circles.exists(),
@@ -272,15 +283,15 @@ def setup_page(request, exchange, **forms):
 @login_required
 @require_POST
 def exchange_circle(request, pk):
-    """Choose (or change) the circle a draft gift exchange is for."""
+    """Choose the circle a draft gift exchange is for. Once chosen, it
+    stays: changing it is too unusual to be worth offering."""
     exchange = own_exchange(request, pk)
-    if not editable(request, exchange):
+    if exchange.circle or not editable(request, exchange):
         return redirect("exchange", pk)
     form = CircleChoiceForm(request.POST, exchange=exchange)
     if not form.is_valid():
         return setup_page(request, exchange, choose=form)
-    if form.cleaned_data["circle"] != exchange.circle:
-        use_circle(exchange, form.cleaned_data["circle"])
+    use_circle(exchange, form.cleaned_data["circle"])
     return redirect("exchange", pk)
 
 
@@ -290,7 +301,7 @@ def exchange_circle_new(request, pk):
     """Start a new circle for a draft gift exchange, then add its people.
     The circle page links back to the gift exchange."""
     exchange = own_exchange(request, pk)
-    if not editable(request, exchange):
+    if exchange.circle or not editable(request, exchange):
         return redirect("exchange", pk)
     form = CircleForm({"name": ""}, owner=request.user)
     if not form.is_valid():
