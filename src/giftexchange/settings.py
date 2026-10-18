@@ -133,6 +133,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "axes",
+    "anymail",
     "giftexchange.accounts",
     "giftexchange.exchanges",
     "giftexchange.audit",
@@ -234,6 +235,18 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 INVITATION_DAYS = env_int("INVITATION_DAYS", 7)
+
+# Email. Brevo's HTTPS API once its key is installed (also for a real test
+# send in development). Without it, development saves each email as a .eml
+# file in data/emails, which opens in any mail app.
+
+SERVER_EMAIL = EMAIL_FROM
+if (SECRETS_DIR / "brevo_api_key").exists() or not DEBUG:
+    EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+    ANYMAIL = {"BREVO_API_KEY": secret_lines("brevo_api_key", "")[0]}
+else:
+    EMAIL_BACKEND = "giftexchange.mail.EmlFileBackend"
+    EMAIL_FILE_PATH = DATA_DIR / "emails"
 
 # Internationalization
 

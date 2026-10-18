@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Draw and Send · {% endblock %}
+{% block content %}
+<h1>Draw and Send</h1>
+{% if problems %}
+  <p>Not quite ready:</p>
+  <ul>{% for problem in problems %}<li>{{ problem }}</li>{% endfor %}</ul>
+  <p class="actions"><a class="button secondary" href="{% url 'exchange' exchange.pk %}">Back</a></p>
+{% elif not check.ok %}
+  <p>No draw is possible with these rules:</p>
+  <ul>{% for problem in check.problems %}<li>{{ problem }}</li>{% endfor %}</ul>
+  <p class="actions"><a class="button secondary" href="{% url 'exchange' exchange.pk %}?check#check">Back to the rules</a></p>
+{% else %}
+  <p>This draws the names and emails everyone taking part a private link to see who they're buying for. Nobody else sees the draw, including you. It can't be undone.</p>
+  <form method="post">
+    {% csrf_token %}
+    {% if joining and pending %}
+      <div class="card">
+        <p>{{ pending }} {% if pending == 1 %}person hasn't{% else %}people haven't{% endif %} answered yet.</p>
+        <label><input type="checkbox" name="leave_out_pending"> Leave them out</label>
+        <small>Otherwise they're included in the draw.</small>
+      </div>
+    {% endif %}
+    <p class="actions">
+      <button>Draw and send</button>
+      <a class="button secondary" href="{% url 'exchange' exchange.pk %}">Cancel</a>
+    </p>
+  </form>
+{% endif %}
+{% endblock %}

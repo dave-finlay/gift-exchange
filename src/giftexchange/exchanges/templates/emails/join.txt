@@ -1,0 +1,17 @@
+{% autoescape off %}Hi {{ person.name }},
+
+{{ organizer }} has added you to {{ exchange.name }}, a gift exchange: everyone buys a gift for one other person, and it's a secret who has whom.
+
+Gifts on {{ exchange.gift_date|date:"l j F Y" }}.{% if exchange.budget %}
+Budget: {{ exchange.budget }}{% endif %}{% if exchange.note %}
+
+{{ exchange.note }}{% endif %}
+
+Let {{ organizer }} know if you're in, and add a few gift ideas for whoever gets you:
+
+{{ link }}
+
+{% if exchange.draw_date %}The names will be drawn on {{ exchange.draw_date|date:"j F" }}. {% endif %}This link is just for you, so please don't forward it.
+
+{{ site_name }}, on behalf of {{ organizer }}
+{% endautoescape %}

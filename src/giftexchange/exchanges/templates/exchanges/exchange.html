@@ -31,7 +31,33 @@
 </div>
 {% endif %}
 
-{% if circle %}
+{% if progress is not None %}
+<h2>Progress</h2>
+{% if exchange.status == "joining" %}
+  <p class="actions"><a class="button" href="{% url 'exchange_draw' exchange.pk %}">Draw and send</a></p>
+{% endif %}
+<div class="card">
+  <ul class="plain progress">
+    {% for p in progress %}
+      <li>
+        <strong>{{ p.person.name }}</strong>
+        <small>
+          {% if exchange.status == "joining" %}
+            {% if p.response == "in" %}✓ In{% elif p.response == "declined" %}Not this time{% else %}No answer yet{% endif %}
+          {% elif p.response == "declined" %}Not taking part
+          {% else %}
+            {% if p.revealed_at %}✓ Has looked{% else %}Hasn't looked yet{% endif %} · Gift: {{ p.get_gift_status_display|lower }}
+          {% endif %}
+          {% if p.latest_email.status == "failed" %} · <span class="warning">Email failed</span>{% elif p.latest_email.status == "bounced" %} · <span class="warning">Email bounced</span>{% endif %}
+          {% if p.withdraw_requested_at and not p.withdrawn_at %} · <span class="warning">Asked to be taken out</span>{% endif %}
+        </small>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+{% if circle and draft %}
 <h2>Who's Taking Part</h2>
 <form method="post" action="{% url 'exchange_people' exchange.pk %}" class="card">
   {% csrf_token %}
@@ -84,6 +110,16 @@
 {% endif %}
 <form method="get" action="#check" class="actions"><input type="hidden" name="check" value=""><button class="secondary">{% if check %}Check again{% else %}Check the rules{% endif %}</button></form>
 
+<h2>Send</h2>
+<div class="card">
+  {% if exchange.confirm_first %}
+    <p>First, everyone gets an email asking whether they're in. You draw the names once they've answered.</p>
+    <a class="button" href="{% url 'exchange_send_join' exchange.pk %}">Send “Are you in?” emails</a>
+  {% else %}
+    <p>Draw the names and email everyone their private link.</p>
+    <a class="button" href="{% url 'exchange_draw' exchange.pk %}">Draw and send</a>
+  {% endif %}
+</div>
 {% endif %}
 
 <h2 id="details">Details and Settings</h2>

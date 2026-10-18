@@ -1,0 +1,15 @@
+{% autoescape off %}Hi {{ person.name }},
+
+The names for {{ exchange.name }} have been drawn. Open your private page to see who you're buying for:
+
+{{ link }}
+
+Gifts on {{ exchange.gift_date|date:"l j F Y" }}.{% if exchange.budget %}
+Budget: {{ exchange.budget }}{% endif %}{% if exchange.note %}
+
+{{ exchange.note }}{% endif %}
+
+Nobody else can see who you have, not even {{ organizer }}. This link is just for you, so please don't forward it.
+
+{{ site_name }}, on behalf of {{ organizer }}
+{% endautoescape %}

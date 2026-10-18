@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Send Emails · {% endblock %}
+{% block content %}
+<h1>Send “Are You In?” Emails</h1>
+{% if problems %}
+  <p>Not quite ready:</p>
+  <ul>{% for problem in problems %}<li>{{ problem }}</li>{% endfor %}</ul>
+  <p class="actions"><a class="button secondary" href="{% url 'exchange' exchange.pk %}">Back</a></p>
+{% else %}
+  <p>{{ participants|length }} people will get an email asking whether they're in, with a private link where they can answer and add gift ideas:</p>
+  <p class="muted">{% for p in participants %}{{ p.person.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+  <p>After this, the setup is locked. When people have answered, you'll draw the names.</p>
+  <form method="post" class="actions">
+    {% csrf_token %}
+    <button>Send {{ participants|length }} emails</button>
+    <a class="button secondary" href="{% url 'exchange' exchange.pk %}">Cancel</a>
+  </form>
+{% endif %}
+{% endblock %}

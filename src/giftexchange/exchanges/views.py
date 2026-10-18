@@ -7,11 +7,14 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Case, Value, When
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from giftexchange import matching
 from giftexchange.audit.models import record
 
-from . import checks
+from . import checks, draws, emails
 from .forms import (
     CircleChoiceForm,
     CircleForm,
@@ -24,7 +27,7 @@ from .forms import (
     remove_empty_households,
     use_circle,
 )
-from .models import Circle, Exchange, Person, Rule
+from .models import Circle, EmailLog, Exchange, Participant, Person, Rule
 
 
 def own_circle(request, pk):
@@ -276,8 +279,132 @@ def setup_page(request, exchange, **forms):
         "rules": rules,
         "check": check,
         "details": "details" in request.GET,
+        "progress": progress(exchange),
     }
     return render(request, "exchanges/exchange.html", context)
+
+
+def progress(exchange):
+    """One row per participant, once emails have gone out. Never shows who
+    has whom: only responses, emails, whether they've looked, and gifts."""
+    if exchange.status == Exchange.Status.DRAFT:
+        return None
+    latest = {}
+    for log in EmailLog.objects.filter(participant__exchange=exchange).order_by(
+        "sent_at"
+    ):
+        latest[log.participant_id] = log
+    rows = []
+    for participant in exchange.participants.select_related("person").order_by(
+        "person__name"
+    ):
+        participant.latest_email = latest.get(participant.pk)
+        rows.append(participant)
+    return rows
+
+
+def readiness(exchange):
+    """What's missing before emails can go out."""
+    problems = []
+    if not exchange.circle:
+        problems.append("Choose who it's for.")
+    if not exchange.gift_date:
+        problems.append("Set the gift date, under Details and Settings.")
+    if exchange.participants.in_draw().count() < 2:
+        problems.append("At least 2 people need to be taking part.")
+    return problems
+
+
+@login_required
+def exchange_send_join(request, pk):
+    """Send the "Are you in?" emails: Draft → Joining."""
+    exchange = own_exchange(request, pk)
+    if exchange.status != Exchange.Status.DRAFT or not exchange.confirm_first:
+        return redirect("exchange", pk)
+    problems = readiness(exchange)
+    participants = exchange.participants.select_related("person").order_by(
+        "person__name"
+    )
+    if request.method == "POST" and not problems:
+        try:
+            failed = emails.send(request, exchange, participants, "join")
+        except emails.TooManyEmails as error:
+            messages.error(request, str(error))
+            return redirect("exchange", pk)
+        exchange.status = Exchange.Status.JOINING
+        exchange.save(update_fields=["status"])
+        record(request, "exchange.join_sent", f"exchange:{pk}")
+        sent_message(request, len(participants), failed)
+        return redirect("exchange", pk)
+    return render(
+        request,
+        "exchanges/send_join.html",
+        {"exchange": exchange, "problems": problems, "participants": participants},
+    )
+
+
+@login_required
+def exchange_draw(request, pk):
+    """Draw and send: make the draw and email everyone their private link.
+    One action, after a confirmation page; the organizer never sees it."""
+    exchange = own_exchange(request, pk)
+    joining = exchange.status == Exchange.Status.JOINING
+    direct = exchange.status == Exchange.Status.DRAFT and not exchange.confirm_first
+    if not (joining or direct):
+        return redirect("exchange", pk)
+    pending = exchange.participants.in_draw().filter(
+        response=Participant.Response.PENDING
+    )
+    problems = readiness(exchange)
+    if request.method == "POST" and not problems:
+        if joining and request.POST.get("leave_out_pending"):
+            pending.update(response=Participant.Response.DECLINED)
+        taking_part = exchange.participants.in_draw()
+        try:
+            emails.check_daily_limit(exchange, taking_part.count())
+        except emails.TooManyEmails as error:
+            messages.error(request, str(error))
+            return redirect("exchange", pk)
+        try:
+            result = draws.draw(exchange)
+        except draws.RuleConflict:
+            result = None
+        if not isinstance(result, matching.Draw):
+            messages.error(
+                request, "No draw is possible with these rules. Check the rules below."
+            )
+            return redirect(reverse("exchange", args=[pk]) + "?check#check")
+        exchange.status = Exchange.Status.SENT
+        exchange.sent_at = timezone.now()
+        exchange.save(update_fields=["status", "sent_at"])
+        record(request, "exchange.draw", f"exchange:{pk}")
+        failed = emails.send(
+            request, exchange, taking_part.select_related("person"), "assignment"
+        )
+        sent_message(request, taking_part.count(), failed)
+        return redirect("exchange", pk)
+    return render(
+        request,
+        "exchanges/draw.html",
+        {
+            "exchange": exchange,
+            "problems": problems,
+            "joining": joining,
+            "pending": pending.count(),
+            "taking_part": exchange.participants.in_draw().count(),
+            "check": None if problems else checks.check(exchange),
+        },
+    )
+
+
+def sent_message(request, count, failed):
+    if failed:
+        messages.error(
+            request,
+            f"{failed} of {count} emails couldn't be sent. See the list below.",
+        )
+    else:
+        messages.success(request, f"Sent {count} emails.")
 
 
 @login_required

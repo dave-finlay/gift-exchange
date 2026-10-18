@@ -9,9 +9,9 @@ from giftexchange.exchanges.models import Assignment
 
 SOURCE = Path(secrecy.__file__).parents[1]
 
-# The only modules allowed to decrypt assignments. Add the participant page
-# here when it exists, and nothing else.
-ALLOWED = {"exchanges/draws.py"}
+# The only modules allowed to decrypt assignments: the draw, and the
+# participant's own page. Nothing else.
+ALLOWED = {"exchanges/draws.py", "exchanges/participant.py"}
 
 
 def imports_secrecy(path):
