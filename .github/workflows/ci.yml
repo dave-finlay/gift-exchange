@@ -45,6 +45,7 @@ jobs:
             > "$SECRETS_DIR/django_secret_key"
           uv run python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())" \
             > "$SECRETS_DIR/assignment_keys"
+          echo "not-a-real-key" > "$SECRETS_DIR/brevo_api_key"
           uv run python manage.py check --deploy --fail-level WARNING
         env:
           SECRETS_DIR: ${{ runner.temp }}/secrets
