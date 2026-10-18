@@ -394,13 +394,19 @@ class CircleChoiceForm(forms.Form):
         return circle
 
 
+class RenameExchangeForm(forms.ModelForm):
+    class Meta:
+        model = Exchange
+        fields = ["name"]
+        help_texts = {"name": 'For example, "Christmas 2026".'}
+
+
 class ExchangeForm(forms.ModelForm):
-    """The basics and settings of a gift exchange."""
+    """The basics and settings of a gift exchange (renaming is separate)."""
 
     class Meta:
         model = Exchange
         fields = [
-            "name",
             "gift_date",
             "draw_date",
             "budget",
@@ -427,7 +433,6 @@ class ExchangeForm(forms.ModelForm):
             "single_loop": "One single loop through everyone (A → B → C → … → A)",
         }
         help_texts = {
-            "name": 'For example, "Christmas 2026".',
             "draw_date": "Shown to participants. You start the draw yourself.",
             "budget": 'For example, "About $30".',
             "note": "Included in the emails.",

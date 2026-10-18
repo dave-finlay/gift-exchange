@@ -35,6 +35,7 @@ urlpatterns = [
         name="exchange_circle_new",
     ),
     path("exchanges/<int:pk>/delete/", views.exchange_delete, name="exchange_delete"),
+    path("exchanges/<int:pk>/rename/", views.exchange_rename, name="exchange_rename"),
     path(
         "exchanges/<int:pk>/send/", views.exchange_send_join, name="exchange_send_join"
     ),

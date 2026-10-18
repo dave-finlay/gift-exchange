@@ -305,8 +305,9 @@ by email like everyone else's, and never appears on organizer screens.
      line links back). Once chosen, the circle is shown as a card with
      some of its people's names; tapping it opens the circle to edit
      them. The circle can't be changed afterwards (too unusual to offer).
-   - basics (name, gift date, draw date, budget, note with an email
-     preview);
+   - the name, renamed with the pencil next to it at any stage
+     (participants see the new name on their page);
+   - basics (gift date, draw date, budget, note with an email preview);
    - who's in (everyone in the circle ticked by default);
    - rules for this exchange (with an optional private note, e.g. the
      reason for a forced pairing);

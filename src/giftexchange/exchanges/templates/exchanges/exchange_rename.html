@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Rename {{ exchange.name }} · {% endblock %}
+{% block content %}
+<h1>Rename Gift Exchange</h1>
+<form method="post" class="card">
+  {% csrf_token %}
+  {% include "form.html" %}
+  <p class="actions"><button>Save</button> <a class="button secondary" href="{% url 'exchange' exchange.pk %}">Cancel</a></p>
+</form>
+{% if exchange.status != "draft" %}<p class="muted">People taking part will see the new name on their page. Emails already sent keep the old one.</p>{% endif %}
+{% endblock %}

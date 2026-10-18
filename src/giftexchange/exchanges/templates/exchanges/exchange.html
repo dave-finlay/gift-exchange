@@ -2,7 +2,7 @@
 {% block title %}{{ exchange.name }} · {% endblock %}
 {% block swipe_left %}{% url 'home' %}{% endblock %}
 {% block content %}
-<h1>{{ exchange.name }}</h1>
+<h1 class="title-row">{{ exchange.name }} <a href="{% url 'exchange_rename' exchange.pk %}" class="icon-link" title="Rename">{% include "icons/pencil.svg" %}</a></h1>
 <p class="muted">{{ exchange.get_status_display }}{% if exchange.gift_date %} · gifts on {{ exchange.gift_date|date:"j M Y" }}{% else %} · no gift date yet{% endif %}</p>
 {% if not draft %}<p class="notice">This gift exchange has started, so it's locked.</p>{% endif %}
 
