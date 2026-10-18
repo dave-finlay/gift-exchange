@@ -80,6 +80,10 @@ def page(request, pk, *, receiver=None, idea_form=None):
         "can_add_idea": participant.gift_ideas.count() < GiftIdea.MAX_PER_PARTICIPANT,
         "receiver": receiver,
         "statuses": Participant.GiftStatus.choices,
+        # The message from the latest email they've had
+        "message": exchange.note
+        if exchange.status == Exchange.Status.SENT
+        else exchange.join_note,
     }
     return render(request, "participant/page.html", context)
 

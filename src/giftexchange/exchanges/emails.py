@@ -44,6 +44,26 @@ def check_daily_limit(exchange, adding):
         )
 
 
+def compose(exchange, person, kind, link, *, shared_address=False):
+    """An email's (subject, plain text, HTML). Used for sending and for the
+    organizer's preview, so the preview is exactly what's sent."""
+    context = {
+        "exchange": exchange,
+        "person": person,
+        "organizer": organizer_name(exchange),
+        "link": link,
+        "site_name": settings.SITE_NAME,
+        # The organizer's own message for this email, if any
+        "message": exchange.join_note if kind == "join" else exchange.note,
+    }
+    subject = render_to_string(f"emails/{kind}_subject.txt", context).strip()
+    if shared_address:
+        subject = f"For {person.name}: {subject}"
+    text = render_to_string(f"emails/{kind}.txt", context)
+    html = render_to_string(f"emails/{kind}.html", context)
+    return subject, text, html
+
+
 def send(request, exchange, participants, kind):
     """Send one `kind` email (join, assignment, …) to each participant.
     Returns how many failed; each attempt is logged, without its body."""
@@ -58,26 +78,18 @@ def send(request, exchange, participants, kind):
         link = request.build_absolute_uri(
             reverse("participant_link", args=[links.token(participant)])
         )
-        context = {
-            "exchange": exchange,
-            "person": person,
-            "organizer": organizer_name(exchange),
-            "link": link,
-            "site_name": settings.SITE_NAME,
-        }
-        subject = render_to_string(f"emails/{kind}_subject.txt", context).strip()
-        if addresses.count(person.email.lower()) > 1:
-            subject = f"For {person.name}: {subject}"
+        shared = addresses.count(person.email.lower()) > 1
+        subject, text, html = compose(
+            exchange, person, kind, link, shared_address=shared
+        )
         message = EmailMultiAlternatives(
             subject=subject,
-            body=render_to_string(f"emails/{kind}.txt", context),
+            body=text,
             from_email=sender(exchange),
             to=[formataddr((person.name, person.email))],
             reply_to=[exchange.owner.email],
         )
-        message.attach_alternative(
-            render_to_string(f"emails/{kind}.html", context), "text/html"
-        )
+        message.attach_alternative(html, "text/html")
         status, message_id = EmailLog.Status.SENT, ""
         try:
             message.send()

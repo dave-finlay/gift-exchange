@@ -1,0 +1,10 @@
+<div style="background:#1f2328;color:#ffffff;font:14px/1.5 -apple-system,'Segoe UI',Roboto,sans-serif;padding:10px 16px;">
+  <div style="max-width:32rem;margin:0 auto;">
+    <a href="{% url 'exchange' exchange.pk %}" style="color:#ffffff;">← {{ exchange.name }}</a>
+    <span style="float:right;">
+      {% if exchange.confirm_first %}<a href="{% url 'exchange_preview' exchange.pk 'join' %}" style="color:#ffffff;{% if kind == 'join' %}font-weight:700;text-decoration:none;{% endif %}">“Are you in?”</a> · {% endif %}
+      <a href="{% url 'exchange_preview' exchange.pk 'assignment' %}" style="color:#ffffff;{% if kind == 'assignment' %}font-weight:700;text-decoration:none;{% endif %}">The draw</a>
+    </span>
+    <div style="margin-top:8px;color:#c9ccd1;">Preview · From: {{ sender }}<br>Subject: <strong style="color:#ffffff;">{{ subject }}</strong></div>
+  </div>
+</div>

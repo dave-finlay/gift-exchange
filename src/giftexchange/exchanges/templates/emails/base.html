@@ -1,4 +1,4 @@
-<!doctype html>
+{% load ideas %}<!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#fbfaf7;">
@@ -6,10 +6,10 @@
     <p>Hi {{ person.name }},</p>
     {% block body %}{% endblock %}
     <p style="margin:28px 0;"><a href="{{ link }}" style="display:inline-block;padding:12px 20px;background:#b3261e;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">{% block button %}{% endblock %}</a></p>
-    <p style="color:#5d636b;font-size:14px;">Gifts on {{ exchange.gift_date|date:"l j F Y" }}.{% if exchange.budget %} Budget: {{ exchange.budget }}.{% endif %}</p>
-    {% if exchange.note %}<p style="white-space:pre-line;">{{ exchange.note }}</p>{% endif %}
-    <p style="color:#5d636b;font-size:14px;">{% block footer %}{% endblock %} This link is just for you, so please don't forward it.</p>
-    <p style="color:#5d636b;font-size:14px;">{{ site_name }}, on behalf of {{ organizer }}</p>
+    {% if message %}<div>{{ message|message }}</div>{% endif %}
+    <p>Gifts on {{ exchange.gift_date|date:"l j F Y" }}.{% if exchange.budget %} Budget: {{ exchange.budget }}.{% endif %}{% block dates %}{% endblock %}</p>
+    <p>{{ organizer }}</p>
+    <p style="margin-top:32px;padding-top:12px;border-top:1px solid #dcd9d2;color:#5d636b;font-size:13px;">Sent with {{ site_name }}. {% block small %}{% endblock %}This link is just for you, so please don't forward it.</p>
   </div>
 </body>
 </html>

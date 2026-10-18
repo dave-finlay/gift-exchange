@@ -1,4 +1,4 @@
 {% extends "emails/base.html" %}
 {% block body %}<p>The names for <strong>{{ exchange.name }}</strong> have been drawn. Open your private page to see who you're buying for.</p>{% endblock %}
 {% block button %}See who you're buying for{% endblock %}
-{% block footer %}Nobody else can see who you have, not even {{ organizer }}.{% endblock %}
+{% block small %}Nobody else can see who you have, not even the organizer. {% endblock %}

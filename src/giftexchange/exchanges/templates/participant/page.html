@@ -83,9 +83,9 @@
   </div>
 {% endif %}
 
-{% if exchange.note %}
+{% if message %}
   <h2>From {{ organizer }}</h2>
-  <div class="card note">{{ exchange.note|linebreaksbr }}</div>
+  <div class="card note">{{ message|message }}</div>
 {% endif %}
 
 <h2>Who's Taking Part</h2>

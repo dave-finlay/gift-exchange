@@ -6,7 +6,9 @@ from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Case, Value, When
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -448,6 +450,39 @@ def exchange_circle_new(request, pk):
     use_circle(exchange, circle)
     messages.success(request, f"Now add the people taking part in {exchange.name}.")
     return redirect("circle", circle.pk)
+
+
+PREVIEW_CSP = (
+    "default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; "
+    "form-action 'none'; frame-ancestors 'none'; base-uri 'none'"
+)
+
+
+@login_required
+def exchange_preview(request, pk, kind):
+    """An email exactly as it will look, addressed to one of the people
+    taking part, with a bar on top to switch between the emails."""
+    exchange = own_exchange(request, pk)
+    if kind not in ("join", "assignment"):
+        raise Http404
+    first = exchange.participants.select_related("person").order_by("person__name")
+    person = first[0].person if first else Person(name="Alex")
+    subject, _, html = emails.compose(exchange, person, kind, "#preview")
+    bar = render_to_string(
+        "exchanges/preview_bar.html",
+        {
+            "exchange": exchange,
+            "kind": kind,
+            "subject": subject,
+            "sender": emails.sender(exchange),
+        },
+        request=request,
+    )
+    start = html.index(">", html.index("<body")) + 1
+    response = HttpResponse(html[:start] + bar + html[start:])
+    # Emails need inline styles, which the site's own pages don't allow.
+    response["Content-Security-Policy"] = PREVIEW_CSP
+    return response
 
 
 @login_required
