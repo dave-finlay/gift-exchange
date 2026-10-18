@@ -394,6 +394,12 @@ class CircleChoiceForm(forms.Form):
         return circle
 
 
+FORMATTING = (
+    "Formatting: *bold*, _italic_, ~crossed out~, https:// links, "
+    "and a blank line for a new paragraph."
+)
+
+
 class RenameExchangeForm(forms.ModelForm):
     class Meta:
         model = Exchange
@@ -439,10 +445,10 @@ class ExchangeForm(forms.ModelForm):
             "draw_date": "Shown to participants. You start the draw yourself.",
             "budget": 'For example, "About $30".',
             "note": "In everyone's email when the names are drawn, and on their "
-            "page. *bold*, _italic_, ~~crossed out~~; links work.",
+            f"page. {FORMATTING}",
             "confirm_first": "An extra email before the draw, for groups that "
             "haven't agreed yet. People answer, and add gift ideas.",
-            "join_note": "Only used if you ask first. Same formatting.",
+            "join_note": f"Only used if you ask first. {FORMATTING}",
             "avoid_repeats": "0 to allow repeats.",
             "single_loop": "With a single loop, mutual pairs can't happen anyway.",
         }

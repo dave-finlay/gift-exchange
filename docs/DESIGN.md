@@ -311,8 +311,8 @@ by email like everyone else's, and never appears on organizer screens.
      (participants see the new name on their page);
    - basics (gift date, draw date, budget) and two messages: one in the
      draw email (also shown on everyone's page), one in the optional "Are
-     you in?" email. Messages allow `*bold*`, `_italic_`, `~~crossed
-     out~~`, https links and paragraphs; everything else, HTML included,
+     you in?" email. Messages allow `*bold*`, `_italic_`, `~crossed
+     out~` (or `~~…~~`), https links and paragraphs; everything else, HTML included,
      is shown as typed (`markup.py`). **Preview emails** shows each email
      exactly as it will be sent, addressed to one of the people taking
      part. Emails end with the organizer's name, then a small "Sent with
