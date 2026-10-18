@@ -201,3 +201,13 @@ button.big { font-size: 1.125rem; padding: 0.8rem 1.4rem; }
 details.danger-zone summary { cursor: pointer; color: var(--muted); }
 .progress li small { display: block; }
 .warning { color: var(--error); font-weight: 600; }
+
+/* Home page cards: a link to open, and a button for the next step */
+.card-link { display: block; color: inherit; text-decoration: none; }
+.card-link strong { color: var(--accent); }
+.card-action { margin: 0.75rem 0 0; }
+.card-action .button { padding: 0.45rem 0.9rem; font-size: 0.95rem; }
+
+/* The email preview inside the send and draw summary pages */
+.email-preview { display: block; width: 100%; height: 34rem; border: 1px solid var(--line); border-radius: 0.5rem; background: #fbfaf7; }
+.recipients li small { display: inline; margin-left: 0.35rem; }

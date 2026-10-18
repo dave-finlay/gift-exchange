@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}End {{ exchange.name }} · {% endblock %}
+{% block content %}
+<h1>End {{ exchange.name }}?</h1>
+{% if line %}<p class="muted">So far: {{ line }}.</p>{% endif %}
+<p>Once the gifts have been given, end the gift exchange:</p>
+<ul>
+  <li>Everyone's private link will just say “This gift exchange has ended”.</li>
+  <li>Nobody is emailed.</li>
+  <li>It moves to the bottom of your list. Its pairings still count for “avoid repeats” next time.</li>
+</ul>
+<form method="post" class="actions">
+  {% csrf_token %}
+  <button>End {{ exchange.name }}</button>
+  <a class="button secondary" href="{% url 'home' %}">Cancel</a>
+</form>
+{% endblock %}

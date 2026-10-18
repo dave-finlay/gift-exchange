@@ -1,19 +1,25 @@
 {% extends "base.html" %}
-{% block title %}Send Emails · {% endblock %}
+{% block title %}Send “Are You In?” · {% endblock %}
 {% block content %}
 <h1>Send “Are You In?” Emails</h1>
 {% if problems %}
   <p>Not quite ready:</p>
   <ul>{% for problem in problems %}<li>{{ problem }}</li>{% endfor %}</ul>
-  <p class="actions"><a class="button secondary" href="{% url 'exchange' exchange.pk %}">Back</a></p>
+  <p class="actions"><a class="button secondary" href="{% url 'exchange' exchange.pk %}">Edit {{ exchange.name }}</a> <a class="button secondary" href="{% url 'home' %}">Cancel</a></p>
 {% else %}
-  <p>{{ participants|length }} people will get an email asking whether they're in, with a private link where they can answer and add gift ideas:</p>
-  <p class="muted">{% for p in participants %}{{ p.person.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
-  <p>After this, the setup is locked. When people have answered, you'll draw the names.</p>
+  <p>Everyone below gets an email asking whether they're in, with a private link to answer and add gift ideas. After this, the setup is locked. Once people have answered, you'll draw the names.</p>
+  <h2>Who Gets an Email</h2>
+  <div class="card"><ul class="plain recipients">
+    {% for p in participants %}<li>{{ p.person.name }} <small>{{ p.person.email }}</small></li>{% endfor %}
+  </ul></div>
+  <h2>The Email</h2>
+  <p class="muted">From: {{ sender }}<br>Subject: <strong>{{ subject }}</strong></p>
+  <iframe class="email-preview" src="{{ preview }}" title="Email preview"></iframe>
+  <p><small>Shown addressed to {{ participants.0.person.name|default:"the first person" }}; everyone gets their own, with their own private link. To change the message, edit the gift exchange.</small></p>
   <form method="post" class="actions">
     {% csrf_token %}
     <button>Send {{ participants|length }} emails</button>
-    <a class="button secondary" href="{% url 'exchange' exchange.pk %}">Cancel</a>
+    <a class="button secondary" href="{% url 'home' %}">Cancel</a>
   </form>
 {% endif %}
 {% endblock %}

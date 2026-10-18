@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}{{ exchange.name }} · {% endblock %}
+{% block swipe_left %}{% url 'home' %}{% endblock %}
+{% block content %}
+{% include "exchanges/exchange_header.html" %}
+
+{% if circle %}
+  <a class="card" href="{% url 'circle' circle.pk %}">
+    <strong>{{ circle.name }}</strong>
+    <small>{{ names|join:", " }}{% if more %} and {{ more }} more{% endif %}</small>
+  </a>
+{% endif %}
+
+<h2>Progress</h2>
+<div class="card">
+  <ul class="plain progress">
+    {% for p in progress %}
+      <li>
+        <strong>{{ p.person.name }}</strong>
+        <small>
+          {% if exchange.status == "joining" %}
+            {% if p.response == "in" %}✓ In{% elif p.response == "declined" %}Not this time{% else %}No answer yet{% endif %}
+          {% elif p.response == "declined" %}Not taking part
+          {% else %}
+            {% if p.revealed_at %}✓ Has looked{% else %}Hasn't looked yet{% endif %} · Gift: {{ p.get_gift_status_display|lower }}
+          {% endif %}
+          {% if p.latest_email.status == "failed" %} · <span class="warning">Email failed</span>{% elif p.latest_email.status == "bounced" %} · <span class="warning">Email bounced</span>{% endif %}
+          {% if p.withdraw_requested_at and not p.withdrawn_at %} · <span class="warning">Asked to be taken out</span>{% endif %}
+        </small>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+<p class="muted">Nobody sees who has whom, including you.</p>
+
+<p class="actions danger-zone"><a class="button secondary" href="{% url 'exchange_delete' exchange.pk %}">Delete gift exchange</a></p>
+{% endblock %}

@@ -5,25 +5,33 @@
 {% if problems %}
   <p>Not quite ready:</p>
   <ul>{% for problem in problems %}<li>{{ problem }}</li>{% endfor %}</ul>
-  <p class="actions"><a class="button secondary" href="{% url 'exchange' exchange.pk %}">Back</a></p>
+  <p class="actions"><a class="button secondary" href="{% url 'exchange' exchange.pk %}">Edit {{ exchange.name }}</a> <a class="button secondary" href="{% url 'home' %}">Cancel</a></p>
 {% elif not check.ok %}
   <p>No draw is possible with these rules:</p>
   <ul>{% for problem in check.problems %}<li>{{ problem }}</li>{% endfor %}</ul>
-  <p class="actions"><a class="button secondary" href="{% url 'exchange' exchange.pk %}?check#check">Back to the rules</a></p>
+  <p class="actions"><a class="button secondary" href="{% url 'exchange' exchange.pk %}?check#check">Check the rules</a> <a class="button secondary" href="{% url 'home' %}">Cancel</a></p>
 {% else %}
   <p>This draws the names and emails everyone taking part a private link to see who they're buying for. Nobody else sees the draw, including you. It can't be undone.</p>
   <form method="post">
     {% csrf_token %}
     {% if joining and pending %}
       <div class="card">
-        <p>{{ pending }} {% if pending == 1 %}person hasn't{% else %}people haven't{% endif %} answered yet.</p>
+        <p>{{ pending }} {% if pending == 1 %}person hasn't{% else %}people haven't{% endif %} answered yet, and {% if pending == 1 %}is{% else %}are{% endif %} listed below.</p>
         <label><input type="checkbox" name="leave_out_pending"> Leave them out</label>
         <small>Otherwise they're included in the draw.</small>
       </div>
     {% endif %}
+    <h2>Who Gets an Email</h2>
+    <div class="card"><ul class="plain recipients">
+    {% for p in participants %}<li>{{ p.person.name }} <small>{{ p.person.email }}</small></li>{% endfor %}
+    </ul></div>
+    <h2>The Email</h2>
+    <p class="muted">From: {{ sender }}<br>Subject: <strong>{{ subject }}</strong></p>
+    <iframe class="email-preview" src="{{ preview }}" title="Email preview"></iframe>
+    <p><small>Shown addressed to {{ participants.0.person.name|default:"the first person" }}; everyone gets their own, with their own private link. To change the message, edit the gift exchange.</small></p>
     <p class="actions">
       <button>Draw and send</button>
-      <a class="button secondary" href="{% url 'exchange' exchange.pk %}">Cancel</a>
+      <a class="button secondary" href="{% url 'home' %}">Cancel</a>
     </p>
   </form>
 {% endif %}

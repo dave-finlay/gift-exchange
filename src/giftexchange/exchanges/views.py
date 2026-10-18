@@ -5,12 +5,14 @@ changing an ID."""
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.db.models import Case, Value, When
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_POST
 
 from giftexchange import matching
@@ -46,10 +48,38 @@ def home(request):
         .annotate(ended=ended)
         .order_by("ended", "-created_at")
     )
+    exchanges = exchanges.prefetch_related("participants")
+    cards = [(exchange, *card(exchange)) for exchange in exchanges]
     circles = request.user.circles.order_by("name")
-    return render(
-        request, "exchanges/home.html", {"exchanges": exchanges, "circles": circles}
-    )
+    return render(request, "exchanges/home.html", {"cards": cards, "circles": circles})
+
+
+def card(exchange):
+    """A gift exchange's progress line and next action (label, URL) for its
+    card on the home page."""
+    people = [p for p in exchange.participants.all() if p.withdrawn_at is None]
+    status = exchange.status
+    if status == Exchange.Status.DRAFT:
+        line = f"{len(people)} people" if exchange.circle else ""
+        if exchange.confirm_first:
+            action = ("Send “Are you in?”", "exchange_send_join")
+        else:
+            action = ("Draw and send", "exchange_draw")
+    elif status == Exchange.Status.JOINING:
+        yes = sum(p.response == Participant.Response.IN for p in people)
+        line = f"{yes} of {len(people)} in"
+        action = ("Draw and send", "exchange_draw")
+    elif status == Exchange.Status.SENT:
+        drawn = [p for p in people if p.response != Participant.Response.DECLINED]
+        looked = sum(p.revealed_at is not None for p in drawn)
+        bought = sum(p.gift_status != Participant.GiftStatus.NOT_YET for p in drawn)
+        line = f"{looked} of {len(drawn)} have looked · {bought} gifts bought"
+        action = ("End gift exchange", "exchange_end")
+    else:
+        line, action = "", None
+    if action:
+        action = (action[0], reverse(action[1], args=[exchange.pk]))
+    return line, action
 
 
 @login_required
@@ -256,8 +286,30 @@ def exchange_new(request):
 
 @login_required
 def exchange(request, pk):
+    """A draft's setup form; once it's under way, its progress."""
     exchange = own_exchange(request, pk)
+    if exchange.status != Exchange.Status.DRAFT:
+        return render(
+            request,
+            "exchanges/exchange_progress.html",
+            {
+                "exchange": exchange,
+                "circle": exchange.circle,
+                **circle_names(exchange),
+                "progress": progress(exchange),
+            },
+        )
     return setup_page(request, exchange)
+
+
+def circle_names(exchange):
+    """Some of the circle's people, for its card."""
+    names = []
+    if exchange.circle:
+        names = list(
+            exchange.circle.people.order_by("name").values_list("name", flat=True)
+        )
+    return {"names": names[:NAMES_ON_CARD], "more": max(0, len(names) - NAMES_ON_CARD)}
 
 
 NAMES_ON_CARD = 8
@@ -272,17 +324,10 @@ def setup_page(request, exchange, **forms):
     rules = exchange.rules.select_related("giver", "receiver").order_by(
         "giver__name", "receiver__name"
     )
-    names = []
-    if exchange.circle:
-        names = list(
-            exchange.circle.people.order_by("name").values_list("name", flat=True)
-        )
     context = {
         "exchange": exchange,
         "circle": exchange.circle,
-        # Some of the circle's people, for its card
-        "names": names[:NAMES_ON_CARD],
-        "more": max(0, len(names) - NAMES_ON_CARD),
+        **circle_names(exchange),
         "draft": exchange.status == Exchange.Status.DRAFT,
         "choose": forms.get("choose") or CircleChoiceForm(exchange=exchange),
         "has_circles": request.user.circles.exists(),
@@ -291,7 +336,6 @@ def setup_page(request, exchange, **forms):
         "rules": rules,
         "check": check,
         "details": "details" in request.GET,
-        "progress": progress(exchange),
     }
     return render(request, "exchanges/exchange.html", context)
 
@@ -347,11 +391,16 @@ def exchange_send_join(request, pk):
         exchange.save(update_fields=["status"])
         record(request, "exchange.join_sent", f"exchange:{pk}")
         sent_message(request, len(participants), failed)
-        return redirect("exchange", pk)
+        return redirect("home")
     return render(
         request,
         "exchanges/send_join.html",
-        {"exchange": exchange, "problems": problems, "participants": participants},
+        {
+            "exchange": exchange,
+            "problems": problems,
+            "participants": participants,
+            **email_summary(exchange, participants, "join"),
+        },
     )
 
 
@@ -394,7 +443,8 @@ def exchange_draw(request, pk):
             request, exchange, taking_part.select_related("person"), "assignment"
         )
         sent_message(request, taking_part.count(), failed)
-        return redirect("exchange", pk)
+        return redirect("home")
+    taking_part = exchange.participants.in_draw().select_related("person")
     return render(
         request,
         "exchanges/draw.html",
@@ -403,10 +453,23 @@ def exchange_draw(request, pk):
             "problems": problems,
             "joining": joining,
             "pending": pending.count(),
-            "taking_part": exchange.participants.in_draw().count(),
+            "participants": taking_part.order_by("person__name"),
             "check": None if problems else checks.check(exchange),
+            **email_summary(exchange, taking_part, "assignment"),
         },
     )
+
+
+def email_summary(exchange, participants, kind):
+    """What a summary page shows about the email it's about to send."""
+    first = next(iter(participants), None)
+    person = first.person if first else Person(name="Alex")
+    subject, _, _ = emails.compose(exchange, person, kind, "#")
+    return {
+        "subject": subject,
+        "sender": emails.sender(exchange),
+        "preview": reverse("exchange_preview", args=[exchange.pk, kind]) + "?embed",
+    }
 
 
 def sent_message(request, count, failed):
@@ -454,11 +517,12 @@ def exchange_circle_new(request, pk):
 
 PREVIEW_CSP = (
     "default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; "
-    "form-action 'none'; frame-ancestors 'none'; base-uri 'none'"
+    "form-action 'none'; frame-ancestors 'self'; base-uri 'none'"
 )
 
 
 @login_required
+@xframe_options_sameorigin
 def exchange_preview(request, pk, kind):
     """An email exactly as it will look, addressed to one of the people
     taking part, with a bar on top to switch between the emails."""
@@ -468,6 +532,10 @@ def exchange_preview(request, pk, kind):
     first = exchange.participants.select_related("person").order_by("person__name")
     person = first[0].person if first else Person(name="Alex")
     subject, _, html = emails.compose(exchange, person, kind, "#preview")
+    if "embed" in request.GET:  # Inside a summary page, which shows the rest
+        response = HttpResponse(html)
+        response["Content-Security-Policy"] = PREVIEW_CSP
+        return response
     bar = render_to_string(
         "exchanges/preview_bar.html",
         {
@@ -535,30 +603,50 @@ def call_off(request, exchange, notify):
 
 @login_required
 @require_POST
-def exchange_basics(request, pk):
+def exchange_save(request, pk):
+    """Save the setup form: who's taking part, details and settings. Then
+    home, or on to adding a rule or checking the rules, without losing
+    what was typed."""
     exchange = own_exchange(request, pk)
     if not editable(request, exchange):
         return redirect("exchange", pk)
-    form = ExchangeForm(request.POST, instance=exchange)
-    if not form.is_valid():
-        return setup_page(request, exchange, basics=form)
-    form.save()
-    messages.success(request, "Saved.")
-    return redirect("exchange", pk)
+    basics = ExchangeForm(request.POST, instance=exchange)
+    people = (
+        ParticipantsForm(request.POST, exchange=exchange) if exchange.circle else None
+    )
+    if not basics.is_valid() or (people and not people.is_valid()):
+        return setup_page(request, exchange, basics=basics, people=people)
+    with transaction.atomic():
+        basics.save()
+        if people:
+            people.save()
+    then = request.POST.get("then")
+    if then == "check":
+        return redirect(reverse("exchange", args=[pk]) + "?check#check")
+    if then == "add_rule" and exchange.circle:
+        return redirect("exchange_rule_new", pk)
+    messages.success(request, f"Saved {exchange.name}.")
+    return redirect("home")
 
 
 @login_required
-@require_POST
-def exchange_people(request, pk):
+def exchange_end(request, pk):
+    """End a gift exchange once the gifts are given: everyone's link then
+    says it has ended. Nobody is emailed."""
     exchange = own_exchange(request, pk)
-    if not exchange.circle or not editable(request, exchange):
+    if exchange.status != Exchange.Status.SENT:
         return redirect("exchange", pk)
-    form = ParticipantsForm(request.POST, exchange=exchange)
-    if not form.is_valid():
-        return setup_page(request, exchange, people=form)
-    form.save()
-    messages.success(request, "Saved who's taking part.")
-    return redirect("exchange", pk)
+    if request.method == "POST":
+        exchange.status = Exchange.Status.ARCHIVED
+        exchange.archived_at = timezone.now()
+        exchange.save(update_fields=["status", "archived_at"])
+        record(request, "exchange.end", f"exchange:{pk}")
+        messages.success(request, f"Ended {exchange.name}.")
+        return redirect("home")
+    line, _ = card(exchange)
+    return render(
+        request, "exchanges/exchange_end.html", {"exchange": exchange, "line": line}
+    )
 
 
 @login_required

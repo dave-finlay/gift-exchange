@@ -31,6 +31,15 @@ def basics(**changes):
     return {k: v for k, v in data.items() if v is not None}
 
 
+def save(client, exchange, people=None, **changes):
+    """Press Save on the gift exchange's form. Unless `people` is given,
+    everyone currently taking part stays ticked."""
+    if people is None:
+        people = list(exchange.participants.values_list("person_id", flat=True))
+    url = reverse("exchange_save", args=[exchange.pk])
+    return client.post(url, {**basics(**changes), "people": people})
+
+
 def create(client):
     """Tap "Create a gift exchange"; returns the new draft."""
     response = client.post(reverse("exchange_new"))
@@ -129,19 +138,19 @@ def test_new_people_dont_join_gift_exchanges_that_have_started(client, b):
 
 def test_people_and_rules_need_a_circle_first(client, b):
     exchange = create(client)
-    for name in ["exchange_people", "exchange_rule_new"]:
-        response = client.post(reverse(name, args=[exchange.pk]), {})
-        assert response.url == reverse("exchange", args=[exchange.pk])
+    response = client.post(reverse("exchange_rule_new", args=[exchange.pk]), {})
+    assert response.url == reverse("exchange", args=[exchange.pk])
+    save(client, exchange)  # Settings save fine without a circle
+    assert not exchange.participants.exists()
 
 
 def test_gift_exchanges_per_circle_per_year_limit(client, b, settings):
     settings.MAX_EXCHANGES_PER_CIRCLE_PER_YEAR = 1
     exchange = create(client)
     client.post(reverse("exchange_circle", args=[exchange.pk]), {"circle": b.circle.pk})
-    url = reverse("exchange_basics", args=[exchange.pk])
-    response = client.post(url, basics())  # Also 2026
+    response = save(client, exchange)  # Also 2026
     assert response.context["basics"].errors
-    client.post(url, basics(gift_date="2027-12-25"))
+    save(client, exchange, gift_date="2027-12-25")
     exchange.refresh_from_db()
     assert exchange.gift_date.year == 2027
 
@@ -152,11 +161,32 @@ def test_home_leads_with_gift_exchanges(client, b):
     eve = User.objects.create_user("eve@example.org", "unused password")
     Exchange.objects.create(owner=eve, name="Eve's")
     response = client.get(reverse("home"))
-    names = [e.name for e in response.context["exchanges"]]
+    names = [card[0].name for card in response.context["cards"]]
     assert names == ["My Gift Exchange", "Christmas"]  # Ended ones last
     content = response.content.decode()
     assert content.index("Create a gift exchange") < content.index("Your Circles")
-    assert "The Smiths · Archived" in content
+    assert "The Smiths · Ended" in content
+
+
+@pytest.mark.parametrize(
+    "status, confirm_first, action, line",
+    [
+        ("draft", False, "Draw and send", "6 people"),
+        ("draft", True, "Send “Are you in?”", "6 people"),
+        ("joining", True, "Draw and send", "0 of 6 in"),
+        ("sent", False, "End gift exchange", "0 of 6 have looked · 0 gifts bought"),
+        ("archived", False, None, ""),
+    ],
+)
+def test_home_cards_show_progress_and_the_next_step(
+    client, b, status, confirm_first, action, line
+):
+    Exchange.objects.filter(pk=b.exchange.pk).update(
+        status=status, confirm_first=confirm_first
+    )
+    [(exchange, card_line, card_action)] = client.get(reverse("home")).context["cards"]
+    assert card_line == line
+    assert (card_action[0] if card_action else None) == action
 
 
 def test_delete_gift_exchange(client, b):
@@ -178,14 +208,15 @@ def test_deleting_a_circle_keeps_drafts_and_removes_ended(client, b):
 
 
 def test_draw_date_must_be_before_gift_date(client, b):
-    url = reverse("exchange_basics", args=[b.exchange.pk])
-    response = client.post(url, basics(draw_date="2026-12-26"))
+    response = save(client, b.exchange, draw_date="2026-12-26")
     assert "draw_date" in response.context["basics"].errors
 
 
 def test_save_settings(client, b):
-    url = reverse("exchange_basics", args=[b.exchange.pk])
-    client.post(url, basics(budget="$20", single_loop="on", avoid_repeats="2"))
+    response = save(
+        client, b.exchange, budget="$20", single_loop="on", avoid_repeats="2"
+    )
+    assert response.url == reverse("home")
     b.exchange.refresh_from_db()
     assert b.exchange.budget == "$20"
     assert b.exchange.single_loop
@@ -196,7 +227,7 @@ def test_save_settings(client, b):
 def test_choose_who_takes_part(client, b):
     grace = b.circle.people.create(name="Grace", email="g@example.org")
     keep = [b.person[n].pk for n in ["Alice", "Carol", "Erin"]] + [grace.pk]
-    client.post(reverse("exchange_people", args=[b.exchange.pk]), {"people": keep})
+    save(client, b.exchange, people=keep)
     names = {p.person.name for p in b.exchange.participants.all()}
     assert names == {"Alice", "Carol", "Erin", "Grace"}
 
@@ -258,8 +289,7 @@ def test_check_explains_an_impossible_draw(client, b):
 
 def test_setup_is_locked_once_started(client, b):
     Exchange.objects.filter(pk=b.exchange.pk).update(status=Exchange.Status.SENT)
-    client.post(reverse("exchange_basics", args=[b.exchange.pk]), basics(budget="$5"))
-    client.post(reverse("exchange_people", args=[b.exchange.pk]), {"people": []})
+    save(client, b.exchange, people=[], budget="$5")
     client.post(
         reverse("exchange_rule_new", args=[b.exchange.pk]),
         {
@@ -282,19 +312,19 @@ def test_another_organizers_exchange_is_not_found(client, b):
     for url, method in [
         (reverse("exchange", args=[pk]), "get"),
         (reverse("exchange", args=[pk]) + "?check&details", "get"),
-        (reverse("exchange_basics", args=[pk]), "post"),
+        (reverse("exchange_save", args=[pk]), "post"),
+        (reverse("exchange_end", args=[pk]), "post"),
         (reverse("exchange_circle", args=[pk]), "post"),
         (reverse("exchange_circle_new", args=[pk]), "post"),
         (reverse("exchange_delete", args=[pk]), "post"),
         (reverse("exchange_rename", args=[pk]), "post"),
-        (reverse("exchange_people", args=[pk]), "post"),
         (reverse("exchange_rule_new", args=[pk]), "post"),
         (reverse("exchange_rule_delete", args=[pk, rule.pk]), "post"),
     ]:
         assert getattr(client, method)(url, basics()).status_code == 404, url
     assert Rule.objects.filter(pk=rule.pk).exists()
     assert Exchange.objects.filter(pk=pk).exists()
-    assert client.get(reverse("home")).context["exchanges"].count() == 0
+    assert client.get(reverse("home")).context["cards"] == []
 
 
 def test_dates_are_shown_in_iso_format_for_date_pickers(client, b):
@@ -319,3 +349,42 @@ def test_rename_needs_a_name(client, b):
     assert response.context["form"].errors
     b.exchange.refresh_from_db()
     assert b.exchange.name == "Christmas"
+
+
+def test_save_then_check_or_add_a_rule_keeps_what_was_typed(client, b):
+    url = reverse("exchange_save", args=[b.exchange.pk])
+    people = list(b.exchange.participants.values_list("person_id", flat=True))
+    response = client.post(
+        url, {**basics(budget="$9"), "people": people, "then": "check"}
+    )
+    assert response.url.endswith("?check#check")
+    response = client.post(
+        url, {**basics(budget="$10"), "people": people, "then": "add_rule"}
+    )
+    assert response.url == reverse("exchange_rule_new", args=[b.exchange.pk])
+    b.exchange.refresh_from_db()
+    assert b.exchange.budget == "$10"
+
+
+def test_under_way_shows_progress_instead_of_the_form(client, b):
+    Exchange.objects.filter(pk=b.exchange.pk).update(status=Exchange.Status.JOINING)
+    page = client.get(reverse("exchange", args=[b.exchange.pk])).content.decode()
+    assert "<h2>Progress</h2>" in page
+    assert "No answer yet" in page
+    assert 'action="/exchanges/' not in page.split("danger-zone")[0]  # No form
+
+
+def test_end_a_gift_exchange(client, b):
+    Exchange.objects.filter(pk=b.exchange.pk).update(status=Exchange.Status.SENT)
+    url = reverse("exchange_end", args=[b.exchange.pk])
+    assert b"Nobody is emailed" in client.get(url).content
+    assert client.post(url).url == reverse("home")
+    b.exchange.refresh_from_db()
+    assert b.exchange.status == Exchange.Status.ARCHIVED
+    assert b.exchange.archived_at is not None
+
+
+def test_only_drawn_gift_exchanges_can_be_ended(client, b):
+    client.post(reverse("exchange_end", args=[b.exchange.pk]))
+    b.exchange.refresh_from_db()
+    assert b.exchange.status == Exchange.Status.DRAFT

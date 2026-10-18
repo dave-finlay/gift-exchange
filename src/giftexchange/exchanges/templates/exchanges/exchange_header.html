@@ -1,0 +1,2 @@
+<h1 class="title-row">{{ exchange.name }} <a href="{% url 'exchange_rename' exchange.pk %}" class="icon-link" title="Rename">{% include "icons/pencil.svg" %}</a></h1>
+<p class="muted">{{ exchange.get_status_display }}{% if exchange.gift_date %} · gifts on {{ exchange.gift_date|date:"j M Y" }}{% else %} · no gift date yet{% endif %}</p>
