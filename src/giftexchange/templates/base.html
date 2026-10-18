@@ -7,6 +7,7 @@
   <title>{% block title %}{% endblock %}{{ SITE_NAME }}</title>
   <link rel="stylesheet" href="{% static 'site.css' %}">
   <script src="{% static 'swipe.js' %}" defer></script>
+  {% block scripts %}{% endblock %}
 </head>
 <body data-swipe-left="{% block swipe_left %}{% endblock %}">
   <header class="bar">

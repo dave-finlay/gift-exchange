@@ -1,5 +1,7 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Send “Are You In?” · {% endblock %}
+{% block scripts %}<script src="{% static 'preview.js' %}" defer></script>{% endblock %}
 {% block content %}
 <h1>Send “Are You In?” Emails</h1>
 {% if problems %}
