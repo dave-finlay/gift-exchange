@@ -330,6 +330,26 @@ def test_home_cards_swipe_to_delete(client, circle):
     assert f'href="{open_}" data-swipe-left="{delete}"' in content
 
 
+def test_paste_size_limits(client, circle):
+    url = reverse("paste", args=[circle.pk])
+    lines = "\n".join(f"P{i}, p{i}@example.org" for i in range(301))
+    errors = client.post(url, {"text": lines}).context["form"].errors["text"]
+    assert errors == ["That's 301 lines. Paste up to 300 at a time."]
+
+    long_line = "Tom, tom@example.org, " + "x" * 240
+    errors = (
+        client.post(url, {"text": f"Dan, dan@example.org\n{long_line}"})
+        .context["form"]
+        .errors["text"]
+    )
+    assert errors == ["Line 2: too long (over 250 characters)."]
+
+    long_name = "T" * 101 + ", tom@example.org"
+    errors = client.post(url, {"text": long_name}).context["form"].errors["text"]
+    assert errors == ["Line 1: names and households can be up to 100 characters."]
+    assert circle.people.count() == 3
+
+
 def test_pasting_huge_lines_stays_fast():
     import time
 
