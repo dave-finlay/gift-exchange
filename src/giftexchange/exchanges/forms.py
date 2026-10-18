@@ -140,8 +140,34 @@ class PersonForm(forms.ModelForm):
         return person
 
 
+# Commas and tabs separate fields; a run of them (with any spaces) counts
+# as one, since lines copied from spreadsheets and emails mix them.
+SEPARATORS = re.compile(r"\s*[,\t][,\t\s]*")
+# "Name <email>", as copied from an email's To line
+NAME_AND_BRACKETED = re.compile(r"^(?P<name>.*?)\s*<(?P<email>[^<>]+)>$")
+# "Name email", separated only by spaces
+NAME_AND_EMAIL = re.compile(r"^(?P<name>.*\S)\s+(?P<email>\S+@\S+)$")
+
+
+def split_line(line):
+    """A pasted line's (name, email, household) fields, or None."""
+    line = line.strip()
+    first, *rest = SEPARATORS.split(line, maxsplit=1)
+    for pattern in (NAME_AND_BRACKETED, NAME_AND_EMAIL):
+        match = pattern.match(first)
+        if match and "@" not in match["name"]:
+            fields = [match["name"].strip(" \"'"), match["email"], *rest]
+            break
+    else:
+        fields = SEPARATORS.split(line)
+    if len(fields) not in (2, 3) or not fields[0] or not fields[1]:
+        return None
+    return (*fields, "")[:3]
+
+
 class PasteForm(forms.Form):
-    """Lines of "Name, email" or "Name, email, household"."""
+    """Lines of "Name, email" or "Name, email, household". Also "Name
+    email" and "Name <email>"."""
 
     text = forms.CharField(
         label="One person per line",
@@ -150,8 +176,8 @@ class PasteForm(forms.Form):
                 "placeholder": "Alice, alice@example.org, Smiths\nBob, bob@example.org"
             }
         ),
-        help_text="Name, email address, and optionally a household. "
-        "Separate them with commas or tabs.",
+        help_text="Name, email address, and optionally a household, separated by "
+        'commas or tabs. "Name <email>", copied from an email, works too.',
     )
 
     def __init__(self, *args, circle, **kwargs):
@@ -167,11 +193,11 @@ class PasteForm(forms.Form):
         for number, line in enumerate(lines, start=1):
             if not line.strip():
                 continue
-            parts = [part.strip() for part in re.split(r"[,\t]", line)]
-            if len(parts) not in (2, 3) or not parts[0]:
+            fields = split_line(line)
+            if fields is None:
                 errors.append(f"Line {number}: expected a name and an email address.")
                 continue
-            name, email, household = (*parts, "")[:3]
+            name, email, household = fields
             try:
                 validate_email(email)
             except forms.ValidationError:

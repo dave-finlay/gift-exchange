@@ -142,6 +142,25 @@ def test_paste_a_list(client, circle):
     assert person(circle, "Erin").household is None
 
 
+@pytest.mark.parametrize(
+    "line, household",
+    [
+        ("Tom, tom@example.org", None),
+        ("Tom,\t   tom@example.org", None),  # A comma and a tab, as one separator
+        ("Tom \t tom@example.org \t Joneses", "Joneses"),
+        ("Tom tom@example.org", None),
+        ("Tom <tom@example.org>", None),
+        ('"Tom" <tom@example.org>, Joneses', "Joneses"),
+    ],
+)
+def test_paste_accepts_common_formats(client, circle, line, household):
+    response = client.post(reverse("paste", args=[circle.pk]), {"text": line})
+    assert response.status_code == 302, response.context["form"].errors
+    tom = person(circle, "Tom")
+    assert tom.email == "tom@example.org"
+    assert (tom.household.name if tom.household else None) == household
+
+
 def test_paste_adds_nobody_if_any_line_is_wrong(client, circle):
     text = "Dan, dan@example.org\nErin, not-an-email\nAlice, a@example.org\nFrank"
     response = client.post(reverse("paste", args=[circle.pk]), {"text": text})
