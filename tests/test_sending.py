@@ -294,3 +294,58 @@ def test_cannot_send_or_draw_another_organizers_exchange(client, b):
     assert send_join(client, b).status_code == 404
     assert draw(client, b).status_code == 404
     assert not mail.outbox
+
+
+# Calling off a gift exchange under way
+
+
+def called_off_emails():
+    return [m for m in mail.outbox if m.subject == "Christmas has been called off"]
+
+
+def test_call_off_and_tell_everyone(client, b):
+    send_join(client, b)
+    Participant.objects.filter(pk=b.participant("Frank").pk).update(response="declined")
+    page = client.get(reverse("exchange_delete", args=[b.exchange.pk]))
+    assert b'name="notify" checked' in page.content
+    client.post(reverse("exchange_delete", args=[b.exchange.pk]), {"notify": "on"})
+    assert not Exchange.objects.exists()
+    told = called_off_emails()
+    assert len(told) == 5  # Not Frank, who'd said no
+    assert "Olive has called off Christmas" in told[0].body
+    assert "/p/" not in told[0].body  # The page is gone, so no link
+    assert "buy a gift" not in told[0].body  # Nobody had been drawn yet
+
+
+def test_call_off_after_the_draw(client, b):
+    drawn(client, b)
+    client.post(reverse("exchange_delete", args=[b.exchange.pk]), {"notify": "on"})
+    told = called_off_emails()
+    assert len(told) == 6
+    assert "you don't need to buy a gift" in told[0].body
+
+
+def test_call_off_quietly(client, b):
+    drawn(client, b)
+    mail.outbox.clear()
+    client.post(reverse("exchange_delete", args=[b.exchange.pk]))
+    assert not Exchange.objects.exists()
+    assert not mail.outbox
+
+
+def test_deleting_a_circle_calls_off_its_gift_exchanges(client, b):
+    send_join(client, b)
+    page = client.get(reverse("circle_delete", args=[b.circle.pk]))
+    assert b"Christmas is under way" in page.content
+    client.post(reverse("circle_delete", args=[b.circle.pk]), {"notify": "on"})
+    assert not Exchange.objects.exists()
+    assert len(called_off_emails()) == 6
+
+
+def test_calling_off_respects_the_daily_email_limit(client, b, settings):
+    send_join(client, b)
+    settings.MAX_EMAILS_PER_EXCHANGE_PER_DAY = 8
+    client.post(reverse("exchange_delete", args=[b.exchange.pk]), {"notify": "on"})
+    assert Exchange.objects.exists()  # Not deleted: the emails couldn't go
+    client.post(reverse("exchange_delete", args=[b.exchange.pk]))
+    assert not Exchange.objects.exists()  # Quietly is still possible

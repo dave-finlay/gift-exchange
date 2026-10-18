@@ -1,0 +1,8 @@
+{% autoescape off %}Hi {{ person.name }},
+
+{{ organizer }} has called off {{ exchange.name }}. There's nothing more you need to do{% if exchange.status == "sent" %}, and you don't need to buy a gift{% endif %}.
+
+If you have any questions, just reply to this email to reach {{ organizer }}.
+
+{{ site_name }}, on behalf of {{ organizer }}
+{% endautoescape %}

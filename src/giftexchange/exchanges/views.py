@@ -101,14 +101,23 @@ def circle_edit(request, pk):
 
 @login_required
 def circle_delete(request, pk):
-    """Delete a circle and its people, unless one of its gift exchanges is
-    under way: participants hold links to it. Ended gift exchanges go with
-    it; drafts stay, without a circle."""
+    """Delete a circle and its people. Gift exchanges under way are called
+    off and deleted too (optionally emailing everyone), as are ended ones;
+    drafts stay, without a circle."""
     circle = own_circle(request, pk)
-    busy = circle.exchanges.filter(
-        status__in=[Exchange.Status.JOINING, Exchange.Status.SENT]
+    busy = list(
+        circle.exchanges.filter(
+            status__in=[Exchange.Status.JOINING, Exchange.Status.SENT]
+        )
     )
-    if request.method == "POST" and not busy.exists():
+    if request.method == "POST":
+        notify = bool(request.POST.get("notify"))
+        try:
+            for exchange in busy:
+                call_off(request, exchange, notify)
+        except emails.TooManyEmails as error:
+            messages.error(request, str(error))
+            return redirect("circle_delete", pk)
         circle.exchanges.filter(status=Exchange.Status.ARCHIVED).delete()
         circle.delete()
         record(request, "circle.delete", f"circle:{pk}")
@@ -442,18 +451,36 @@ def exchange_circle_new(request, pk):
 
 @login_required
 def exchange_delete(request, pk):
-    """Delete a gift exchange, unless it's under way: participants hold
-    links to it."""
+    """Delete a gift exchange. If it's under way, it's called off, and the
+    organizer can email everyone to say so."""
     exchange = own_exchange(request, pk)
     busy = exchange.status in (Exchange.Status.JOINING, Exchange.Status.SENT)
-    if request.method == "POST" and not busy:
-        exchange.delete()
-        record(request, "exchange.delete", f"exchange:{pk}")
+    if request.method == "POST":
+        try:
+            call_off(request, exchange, notify=bool(request.POST.get("notify")))
+        except emails.TooManyEmails as error:
+            messages.error(request, str(error))
+            return redirect("exchange_delete", pk)
         messages.success(request, f"Deleted {exchange.name}.")
         return redirect("home")
     return render(
         request, "exchanges/exchange_delete.html", {"exchange": exchange, "busy": busy}
     )
+
+
+def call_off(request, exchange, notify):
+    """Delete a gift exchange, first emailing the people still in it that
+    it's been called off, if it's under way and the organizer wants to."""
+    under_way = exchange.status in (Exchange.Status.JOINING, Exchange.Status.SENT)
+    if notify and under_way:
+        still_in = (
+            exchange.participants.filter(withdrawn_at=None)
+            .exclude(response=Participant.Response.DECLINED)
+            .select_related("person")
+        )
+        emails.send(request, exchange, still_in, EmailLog.Kind.CALLED_OFF)
+    record(request, "exchange.delete", f"exchange:{exchange.pk}")
+    exchange.delete()
 
 
 @login_required

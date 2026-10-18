@@ -130,7 +130,7 @@ part this time, one-off rules, the draw and the emails. The model is
 | Participant | exchange, person, link_rotated_at, response (pending, in, declined), responded_at, gift_status (not_yet, bought, sent), gift_status_at, revealed_at, withdraw_requested_at, withdrawn_at, created_at | Who takes part in this exchange; the private link points here |
 | GiftIdea | participant, text (up to 280 characters), created_at, updated_at | Ideas for yourself, seen only by your giver. Up to 10 per participant; deleted at archive. |
 | Assignment | giver (Participant, unique), receiver_ciphertext, created_at, updated_at | See "Assignment secrecy" |
-| EmailLog | participant, kind (join, assignment, reassignment, removed, reminder), sent_at, provider_message_id, status (sent, delivered, bounced, complaint, failed) | Never stores email bodies. Statuses come from Brevo webhooks. |
+| EmailLog | participant, kind (join, assignment, reassignment, removed, reminder, called_off), sent_at, provider_message_id, status (sent, delivered, bounced, complaint, failed) | Never stores email bodies. Statuses come from Brevo webhooks. |
 | AuditEvent | actor, action, target, created_at, ip | Sign-ins, invitations, draws, sends, rule changes, withdrawals, admin actions |
 
 ### Rules
@@ -283,8 +283,9 @@ by email like everyone else's, and never appears on organizer screens.
 2. **Circle page.**
    - The circle's name (blank at creation means "My Circle"), renamed
      with the pencil next to it. Delete circle, after a confirmation
-     page; not while one of its gift exchanges is under way. On the home
-     page, swiping a circle left also leads to that confirmation.
+     page (see "Delete gift exchange" below for what happens to its gift
+     exchanges). On the home page, swiping a circle left also leads to
+     that confirmation.
    - People are grouped by household: add, edit, delete. (There's no
      "inactive" state: to leave someone out of one gift exchange, untick
      them there.)
@@ -317,9 +318,11 @@ by email like everyone else's, and never appears on organizer screens.
      assignments, including the organizer's own if they take part.
    - The main button: "Send 'you're in' emails", or "Draw and send" when
      `confirm_first` is off.
-   - Delete gift exchange, after a confirmation page; not while it's
-     under way. Deleting a circle keeps its drafts (without a circle) and
-     deletes its ended gift exchanges.
+   - Delete gift exchange, after a confirmation page. If it's under way,
+     that calls it off: the page offers (ticked by default) a short "called
+     off" email, with no link, to everyone still in it. Deleting a circle
+     does the same for its gift exchanges under way, deletes its ended
+     ones, and keeps its drafts (without a circle).
 4. **Exchange dashboard.**
    - A banner for withdrawal requests.
    - One row per participant: response, email status (with bounces

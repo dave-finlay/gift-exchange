@@ -2,15 +2,19 @@
 {% block title %}Delete {{ exchange.name }} · {% endblock %}
 {% block content %}
 <h1>Delete {{ exchange.name }}?</h1>
-{% if busy %}
-  <p>{{ exchange.name }} is under way, so it can't be deleted.</p>
-  <p class="actions"><a class="button secondary" href="{% url 'exchange' exchange.pk %}">Back</a></p>
-{% else %}
+<form method="post">
+  {% csrf_token %}
+  {% if busy %}
+    <p>{{ exchange.name }} is under way: people have had emails{% if exchange.status == "sent" %}, and the names have been drawn{% endif %}. Deleting it calls it off, and their private links stop working.</p>
+    <div class="card">
+      <label><input type="checkbox" name="notify" checked> Email everyone that it's been called off</label>
+      <small>They'll get a short email saying it's been called off. Untick this to delete it quietly.</small>
+    </div>
+  {% endif %}
   <p>This deletes {{ exchange.name }}, with its settings and rules. {% if exchange.circle %}Its circle, {{ exchange.circle.name }}, and the people in it are kept. {% endif %}It can't be undone.</p>
-  <form method="post" class="actions">
-    {% csrf_token %}
+  <p class="actions">
     <button>Delete {{ exchange.name }}</button>
     <a class="button secondary" href="{% url 'home' %}">Cancel</a>
-  </form>
-{% endif %}
+  </p>
+</form>
 {% endblock %}

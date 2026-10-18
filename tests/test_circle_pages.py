@@ -294,17 +294,6 @@ def test_delete_circle_after_confirmation(client, circle):
     assert not Person.objects.exists()
 
 
-def test_cannot_delete_a_circle_with_an_exchange_under_way(client, circle):
-    from giftexchange.exchanges.models import Exchange
-
-    Exchange.objects.create(
-        owner=circle.owner, circle=circle, name="Christmas", status="joining"
-    )
-    response = client.post(reverse("circle_delete", args=[circle.pk]))
-    assert b"can't be deleted yet" in response.content
-    assert Circle.objects.exists()
-
-
 def test_cannot_rename_or_delete_another_organizers_circle(client, circle):
     eve = User.objects.create_user("eve@example.org", "unused password")
     client.force_login(eve)
