@@ -22,6 +22,7 @@ from .forms import (
     ParticipantsForm,
     PasteForm,
     PersonForm,
+    RenameExchangeForm,
     RuleForm,
     new_exchange,
     remove_empty_households,
@@ -447,6 +448,20 @@ def exchange_circle_new(request, pk):
     use_circle(exchange, circle)
     messages.success(request, f"Now add the people taking part in {exchange.name}.")
     return redirect("circle", circle.pk)
+
+
+@login_required
+def exchange_rename(request, pk):
+    """Rename a gift exchange, at any stage: participants just see the new
+    name on their page."""
+    exchange = own_exchange(request, pk)
+    form = RenameExchangeForm(request.POST or None, instance=exchange)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect("exchange", pk)
+    return render(
+        request, "exchanges/exchange_rename.html", {"exchange": exchange, "form": form}
+    )
 
 
 @login_required

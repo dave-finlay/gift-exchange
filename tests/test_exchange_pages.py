@@ -20,7 +20,6 @@ def b(build, client):
 
 def basics(**changes):
     data = {
-        "name": "Christmas",
         "gift_date": "2026-12-25",
         "draw_date": "",
         "budget": "",
@@ -140,11 +139,11 @@ def test_gift_exchanges_per_circle_per_year_limit(client, b, settings):
     exchange = create(client)
     client.post(reverse("exchange_circle", args=[exchange.pk]), {"circle": b.circle.pk})
     url = reverse("exchange_basics", args=[exchange.pk])
-    response = client.post(url, basics(name="Again"))  # Also 2026
+    response = client.post(url, basics())  # Also 2026
     assert response.context["basics"].errors
-    client.post(url, basics(name="Next year", gift_date="2027-12-25"))
+    client.post(url, basics(gift_date="2027-12-25"))
     exchange.refresh_from_db()
-    assert exchange.name == "Next year"
+    assert exchange.gift_date.year == 2027
 
 
 def test_home_leads_with_gift_exchanges(client, b):
@@ -186,9 +185,9 @@ def test_draw_date_must_be_before_gift_date(client, b):
 
 def test_save_settings(client, b):
     url = reverse("exchange_basics", args=[b.exchange.pk])
-    client.post(url, basics(name="Xmas", single_loop="on", avoid_repeats="2"))
+    client.post(url, basics(budget="$20", single_loop="on", avoid_repeats="2"))
     b.exchange.refresh_from_db()
-    assert b.exchange.name == "Xmas"
+    assert b.exchange.budget == "$20"
     assert b.exchange.single_loop
     assert b.exchange.avoid_repeats == 2
     assert b.exchange.gift_date == datetime.date(2026, 12, 25)
@@ -259,7 +258,7 @@ def test_check_explains_an_impossible_draw(client, b):
 
 def test_setup_is_locked_once_started(client, b):
     Exchange.objects.filter(pk=b.exchange.pk).update(status=Exchange.Status.SENT)
-    client.post(reverse("exchange_basics", args=[b.exchange.pk]), basics(name="New"))
+    client.post(reverse("exchange_basics", args=[b.exchange.pk]), basics(budget="$5"))
     client.post(reverse("exchange_people", args=[b.exchange.pk]), {"people": []})
     client.post(
         reverse("exchange_rule_new", args=[b.exchange.pk]),
@@ -270,7 +269,7 @@ def test_setup_is_locked_once_started(client, b):
         },
     )
     b.exchange.refresh_from_db()
-    assert b.exchange.name == "Christmas"
+    assert b.exchange.budget == ""
     assert b.exchange.participants.count() == 6
     assert not Rule.objects.exists()
 
@@ -287,6 +286,7 @@ def test_another_organizers_exchange_is_not_found(client, b):
         (reverse("exchange_circle", args=[pk]), "post"),
         (reverse("exchange_circle_new", args=[pk]), "post"),
         (reverse("exchange_delete", args=[pk]), "post"),
+        (reverse("exchange_rename", args=[pk]), "post"),
         (reverse("exchange_people", args=[pk]), "post"),
         (reverse("exchange_rule_new", args=[pk]), "post"),
         (reverse("exchange_rule_delete", args=[pk, rule.pk]), "post"),
@@ -300,3 +300,22 @@ def test_another_organizers_exchange_is_not_found(client, b):
 def test_dates_are_shown_in_iso_format_for_date_pickers(client, b):
     response = client.get(reverse("exchange", args=[b.exchange.pk]))
     assert b'type="date" name="gift_date" value="2026-12-25"' in response.content
+
+
+@pytest.mark.parametrize("status", ["draft", "joining", "sent"])
+def test_rename_at_any_stage(client, b, status):
+    Exchange.objects.filter(pk=b.exchange.pk).update(status=status)
+    url = reverse("exchange_rename", args=[b.exchange.pk])
+    response = client.post(url, {"name": "Christmas 2026"})
+    assert response.url == reverse("exchange", args=[b.exchange.pk])
+    b.exchange.refresh_from_db()
+    assert b.exchange.name == "Christmas 2026"
+
+
+def test_rename_needs_a_name(client, b):
+    response = client.post(
+        reverse("exchange_rename", args=[b.exchange.pk]), {"name": ""}
+    )
+    assert response.context["form"].errors
+    b.exchange.refresh_from_db()
+    assert b.exchange.name == "Christmas"
