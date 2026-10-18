@@ -1,6 +1,7 @@
 """The organizer's messages: plain text with a few markers.
 
-    *bold*   _italic_   ~~crossed out~~   https:// links   blank line = new paragraph
+    *bold*   _italic_   ~crossed out~ (or ~~two~~)   https:// links
+    blank line = new paragraph
 
 Everything is escaped first, so HTML in a message is shown as typed, never
 interpreted: the text ends up in other people's inboxes. In the plain-text
@@ -20,7 +21,7 @@ LINK = re.compile(r"https://[^\s<>\"']++")
 # Markers only count at word edges, so snake_case and 2*3*4 stay as typed.
 BOLD = re.compile(r"(?<!\w)\*([^*\n]++)\*(?!\w)")
 ITALIC = re.compile(r"(?<!\w)_([^_\n]++)_(?!\w)")
-STRIKE = re.compile(r"~~([^~\n]++)~~")
+STRIKE = re.compile(r"(?<![~\w])~~?([^~\n]++)~~?(?![~\w])")
 
 
 def _inline(text):
