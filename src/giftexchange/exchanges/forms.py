@@ -395,7 +395,7 @@ class CircleChoiceForm(forms.Form):
 
 
 FORMATTING = (
-    "Formatting: *bold*, _italic_, ~crossed out~, https:// links, "
+    "Formatting: *bold*, _italic_, ~~crossed out~~, https:// links, "
     "and a blank line for a new paragraph."
 )
 
