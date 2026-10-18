@@ -174,11 +174,15 @@ def _name_and_email(text):
 
 class PasteForm(forms.Form):
     """Lines of "Name, email" or "Name, email, household". Also "Name
-    email" and "Name <email>"."""
+    email" and "Name <email>". Firm limits on size, rather than trying to
+    handle mass lists: a circle holds 50 people anyway."""
+
+    MAX_LINES = 300
+    MAX_LINE_LENGTH = 250
 
     text = forms.CharField(
         label="One person per line",
-        max_length=20_000,
+        max_length=MAX_LINES * (MAX_LINE_LENGTH + 2),
         widget=forms.Textarea(
             attrs={
                 "placeholder": "Alice, alice@example.org, Smiths\nBob, bob@example.org"
@@ -198,14 +202,28 @@ class PasteForm(forms.Form):
         }
         people, errors = [], []
         lines = self.cleaned_data["text"].splitlines()
+        if len(lines) > self.MAX_LINES:
+            raise forms.ValidationError(
+                f"That's {len(lines)} lines. Paste up to {self.MAX_LINES} at a time."
+            )
         for number, line in enumerate(lines, start=1):
             if not line.strip():
+                continue
+            if len(line) > self.MAX_LINE_LENGTH:
+                errors.append(
+                    f"Line {number}: too long (over {self.MAX_LINE_LENGTH} characters)."
+                )
                 continue
             fields = split_line(line)
             if fields is None:
                 errors.append(f"Line {number}: expected a name and an email address.")
                 continue
             name, email, household = fields
+            if len(name) > 100 or len(household) > 100:
+                errors.append(
+                    f"Line {number}: names and households can be up to 100 characters."
+                )
+                continue
             try:
                 validate_email(email)
             except forms.ValidationError:
