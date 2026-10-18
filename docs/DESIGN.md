@@ -295,8 +295,9 @@ by email like everyone else's, and never appears on organizer screens.
    sections, not a wizard:
    - **Who's it for?** Choose one of the organizer's circles, or create
      a new one (which opens the circle page to add people; its "Used by"
-     line links back). While it's a draft the circle can be changed,
-     which resets who's taking part and this gift exchange's own rules.
+     line links back). Once chosen, the circle is shown as a card with
+     some of its people's names; tapping it opens the circle to edit
+     them. The circle can't be changed afterwards (too unusual to offer).
    - basics (name, gift date, draw date, budget, note with an email
      preview);
    - who's in (everyone in the circle ticked by default);

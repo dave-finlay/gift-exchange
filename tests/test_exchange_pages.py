@@ -69,13 +69,24 @@ def test_choose_a_circle(client, b):
     assert names == set(b.person)
 
 
-def test_changing_the_circle_resets_people_and_rules(client, b):
+def test_the_circle_cant_be_changed_once_chosen(client, b):
     other = Circle.objects.create(owner=b.circle.owner, name="Friends")
-    other.people.create(name="Zoe", email="zoe@example.org")
-    b.rule("Erin", "Frank", Rule.Kind.EXCLUDE, exchange=b.exchange)
     client.post(reverse("exchange_circle", args=[b.exchange.pk]), {"circle": other.pk})
-    assert [p.person.name for p in b.exchange.participants.all()] == ["Zoe"]
-    assert not b.exchange.rules.exists()
+    client.post(reverse("exchange_circle_new", args=[b.exchange.pk]))
+    b.exchange.refresh_from_db()
+    assert b.exchange.circle == b.circle
+    assert Circle.objects.count() == 2
+
+
+def test_circle_card_shows_some_names_and_links_to_the_circle(client, b, settings):
+    response = client.get(reverse("exchange", args=[b.exchange.pk]))
+    content = response.content.decode()
+    assert f'<a class="card" href="{reverse("circle", args=[b.circle.pk])}">' in content
+    assert "Alice, Bob, Carol, Dan, Erin, Frank<" in content
+    for i in range(5):
+        b.circle.people.create(name=f"Zed {i}", email="z@example.org")
+    content = client.get(reverse("exchange", args=[b.exchange.pk])).content.decode()
+    assert "Alice, Bob, Carol, Dan, Erin, Frank, Zed 0, Zed 1 and 3 more" in content
 
 
 def test_cannot_choose_another_organizers_circle(client, b):
