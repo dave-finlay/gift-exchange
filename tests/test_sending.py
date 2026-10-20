@@ -266,20 +266,19 @@ def test_tap_to_reveal(client, b):
     )
 
 
-def test_gift_status_and_asking_to_be_taken_out(client, b):
+def test_gift_status(client, b):
     drawn(client, b)
     browser, url = open_page(email_to("Alice"))
+    # Taking yourself out isn't offered (not decided yet).
+    assert "take part anymore" not in browser.get(url).content.decode()
     alice = b.participant("Alice")
     browser.post(
         reverse("participant_gift_status", args=[alice.pk]), {"gift_status": "bought"}
     )
-    browser.post(reverse("participant_withdraw", args=[alice.pk]))
     alice.refresh_from_db()
     assert alice.gift_status == "bought"
-    assert alice.withdraw_requested_at is not None
     page = client.get(reverse("exchange", args=[b.exchange.pk])).content.decode()
     assert "✓ Gift bought" in page
-    assert "Asked to be taken out" in page
 
 
 def test_ended_exchange(client, b):
