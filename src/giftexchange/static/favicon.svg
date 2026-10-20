@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- The site's icon: a gift box with a bow -->
+  <rect x="4" y="14" width="24" height="16" rx="2" fill="#c8352c"/>
+  <rect x="2.5" y="10" width="27" height="6" rx="1.5" fill="#dc4a3f"/>
+  <rect x="4" y="16" width="24" height="1.5" fill="#000" opacity="0.12"/>
+  <rect x="14" y="10" width="4" height="20" fill="#f6c847"/>
+  <path fill="#f6c847" d="M16 10.5C13.5 4 6.5 2.5 6.5 6.5c0 3 5 4 9.5 4zM16 10.5c2.5-6.5 9.5-8 9.5-4 0 3-5 4-9.5 4z"/>
+  <path fill="#c8352c" opacity="0.55" d="M14.6 9.6C12.6 6 9 5 8.8 6.6c-.2 1.6 3 2.7 5.8 3zM17.4 9.6c2-3.6 5.6-4.6 5.8-3 .2 1.6-3 2.7-5.8 3z"/>
+  <circle cx="16" cy="10.3" r="1.9" fill="#e9b52f"/>
+</svg>
