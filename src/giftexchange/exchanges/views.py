@@ -384,13 +384,23 @@ def exchange_send_join(request, pk):
         "person__name"
     )
     if request.method == "POST" and not problems:
+        # Claim the change before sending: of two submissions at once (a
+        # double tap, two tabs), only one changes the status and sends.
+        claimed = Exchange.objects.filter(pk=pk, status=Exchange.Status.DRAFT).update(
+            status=Exchange.Status.JOINING
+        )
+        if not claimed:
+            messages.info(
+                request, f"“Are you in?” has already gone out for {exchange.name}."
+            )
+            return redirect("exchange", pk)
+        exchange.status = Exchange.Status.JOINING
         try:
             failed = emails.send(request, exchange, participants, "join")
         except emails.TooManyEmails as error:
+            Exchange.objects.filter(pk=pk).update(status=Exchange.Status.DRAFT)
             messages.error(request, str(error))
             return redirect("exchange", pk)
-        exchange.status = Exchange.Status.JOINING
-        exchange.save(update_fields=["status"])
         record(request, "exchange.join_sent", f"exchange:{pk}")
         sent_message(request, len(participants), failed)
         return redirect("home")
@@ -420,26 +430,21 @@ def exchange_draw(request, pk):
     )
     problems = readiness(exchange)
     if request.method == "POST" and not problems:
-        if joining and request.POST.get("leave_out_pending"):
-            pending.update(response=Participant.Response.DECLINED)
-        taking_part = exchange.participants.in_draw()
+        leave_out = joining and bool(request.POST.get("leave_out_pending"))
         try:
-            emails.check_daily_limit(exchange, taking_part.count())
-        except emails.TooManyEmails as error:
+            taking_part = claim_and_draw(exchange, leave_out_pending=leave_out)
+        except AlreadyDone:
+            messages.info(request, f"{exchange.name} has already been drawn.")
+            return redirect("exchange", pk)
+        except (emails.TooManyEmails, TooFewPeople) as error:
             messages.error(request, str(error))
             return redirect("exchange", pk)
-        try:
-            result = draws.draw(exchange)
-        except draws.RuleConflict:
-            result = None
-        if not isinstance(result, matching.Draw):
+        except NoDraw:
             messages.error(
                 request, "No draw is possible with these rules. Check the rules below."
             )
             return redirect(reverse("exchange", args=[pk]) + "?check#check")
         exchange.status = Exchange.Status.SENT
-        exchange.sent_at = timezone.now()
-        exchange.save(update_fields=["status", "sent_at"])
         record(request, "exchange.draw", f"exchange:{pk}")
         failed = emails.send(
             request, exchange, taking_part.select_related("person"), "assignment"
@@ -512,6 +517,48 @@ def exchange_resend(request, pk, participant_pk):
             "latest": participant.emails.order_by("-sent_at").first(),
         },
     )
+
+
+class AlreadyDone(Exception):
+    """Another request (a double tap, another tab) got there first."""
+
+
+class NoDraw(Exception):
+    """No draw is possible with the rules."""
+
+
+class TooFewPeople(Exception):
+    def __str__(self):
+        return "At least 2 people need to be taking part."
+
+
+def claim_and_draw(exchange, *, leave_out_pending):
+    """Mark the gift exchange drawn, and draw, in one transaction. It takes
+    the database's write lock from the start, so of two submissions at
+    once, the second waits for the first, then finds the status changed
+    and does nothing. Anything that stops the draw undoes all of it.
+    Returns who's taking part."""
+    with transaction.atomic():
+        claimed = Exchange.objects.filter(
+            pk=exchange.pk, status=exchange.status
+        ).update(status=Exchange.Status.SENT, sent_at=timezone.now())
+        if not claimed:
+            raise AlreadyDone
+        if leave_out_pending:
+            exchange.participants.in_draw().filter(
+                response=Participant.Response.PENDING
+            ).update(response=Participant.Response.DECLINED)
+        taking_part = exchange.participants.in_draw()
+        if taking_part.count() < 2:  # E.g. after leaving out everyone
+            raise TooFewPeople
+        emails.check_daily_limit(exchange, taking_part.count())
+        try:
+            result = draws.draw(exchange)
+        except draws.RuleConflict:
+            result = None
+        if not isinstance(result, matching.Draw):
+            raise NoDraw
+    return taking_part
 
 
 def email_summary(exchange, participants, kind):

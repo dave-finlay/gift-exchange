@@ -9,6 +9,7 @@ from django.utils import timezone
 from giftexchange.accounts.models import User
 from giftexchange.exchanges import links, secrecy
 from giftexchange.exchanges.models import (
+    Assignment,
     EmailLog,
     Exchange,
     GiftIdea,
@@ -537,3 +538,68 @@ def test_participant_gets_a_new_link(client, b):
     for _ in range(10):
         browser.post(reverse("participant_new_link", args=[alice.pk]))
     assert alice.emails.count() == 5
+
+
+# Two submissions at once (a double tap, two tabs)
+
+
+def meanwhile(monkeypatch, b, **changes):
+    """Make a second submission pass the page's own checks just as the
+    first finishes: the gift exchange changes in between."""
+    from giftexchange.exchanges import views
+
+    readiness = views.readiness
+
+    def and_then(exchange):
+        problems = readiness(exchange)
+        Exchange.objects.filter(pk=b.exchange.pk).update(**changes)
+        return problems
+
+    monkeypatch.setattr(views, "readiness", and_then)
+
+
+def test_are_you_in_goes_out_once(client, b, monkeypatch):
+    meanwhile(monkeypatch, b, status=Exchange.Status.JOINING)
+    response = send_join(client, b)
+    assert not mail.outbox
+    assert response.url == reverse("exchange", args=[b.exchange.pk])
+    page = client.get(response.url).content.decode()
+    assert "has already gone out" in page
+
+
+def test_names_are_drawn_once(client, b, monkeypatch):
+    send_join(client, b)
+    mail.outbox.clear()
+    meanwhile(monkeypatch, b, status=Exchange.Status.SENT)
+    response = draw(client, b, leave_out_pending="on")
+    assert not mail.outbox
+    assert not Assignment.objects.exists()
+    # The second submission's choices change nothing either.
+    assert b.participant("Alice").response == "pending"
+    page = client.get(response.url).content.decode()
+    assert "has already been drawn" in page
+
+
+def test_an_impossible_draw_undoes_leaving_people_out(client, b):
+    send_join(client, b)
+    for name in ["Alice", "Bob", "Carol", "Dan", "Erin"]:
+        Participant.objects.filter(pk=b.participant(name).pk).update(response="in")
+    for name in ["Alice", "Bob", "Carol", "Dan", "Frank"]:
+        b.rule("Erin", name, Rule.Kind.EXCLUDE)
+    response = draw(client, b, leave_out_pending="on")
+    assert response.url.endswith("?check#check")
+    b.exchange.refresh_from_db()
+    assert b.exchange.status == Exchange.Status.JOINING
+    assert b.participant("Frank").response == "pending"
+
+
+def test_leaving_out_everyone_draws_nothing(client, b):
+    send_join(client, b)  # Nobody has answered yet
+    mail.outbox.clear()
+    draw(client, b, leave_out_pending="on")
+    assert not mail.outbox
+    b.exchange.refresh_from_db()
+    assert b.exchange.status == Exchange.Status.JOINING
+    assert b.participant("Alice").response == "pending"
+    page = client.get(reverse("exchange", args=[b.exchange.pk])).content.decode()
+    assert "At least 2 people need to be taking part." in page
