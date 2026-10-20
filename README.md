@@ -12,7 +12,8 @@ ads, and your group's data stays on your own server. Then change it to
 suit your group.
 It's early days, but the main flow works: organizers set up a gift
 exchange, everyone gets an email with a private link, and the draw is
-made and sent. Withdrawals, reminders and deployment are next.
+made and sent. A container image is built and scanned for
+vulnerabilities; deployment, withdrawals and reminders are next.
 
 See [docs/DESIGN.md](docs/DESIGN.md) for the design.
 
@@ -38,6 +39,31 @@ DJANGO_DEBUG=1 uv run python manage.py runserver
 DJANGO_DEBUG=1 uv run python manage.py runserver 0.0.0.0:8000
 ```
 
+### The container image
+
+The `Dockerfile` builds the image the server runs: the app under
+gunicorn, as an unprivileged user, serving its own static files. It runs
+`deploy/start.sh`, which brings the database up to date and starts
+gunicorn. CI (`.github/workflows/image.yml`) builds it on every pull
+request, checks that it starts and serves pages, and scans it with
+[grype](https://github.com/anchore/grype): a fixable high or critical
+vulnerability fails the build, and every finding goes to the repository's
+Security tab. On `main`, and daily, it's published as
+`ghcr.io/<owner>/gift-exchange`.
+
+To try it locally (with [OrbStack](https://orbstack.dev) or Docker), with
+throwaway secrets:
+
+```sh
+docker build -t gift-exchange .
+mkdir -p /tmp/ge-secrets
+uv run python -c "import secrets; print(secrets.token_urlsafe(50))" > /tmp/ge-secrets/django_secret_key
+uv run python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())" > /tmp/ge-secrets/assignment_keys
+echo not-a-real-key > /tmp/ge-secrets/brevo_api_key
+docker run --rm -p 8000:8000 -e SITE_DOMAIN=localhost \
+  -v /tmp/ge-secrets:/run/secrets:ro gift-exchange
+```
+
 ## Layout
 
 | Path | What's in it |
@@ -49,6 +75,7 @@ DJANGO_DEBUG=1 uv run python manage.py runserver 0.0.0.0:8000
 | `src/giftexchange/templates/`, `static/` | The base page layout and stylesheet; each app has its own templates |
 | `src/giftexchange/exchanges/` | Circles, people, rules, exchanges and participants (`models.py`); the organizer pages (`views.py`, `forms.py`); turning rules into a draw and saving it (`draws.py`); test mode (`checks.py`); encrypting assignments (`secrecy.py`) |
 | `src/giftexchange/audit/` | A log of security-relevant actions |
+| `Dockerfile`, `deploy/` | The container image, and the files for running it on a server |
 | `tests/` | Tests, including property-based tests with Hypothesis |
 | `docs/DESIGN.md` | Architecture, data model and screens |
 

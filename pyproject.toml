@@ -15,6 +15,8 @@ dependencies = [
     "django>=5.2,<5.3",
     "django-anymail>=15.2",
     "django-axes>=8.3.1",
+    "gunicorn>=26.2.0",
+    "whitenoise>=6.12.0",
 ]
 
 [build-system]

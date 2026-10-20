@@ -1,0 +1,9 @@
+# Only what the image needs goes into the build: see the Dockerfile.
+*
+!pyproject.toml
+!uv.lock
+!README.md
+!LICENSE
+!src/
+!deploy/start.sh
+**/__pycache__
