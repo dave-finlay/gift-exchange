@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 360" width="360" height="360">
+  <!-- The site's wallpaper: pastel gifts, tiled behind the page. Each gift
+       takes its box colour from fill and its ribbon from color. -->
+  <defs>
+    <symbol id="gift" viewBox="0 0 100 100">
+      <rect x="16" y="44" width="68" height="48" rx="4"/>
+      <rect x="10" y="32" width="80" height="16" rx="3"/>
+      <rect x="16" y="48" width="68" height="3" fill="#000" opacity="0.06"/>
+      <rect x="44" y="32" width="12" height="60" fill="currentColor"/>
+      <path fill="currentColor" d="M50 32C42 14 22 11 24 24C25 31 40 33 50 32ZM50 32C58 14 78 11 76 24C75 31 60 33 50 32Z"/>
+      <circle cx="50" cy="31" r="5" fill="currentColor"/>
+    </symbol>
+    <symbol id="sparkle" viewBox="0 0 10 10">
+      <path fill="currentColor" d="M5 0Q5.6 4.4 10 5Q5.6 5.6 5 10Q4.4 5.6 0 5Q4.4 4.4 5 0Z"/>
+    </symbol>
+  </defs>
+  <use href="#gift" x="24" y="22" width="68" height="68" transform="rotate(-12 58 56)" fill="#f7cdd6" color="#eba5b5"/>
+  <use href="#gift" x="208" y="14" width="50" height="50" transform="rotate(10 233 39)" fill="#cdebdc" color="#98d2b6"/>
+  <use href="#gift" x="128" y="140" width="42" height="42" transform="rotate(6 149 161)" fill="#f9e9b4" color="#ebcc72"/>
+  <use href="#gift" x="262" y="160" width="72" height="72" transform="rotate(-8 298 196)" fill="#ded3f4" color="#bba9e4"/>
+  <use href="#gift" x="34" y="234" width="58" height="58" transform="rotate(14 63 263)" fill="#cfe2f6" color="#9cc4ea"/>
+  <use href="#gift" x="192" y="278" width="46" height="46" transform="rotate(-16 215 301)" fill="#f9dac7" color="#eeb393"/>
+  <use href="#sparkle" x="150" y="40" width="12" height="12" color="#ebcc72"/>
+  <use href="#sparkle" x="300" y="100" width="9" height="9" color="#eba5b5"/>
+  <use href="#sparkle" x="70" y="150" width="10" height="10" color="#bba9e4"/>
+  <use href="#sparkle" x="230" y="230" width="8" height="8" color="#98d2b6"/>
+  <use href="#sparkle" x="130" y="320" width="11" height="11" color="#9cc4ea"/>
+  <use href="#sparkle" x="320" y="320" width="9" height="9" color="#eeb393"/>
+</svg>
