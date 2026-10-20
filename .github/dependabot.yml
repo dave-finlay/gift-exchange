@@ -1,10 +1,17 @@
 # Weekly dependency updates, one grouped pull request per ecosystem.
 # Security updates for known vulnerabilities come separately, as soon as
 # an advisory is published (enabled in the repository settings).
+#
+# Moving to a new Django or Python version is a decision, not an
+# automatic update: see the comments below.
 version: 2
 updates:
   - package-ecosystem: uv
     directory: /
+    # Update uv.lock only, within the version ranges in pyproject.toml,
+    # never the ranges themselves (Django stays on 5.2, the long-term
+    # support release, because of its <5.3 cap).
+    versioning-strategy: lockfile-only
     schedule:
       interval: weekly
     groups:
@@ -22,6 +29,11 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # New builds of python:3.13-slim still come through. Python 3.14
+      # would need .python-version (what CI tests on) to change too.
+      - dependency-name: python
+        versions: [">=3.14"]
     groups:
       images:
         patterns: ["*"]
