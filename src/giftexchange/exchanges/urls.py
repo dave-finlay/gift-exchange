@@ -45,6 +45,11 @@ urlpatterns = [
         "exchanges/<int:pk>/send/", views.exchange_send_join, name="exchange_send_join"
     ),
     path("exchanges/<int:pk>/draw/", views.exchange_draw, name="exchange_draw"),
+    path(
+        "exchanges/<int:pk>/people/<int:participant_pk>/resend/",
+        views.exchange_resend,
+        name="exchange_resend",
+    ),
     # Participants
     path("p/<str:token>/", participant.open_link, name="participant_link"),
     path("you/<int:pk>/", participant.page, name="participant"),
@@ -58,6 +63,7 @@ urlpatterns = [
     ),
     path("you/<int:pk>/gift/", participant.gift_status, name="participant_gift_status"),
     path("you/<int:pk>/withdraw/", participant.withdraw, name="participant_withdraw"),
+    path("you/<int:pk>/new-link/", participant.new_link, name="participant_new_link"),
     path("exchanges/<int:pk>/save/", views.exchange_save, name="exchange_save"),
     path("exchanges/<int:pk>/end/", views.exchange_end, name="exchange_end"),
     path(

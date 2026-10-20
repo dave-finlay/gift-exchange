@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Send Again · {% endblock %}
+{% block content %}
+<h1>Send {{ person.name }} Their Email Again</h1>
+<p class="muted">“{{ subject }}”, with their private link.{% if latest %} The last email to them was {{ latest.sent_at|date:"j F, H:i" }}{% if latest.status == "failed" %}, and <span class="warning">it failed</span>{% elif latest.status == "bounced" %}, and <span class="warning">it bounced</span>{% endif %}.{% endif %}</p>
+<form method="post" class="card">
+  {% csrf_token %}
+  {% include "form.html" %}
+  <p><small>Changing the address also gives them a new link, and updates it in {{ exchange.circle.name }}.</small></p>
+  <p class="actions"><button>Send</button> <a class="button secondary" href="{% url 'exchange' exchange.pk %}">Cancel</a></p>
+</form>
+{% endblock %}

@@ -433,3 +433,107 @@ def test_summary_pages_list_recipients_and_show_the_email(client, b):
         b"Hi Alice," in embedded.content and b"Preview \xc2\xb7" not in embedded.content
     )
     assert not mail.outbox
+
+
+# Sending again, and new links
+
+
+def resend(client, b, name, **data):
+    participant = b.participant(name)
+    data.setdefault("email", participant.person.email)
+    url = reverse("exchange_resend", args=[b.exchange.pk, participant.pk])
+    return client.post(url, data)
+
+
+def test_send_again_with_the_same_link(client, b):
+    send_join(client, b)
+    first = link_in(email_to("Alice"))
+    mail.outbox.clear()
+    page = client.get(reverse("exchange", args=[b.exchange.pk])).content.decode()
+    assert page.count("Send again") == 6
+    resend(client, b, "Alice")
+    assert len(mail.outbox) == 1
+    assert link_in(mail.outbox[0]) == first
+    assert "new link" not in mail.outbox[0].body
+    assert b.participant("Alice").emails.count() == 2
+
+
+def test_a_new_link_shuts_out_the_old_one(client, b):
+    drawn(client, b)
+    old_browser, url = open_page(email_to("Alice"))
+    old_link = link_in(email_to("Alice"))
+    mail.outbox.clear()
+    resend(client, b, "Alice", new_link="on")
+    message = mail.outbox[0]
+    assert message.subject == "Christmas: the names are drawn"
+    assert "This email has a new link to your page." in message.body
+    assert link_in(message) != old_link
+    # The old link, and the browser that opened it, no longer work.
+    assert Client().get(old_link).status_code == 404
+    assert old_browser.get(url).status_code == 404
+    browser, url = open_page(message)
+    assert b"Tap to reveal" in browser.get(url).content
+
+
+def test_changing_the_address_sends_a_new_link_there(client, b):
+    send_join(client, b)
+    old_link = link_in(email_to("Carol"))
+    mail.outbox.clear()
+    resend(client, b, "Carol", email="carol.new@example.org")
+    assert mail.outbox[0].to == ["Carol <carol.new@example.org>"]
+    assert link_in(mail.outbox[0]) != old_link
+    b.person["Carol"].refresh_from_db()
+    assert b.person["Carol"].email == "carol.new@example.org"
+    assert resend(client, b, "Carol", email="not an address").status_code == 200
+
+
+def test_nothing_to_send_again(client, b):
+    page = client.get(
+        reverse("exchange_resend", args=[b.exchange.pk, b.participant("Alice").pk])
+    )
+    assert page.status_code == 302  # Still a draft
+    send_join(client, b)
+    for name in ["Alice", "Bob", "Carol", "Dan", "Erin"]:
+        Participant.objects.filter(pk=b.participant(name).pk).update(response="in")
+    Participant.objects.filter(pk=b.participant("Frank").pk).update(response="declined")
+    draw(client, b)
+    mail.outbox.clear()
+    resend(client, b, "Frank")  # Not in the draw
+    assert not mail.outbox
+    page = client.get(reverse("exchange", args=[b.exchange.pk])).content.decode()
+    assert page.count("Send again") == 5
+
+
+def test_send_again_is_only_for_the_organizer(client, b):
+    send_join(client, b)
+    mail.outbox.clear()
+    client.force_login(User.objects.create_user("eve@example.org", "unused"))
+    assert resend(client, b, "Alice").status_code == 404
+    assert not mail.outbox
+
+
+def test_send_again_respects_the_daily_email_limit(client, b, settings):
+    send_join(client, b)
+    mail.outbox.clear()
+    settings.MAX_EMAILS_PER_EXCHANGE_PER_DAY = 6
+    resend(client, b, "Alice", new_link="on")
+    assert not mail.outbox
+    assert b.participant("Alice").link_rotated_at is None
+
+
+def test_participant_gets_a_new_link(client, b):
+    send_join(client, b)
+    old_link = link_in(email_to("Alice"))
+    browser, url = open_page(email_to("Alice"))
+    assert b"Email me a new link" in browser.get(url).content
+    mail.outbox.clear()
+    alice = b.participant("Alice")
+    browser.post(reverse("participant_new_link", args=[alice.pk]))
+    assert len(mail.outbox) == 1
+    assert "This email has a new link" in mail.outbox[0].body
+    assert Client().get(old_link).status_code == 404
+    assert browser.get(url).status_code == 200  # This browser stays in
+    # A few a day at most, so it can't flood their inbox.
+    for _ in range(10):
+        browser.post(reverse("participant_new_link", args=[alice.pk]))
+    assert alice.emails.count() == 5

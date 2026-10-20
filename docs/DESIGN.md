@@ -353,8 +353,13 @@ by email like everyone else's, and never appears on organizer screens.
    failed emails and requests to be taken out).
    - A banner for withdrawal requests.
    - One row per participant: response, email status (with bounces
-     flagged, plus "fix email", which re-sends to that person only),
-     revealed or not, and gift status.
+     flagged), revealed or not, and gift status.
+   - **Send again** on each row, for anyone with something to look at:
+     their latest email ("Are you in?" or the draw), to that person only.
+     The page shows their address, editable to fix a wrong one, and a
+     "Give them a new link" box, so the old link stops working (for a
+     forwarded email). Changing the address always gives a new link,
+     since the old one went somewhere else.
    - Reminders to a filtered group (no response yet, or not bought yet),
      with a cap on how often they can be sent.
    - "Add a late joiner", "Draw and send" (during Joining), and "End
@@ -379,7 +384,9 @@ fonts; strict Content-Security-Policy.
   automatically, so a visit doesn't count as "viewed", and nothing is
   single-use.
 - On the first visit, the app swaps the token for a session cookie
-  limited to that exchange, and redirects to a clean URL.
+  limited to that participant, and redirects to a clean URL. The session
+  remembers the link's version, so a new link also shuts out browsers
+  that opened an old one.
 - Every page sets `Referrer-Policy: same-origin`, so URLs are never sent
   to other sites, and `noindex`. Not `no-referrer`: with it, browsers send
   `Origin: null` on form posts, which fails Django's CSRF check. Caddy's
@@ -414,8 +421,13 @@ fonts; strict Content-Security-Policy.
 6. Who's taking part (names only).
 7. "Can't take part anymore?" This asks the organizer, who confirms
    before the withdrawal repair runs. It never happens instantly, because
-   of forwarded links and accidental taps. Also "Lost this email? Get a new
-   link", which issues a new token.
+   of forwarded links and accidental taps.
+8. "Shared your link by mistake?" Emails them a new link, and the old one
+   stops working, for anyone who has it; this browser stays signed in.
+   Anyone holding the old link can press it, but the new link goes only
+   to the participant's own address. At most 5 emails per participant a
+   day, so it can't flood an inbox. (Lost the email? The organizer sends
+   it again.)
 
 **Later:** anonymous questions from giver to receiver ("What size are
 you?"). **Not planned:** postal addresses, because they're the most
@@ -475,10 +487,10 @@ These are settings, checked in forms and in the draw:
 
 - A real send through Brevo: a new API key, the sender domain's DNS
   records, tracking off.
-- Withdrawals and late joiners (the repair), reminders, "get a new link",
-  re-sending a failed email, ending a gift exchange and archiving.
+- Withdrawals and late joiners (the repair), and reminders.
 - Done: sign-in, invitations, circles, gift exchange setup with test
   mode, "Are you in?" and "Draw and send" emails, the participant page
   (answer, gift ideas, tap to reveal, gift status, asking to be taken
-  out) and a progress list for the organizer.
+  out), a progress list for the organizer, ending and calling off gift
+  exchanges, sending an email again, and new links.
 - The container image, grype scanning and deployment.

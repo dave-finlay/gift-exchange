@@ -1,6 +1,8 @@
 {% autoescape off %}Hi {{ person.name }},
 
-The names for {{ exchange.name }} have been drawn. Open your private page to see who you're buying for:
+{% if new_link %}This email has a new link to your page. Older links no longer work.
+
+{% endif %}The names for {{ exchange.name }} have been drawn. Open your private page to see who you're buying for:
 
 {{ link }}
 {% if message %}
