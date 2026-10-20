@@ -1,0 +1,100 @@
+name: Image
+
+# Builds the app image, checks that it starts and serves pages, and scans
+# it with grype. On main, and daily, it also publishes it to GitHub's
+# container registry. The daily run picks up new vulnerability reports,
+# and changes merged by Dependabot (whose merges don't start workflows).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: image-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  image:
+    # The server is ARM, so the image is built on ARM.
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write # Publish the image (not from pull requests)
+      security-events: write # Upload scan results to the Security tab
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          load: true
+          tags: gift-exchange:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Check that it starts and serves pages
+        # With throwaway secrets: production ones never reach CI.
+        run: |
+          mkdir -p secrets
+          python3 -c "import secrets; print(secrets.token_urlsafe(50))" > secrets/django_secret_key
+          python3 -c "import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).decode())" > secrets/assignment_keys
+          echo "not-a-real-key" > secrets/brevo_api_key
+          docker run -d --name app -p 8000:8000 -e SITE_DOMAIN=example.org \
+            -v "$PWD/secrets:/run/secrets:ro" gift-exchange:ci
+          get() { curl -fsS -H "Host: example.org" -H "X-Forwarded-Proto: https" "http://localhost:8000$1"; }
+          for _ in $(seq 30); do get /signin/ > signin.html 2>/dev/null && break; sleep 1; done
+          grep -q "Sign in" signin.html
+          css=$(grep -o '/static/site\.[0-9a-f]*\.css' signin.html)
+          get "$css" > /dev/null
+          echo "Serves /signin/ and $css"
+      - name: Show the app's log
+        if: failure()
+        run: docker logs app
+
+      - name: Scan (fails on fixable high or critical vulnerabilities)
+        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
+        with:
+          image: gift-exchange:ci
+          only-fixed: true
+          severity-cutoff: high
+          output-format: table
+          cache-db: true
+      - name: Scan (everything, for the Security tab)
+        id: report
+        if: always()
+        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
+        with:
+          image: gift-exchange:ci
+          fail-build: false
+          output-format: sarif
+          cache-db: true
+      - name: Upload the scan to the Security tab
+        if: always() && steps.report.outputs.sarif
+        uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
+        with:
+          sarif_file: ${{ steps.report.outputs.sarif }}
+          category: grype
+
+      - name: Publish
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGE: ghcr.io/${{ github.repository }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          echo "$GH_TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
+          for tag in main "sha-${GITHUB_SHA::12}"; do
+            docker tag gift-exchange:ci "$IMAGE:$tag"
+            docker push "$IMAGE:$tag"
+          done

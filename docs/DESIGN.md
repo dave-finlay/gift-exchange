@@ -11,7 +11,7 @@ repository and run a private exchange site for their family, friends or
 community, quickly and cheaply, and change it to suit their group. That's
 what sets it apart from the established free services.
 
-Status: design, as of 2026-10-16. No code yet.
+Status: working app, not yet deployed, as of 2026-10-19.
 
 ## Goals
 
@@ -50,9 +50,39 @@ Status: design, as of 2026-10-16. No code yet.
 | Local development | OrbStack |
 | JavaScript | Our own JavaScript is welcome wherever it makes pages nicer. The risk to guard against is someone else's script running in our pages, so: no inline scripts (the Content-Security-Policy allows only `script-src 'self'`, which blocks injected script even if escaping ever fails); no third-party scripts (analytics, widgets, CDNs), since a compromised one could read assignments; core actions keep working without JavaScript, above all on the participant page, which opens in email apps' built-in browsers; and no npm build step unless it's really needed (if one comes, its packages join the dependency scanning). |
 
-Still open: Cloudflare proxy in front (optional); serving static files
-(WhiteNoise in the app, or Caddy from a shared volume), to decide with the
-container image.
+Static files are served by the app itself, with WhiteNoise: they're
+collected into the image when it's built, with a hash of their contents in
+their names, so browsers cache them for good. (Rather than Caddy serving
+them from a volume shared with the app, which would have to be refreshed
+on every release.)
+
+Still open: Cloudflare proxy in front (optional).
+
+**The image** (`Dockerfile`): two stages on `python:3.13-slim`, both
+pinned by digest. The first installs the locked dependencies and the app
+with `uv` and collects the static files; the second copies in just the
+result, so uv and the source aren't in the image. It runs as an
+unprivileged user (uid 10001), with the database in the `/data` volume and
+secrets in `/run/secrets`. `deploy/start.sh` runs the migrations, then
+gunicorn, with no access log (participants' links carry tokens) and no
+control socket. It's built for ARM only, the server's architecture, on
+GitHub's ARM runners.
+
+**Image CI** (`.github/workflows/image.yml`), on every pull request, on
+`main`, and daily:
+
+1. Build the image.
+2. Start it with throwaway secrets and check it serves pages and static
+   files.
+3. Scan it with grype. A fixable high or critical vulnerability fails the
+   run; unfixed ones don't, since nothing can be done about them yet but
+   wait. Every finding goes to the Security tab.
+4. Except for pull requests: publish it to GitHub's container registry as
+   `main` and `sha-<commit>`.
+
+The daily run catches newly reported vulnerabilities in an unchanged
+image, and publishes what Dependabot merged (its merges don't start
+workflows). Dependabot also updates the base images' digests weekly.
 
 ## Configuration
 
@@ -493,4 +523,5 @@ These are settings, checked in forms and in the draw:
   (answer, gift ideas, tap to reveal, gift status, asking to be taken
   out), a progress list for the organizer, ending and calling off gift
   exchanges, sending an email again, and new links.
-- The container image, grype scanning and deployment.
+- Deployment: the Compose file and Caddyfile, the server, secrets,
+  backups, and redeploying when a new image is published.

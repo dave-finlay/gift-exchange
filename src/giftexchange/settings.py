@@ -141,6 +141,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # Static files, before anything that needs a session or database.
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -257,9 +259,21 @@ USE_TZ = True
 
 # Static files
 
+# The app serves its own static files (WhiteNoise), collected into the
+# image when it's built, with a hash of their contents in their names, so
+# browsers can cache them for good. With DEBUG on, they're served from
+# the source folders under their plain names.
 STATIC_URL = "static/"
-STATIC_ROOT = DATA_DIR / "static"
+STATIC_ROOT = Path(env("STATIC_ROOT", str(DATA_DIR / "static")))
 STATICFILES_DIRS = [BASE_DIR / "static"]
+if DEBUG:
+    STATIC_ROOT.mkdir(parents=True, exist_ok=True)  # Else WhiteNoise warns
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    },
+}
 
 # Security. Caddy terminates HTTPS, redirects plain HTTP and sets HSTS; it
 # tells Django the original scheme in X-Forwarded-Proto.
