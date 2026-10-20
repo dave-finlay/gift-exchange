@@ -10,6 +10,9 @@
   --accent-text: #ffffff;
   --notice: #eef6ee;
   --error: #b3261e;
+  --done: #dcf1e1;
+  --done-text: #1d6b34;
+  --problem: #fbe1df;
   color-scheme: light dark;
 }
 
@@ -24,6 +27,9 @@
     --accent-text: #17181a;
     --notice: #1f3323;
     --error: #ff8a80;
+    --done: #1f3a27;
+    --done-text: #8fd9a5;
+    --problem: #4a2422;
   }
 }
 
@@ -216,6 +222,17 @@ button.big { font-size: 1.125rem; padding: 0.8rem 1.4rem; }
 details.danger-zone summary { cursor: pointer; color: var(--muted); }
 .danger-zone + .danger-zone { margin-top: 1rem; padding-top: 0; border-top: 0; }
 .progress li small { display: block; }
+/* Status pills on the progress page: green once done, red for problems */
+.pills { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.3rem; }
+.pill {
+  padding: 0.1rem 0.6rem;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+.pill.done { color: var(--done-text); background: var(--done); border-color: transparent; font-weight: 600; }
+.pill.problem { color: var(--error); background: var(--problem); border-color: transparent; font-weight: 600; }
 .progress .resend { font-size: 0.875rem; white-space: nowrap; }
 .warning { color: var(--error); font-weight: 600; }
 

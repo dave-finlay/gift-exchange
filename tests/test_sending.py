@@ -277,7 +277,7 @@ def test_gift_status_and_asking_to_be_taken_out(client, b):
     assert alice.gift_status == "bought"
     assert alice.withdraw_requested_at is not None
     page = client.get(reverse("exchange", args=[b.exchange.pk])).content.decode()
-    assert "Gift: bought" in page
+    assert "✓ Gift bought" in page
     assert "Asked to be taken out" in page
 
 

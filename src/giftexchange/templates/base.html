@@ -6,6 +6,8 @@
   <meta name="robots" content="noindex, nofollow">
   <title>{% block title %}{% endblock %}{{ SITE_NAME }}</title>
   <link rel="stylesheet" href="{% static 'site.css' %}">
+  <link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="{% static 'apple-touch-icon.png' %}">
   <script src="{% static 'swipe.js' %}" defer></script>
   {% block scripts %}{% endblock %}
 </head>

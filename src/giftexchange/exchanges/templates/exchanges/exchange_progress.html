@@ -18,16 +18,17 @@
       <li class="row">
         <span>
         <strong>{{ p.person.name }}</strong>
-        <small>
+        <span class="pills">
           {% if exchange.status == "joining" %}
-            {% if p.response == "in" %}✓ In{% elif p.response == "declined" %}Not this time{% else %}No answer yet{% endif %}
-          {% elif p.response == "declined" %}Not taking part
+            {% if p.response == "in" %}<span class="pill done">✓ In</span>{% elif p.response == "declined" %}<span class="pill">Not this time</span>{% else %}<span class="pill">No answer yet</span>{% endif %}
+          {% elif p.response == "declined" %}<span class="pill">Not taking part</span>
           {% else %}
-            {% if p.revealed_at %}✓ Has looked{% else %}Hasn't looked yet{% endif %} · Gift: {{ p.get_gift_status_display|lower }}
+            {% if p.revealed_at %}<span class="pill done">✓ Has looked</span>{% else %}<span class="pill">Hasn't looked</span>{% endif %}
+            {% if p.gift_status == "not_yet" %}<span class="pill">Not bought yet</span>{% else %}<span class="pill done">✓ Gift {{ p.get_gift_status_display|lower }}</span>{% endif %}
           {% endif %}
-          {% if p.latest_email.status == "failed" %} · <span class="warning">Email failed</span>{% elif p.latest_email.status == "bounced" %} · <span class="warning">Email bounced</span>{% endif %}
-          {% if p.withdraw_requested_at and not p.withdrawn_at %} · <span class="warning">Asked to be taken out</span>{% endif %}
-        </small>
+          {% if p.latest_email.status == "failed" %}<span class="pill problem">Email failed</span>{% elif p.latest_email.status == "bounced" %}<span class="pill problem">Email bounced</span>{% endif %}
+          {% if p.withdraw_requested_at and not p.withdrawn_at %}<span class="pill problem">Asked to be taken out</span>{% endif %}
+        </span>
         </span>
         {% if p.can_resend %}<a class="resend" href="{% url 'exchange_resend' exchange.pk p.pk %}">Send again</a>{% endif %}
       </li>
