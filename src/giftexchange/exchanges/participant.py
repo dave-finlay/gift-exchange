@@ -3,36 +3,54 @@ have no accounts: the link is their only identity.
 
 Opening the link changes nothing (email scanners open links): it remembers
 the participant in this browser's session and redirects to a clean URL,
-so the token doesn't linger in the address bar or history.
+so the token doesn't linger in the address bar or history. The session
+remembers which version of the link it opened, so a new link also shuts
+out browsers that opened an old one.
 """
 
+from datetime import timedelta
+
 from django import forms
+from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
-from . import links, secrecy
+from giftexchange.audit.models import record
+
+from . import emails, links, secrecy
 from .emails import organizer_name
 from .models import Exchange, GiftIdea, Participant
 
-SESSION_KEY = "participants"
+SESSION_KEY = "participant_links"  # {participant ID: link version}
+
+# Emails a participant can have in a day before "Get a new link" stops
+# working for them, so it can't be used to flood their inbox.
+MAX_EMAILS_PER_PARTICIPANT_PER_DAY = 5
+
+
+def remember(request, participant):
+    known = request.session.get(SESSION_KEY, {})
+    request.session[SESSION_KEY] = {
+        **known,
+        str(participant.pk): links.version(participant),
+    }
 
 
 def open_link(request, token):
     participant = links.participant_for(token)
     if participant is None or participant.exchange.status == Exchange.Status.DRAFT:
         return render(request, "participant/link_unusable.html", status=404)
-    known = request.session.get(SESSION_KEY, [])
-    if participant.pk not in known:
-        request.session[SESSION_KEY] = [*known, participant.pk]
+    remember(request, participant)
     return redirect("participant", participant.pk)
 
 
 def own_participant(request, pk):
-    """The participant, if this browser has opened their link."""
-    if pk not in request.session.get(SESSION_KEY, []):
+    """The participant, if this browser has opened their current link."""
+    opened = request.session.get(SESSION_KEY, {}).get(str(pk))
+    if opened is None:
         raise Http404
     participant = get_object_or_404(
         Participant.objects.select_related(
@@ -40,7 +58,10 @@ def own_participant(request, pk):
         ),
         pk=pk,
     )
-    if participant.exchange.status == Exchange.Status.DRAFT:
+    if (
+        opened != links.version(participant)
+        or participant.exchange.status == Exchange.Status.DRAFT
+    ):
         raise Http404
     return participant
 
@@ -80,6 +101,7 @@ def page(request, pk, *, receiver=None, idea_form=None):
         "can_add_idea": participant.gift_ideas.count() < GiftIdea.MAX_PER_PARTICIPANT,
         "receiver": receiver,
         "statuses": Participant.GiftStatus.choices,
+        "can_get_new_link": emails.latest_kind(participant) is not None,
         # The message from the latest email they've had
         "message": exchange.note
         if exchange.status == Exchange.Status.SENT
@@ -159,4 +181,42 @@ def withdraw(request, pk):
     if participant.exchange.status == Exchange.Status.SENT:
         participant.withdraw_requested_at = timezone.now()
         participant.save(update_fields=["withdraw_requested_at"])
+    return redirect("participant", pk)
+
+
+@require_POST
+def new_link(request, pk):
+    """For a link shared by mistake: email them a new one, and the old one
+    stops working. This browser stays signed in. Anyone with the old link
+    can do this, but the new one goes only to the participant's address."""
+    participant = own_participant(request, pk)
+    kind = emails.latest_kind(participant)
+    if kind is None:
+        return redirect("participant", pk)
+    organizer = organizer_name(participant.exchange)
+    since = timezone.now() - timedelta(days=1)
+    recent = participant.emails.filter(sent_at__gte=since).count()
+    try:
+        emails.check_daily_limit(participant.exchange, 1)
+        if recent >= MAX_EMAILS_PER_PARTICIPANT_PER_DAY:
+            raise emails.TooManyEmails
+    except emails.TooManyEmails:
+        messages.error(
+            request, f"Too many emails today. Try tomorrow, or ask {organizer}."
+        )
+        return redirect("participant", pk)
+    links.rotate(participant)
+    remember(request, participant)
+    record(request, "participant.new_link", f"participant:{pk}")
+    if emails.send(request, participant.exchange, [participant], kind, new_link=True):
+        messages.error(
+            request,
+            f"Your new link couldn't be emailed. Ask {organizer} to send it again.",
+        )
+    else:
+        messages.success(
+            request,
+            f"Sent a new link to {participant.person.email}. Older links no "
+            "longer work.",
+        )
     return redirect("participant", pk)

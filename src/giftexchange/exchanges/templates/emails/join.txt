@@ -1,6 +1,8 @@
 {% autoescape off %}Hi {{ person.name }},
 
-{{ organizer }} has added you to {{ exchange.name }}, a gift exchange: everyone buys a gift for one other person, and it's a secret who has whom.
+{% if new_link %}This email has a new link to your page. Older links no longer work.
+
+{% endif %}{{ organizer }} has added you to {{ exchange.name }}, a gift exchange: everyone buys a gift for one other person, and it's a secret who has whom.
 {% if message %}
 {{ message }}
 {% endif %}

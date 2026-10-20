@@ -18,7 +18,7 @@ from django.views.decorators.http import require_POST
 from giftexchange import matching
 from giftexchange.audit.models import record
 
-from . import checks, draws, emails
+from . import checks, draws, emails, links
 from .forms import (
     CircleChoiceForm,
     CircleForm,
@@ -27,6 +27,7 @@ from .forms import (
     PasteForm,
     PersonForm,
     RenameExchangeForm,
+    ResendForm,
     RuleForm,
     new_exchange,
     remove_empty_households,
@@ -351,10 +352,11 @@ def progress(exchange):
     ):
         latest[log.participant_id] = log
     rows = []
-    for participant in exchange.participants.select_related("person").order_by(
-        "person__name"
-    ):
+    participants = exchange.participants.select_related("person", "assignment")
+    for participant in participants.order_by("person__name"):
+        participant.exchange = exchange
         participant.latest_email = latest.get(participant.pk)
+        participant.can_resend = emails.latest_kind(participant) is not None
         rows.append(participant)
     return rows
 
@@ -456,6 +458,58 @@ def exchange_draw(request, pk):
             "participants": taking_part.order_by("person__name"),
             "check": None if problems else checks.check(exchange),
             **email_summary(exchange, taking_part, "assignment"),
+        },
+    )
+
+
+@login_required
+def exchange_resend(request, pk, participant_pk):
+    """Send one person their latest email again: for one that failed, went
+    to the wrong address, or was lost. Optionally with a new link, so the
+    old one stops working; always when the address changes, since the old
+    link went somewhere else."""
+    exchange = own_exchange(request, pk)
+    participant = get_object_or_404(
+        exchange.participants.select_related("person"), pk=participant_pk
+    )
+    person = participant.person
+    kind = emails.latest_kind(participant)
+    if kind is None:
+        messages.error(request, f"There's nothing to send {person.name} now.")
+        return redirect("exchange", pk)
+    form = ResendForm(request.POST or None, initial={"email": person.email})
+    if request.method == "POST" and form.is_valid():
+        try:
+            emails.check_daily_limit(exchange, 1)
+        except emails.TooManyEmails as error:
+            messages.error(request, str(error))
+            return redirect("exchange", pk)
+        email = form.cleaned_data["email"]
+        new_link = form.cleaned_data["new_link"] or email != person.email
+        if email != person.email:
+            person.email = email
+            person.save(update_fields=["email"])
+            record(request, "person.email", f"person:{person.pk}")
+        if new_link:
+            links.rotate(participant)
+            record(request, "participant.new_link", f"participant:{participant.pk}")
+        if emails.send(request, exchange, [participant], kind, new_link=new_link):
+            messages.error(request, f"The email to {person.name} couldn't be sent.")
+        elif new_link:
+            messages.success(request, f"Sent {person.name} a new link.")
+        else:
+            messages.success(request, f"Sent {person.name} their email again.")
+        return redirect("exchange", pk)
+    subject, _, _ = emails.compose(exchange, person, kind, "#")
+    return render(
+        request,
+        "exchanges/exchange_resend.html",
+        {
+            "exchange": exchange,
+            "person": person,
+            "form": form,
+            "subject": subject,
+            "latest": participant.emails.order_by("-sent_at").first(),
         },
     )
 

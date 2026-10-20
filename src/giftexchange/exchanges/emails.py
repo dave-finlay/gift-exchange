@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from . import links
-from .models import EmailLog
+from .models import EmailLog, Exchange
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,20 @@ def check_daily_limit(exchange, adding):
         )
 
 
-def compose(exchange, person, kind, link, *, shared_address=False):
+def latest_kind(participant):
+    """The email that brings a participant up to date, to send again (or
+    with a new link): None if they've nothing to look at."""
+    status = participant.exchange.status
+    if participant.withdrawn_at:
+        return None
+    if status == Exchange.Status.JOINING:
+        return EmailLog.Kind.JOIN
+    if status == Exchange.Status.SENT and hasattr(participant, "assignment"):
+        return EmailLog.Kind.ASSIGNMENT
+    return None
+
+
+def compose(exchange, person, kind, link, *, shared_address=False, new_link=False):
     """An email's (subject, plain text, HTML). Used for sending and for the
     organizer's preview, so the preview is exactly what's sent."""
     context = {
@@ -52,6 +65,7 @@ def compose(exchange, person, kind, link, *, shared_address=False):
         "person": person,
         "organizer": organizer_name(exchange),
         "link": link,
+        "new_link": new_link,
         "site_name": settings.SITE_NAME,
         # The organizer's own message for this email, if any
         "message": exchange.join_note if kind == "join" else exchange.note,
@@ -64,9 +78,10 @@ def compose(exchange, person, kind, link, *, shared_address=False):
     return subject, text, html
 
 
-def send(request, exchange, participants, kind):
+def send(request, exchange, participants, kind, *, new_link=False):
     """Send one `kind` email (join, assignment, …) to each participant.
-    Returns how many failed; each attempt is logged, without its body."""
+    Returns how many failed; each attempt is logged, without its body.
+    `new_link` says their link has changed."""
     participants = list(participants)
     check_daily_limit(exchange, len(participants))
     # People sharing an address each get their own email, named in the
@@ -80,7 +95,7 @@ def send(request, exchange, participants, kind):
         )
         shared = addresses.count(person.email.lower()) > 1
         subject, text, html = compose(
-            exchange, person, kind, link, shared_address=shared
+            exchange, person, kind, link, shared_address=shared, new_link=new_link
         )
         message = EmailMultiAlternatives(
             subject=subject,

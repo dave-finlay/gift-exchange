@@ -105,4 +105,15 @@
     {% endif %}
   </details>
 {% endif %}
+
+{% if can_get_new_link %}
+  <details class="danger-zone">
+    <summary>Shared your link by mistake?</summary>
+    <p>We'll email you a new link, and your old one stops working, for anyone who has it.</p>
+    <form method="post" action="{% url 'participant_new_link' participant.pk %}">
+      {% csrf_token %}
+      <button class="secondary">Email me a new link</button>
+    </form>
+  </details>
+{% endif %}
 {% endblock %}

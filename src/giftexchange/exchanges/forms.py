@@ -407,6 +407,19 @@ class RenameExchangeForm(forms.ModelForm):
         help_texts = {"name": 'For example, "Christmas 2026".'}
 
 
+class ResendForm(forms.Form):
+    """Send someone their latest email again, perhaps to a corrected
+    address, perhaps with a new link."""
+
+    email = forms.EmailField(label="Email address", max_length=254)
+    new_link = forms.BooleanField(
+        required=False,
+        label="Give them a new link",
+        help_text="Their old link stops working. Use this if someone else may "
+        "have it, for example if the email was forwarded.",
+    )
+
+
 class ExchangeForm(forms.ModelForm):
     """The basics and settings of a gift exchange (renaming is separate)."""
 
