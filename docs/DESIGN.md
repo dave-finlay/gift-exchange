@@ -449,15 +449,18 @@ fonts; strict Content-Security-Policy.
    `rel="noopener nofollow"`.
 5. The organizer's note.
 6. Who's taking part (names only).
-7. "Can't take part anymore?" This asks the organizer, who confirms
-   before the withdrawal repair runs. It never happens instantly, because
-   of forwarded links and accidental taps.
-8. "Shared your link by mistake?" Emails them a new link, and the old one
+7. "Shared your link by mistake?" Emails them a new link, and the old one
    stops working, for anyone who has it; this browser stays signed in.
    Anyone holding the old link can press it, but the new link goes only
    to the participant's own address. At most 5 emails per participant a
    day, so it can't flood an inbox. (Lost the email? The organizer sends
    it again.)
+
+**Undecided:** whether participants can ask to be taken out after the
+draw ("Can't take part anymore?"), which would ask the organizer, who
+confirms before the withdrawal repair runs (never instantly, because of
+forwarded links and accidental taps). It stays off until withdrawals
+are decided. The data model keeps `withdraw_requested_at` for it.
 
 **Later:** anonymous questions from giver to receiver ("What size are
 you?"). **Not planned:** postal addresses, because they're the most

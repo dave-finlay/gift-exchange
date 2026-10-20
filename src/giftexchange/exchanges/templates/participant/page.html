@@ -91,21 +91,6 @@
 <h2>Who's Taking Part</h2>
 <p>{{ names|join:", " }}</p>
 
-{% if drawn and in_draw and not participant.withdrawn_at %}
-  <details class="danger-zone">
-    <summary>Can't take part anymore?</summary>
-    {% if participant.withdraw_requested_at %}
-      <p>You've asked {{ organizer }} to take you out. They'll sort it out, and whoever was buying for you will get someone new.</p>
-    {% else %}
-      <p>This asks {{ organizer }} to take you out. Whoever was buying for you will get someone new.</p>
-      <form method="post" action="{% url 'participant_withdraw' participant.pk %}">
-        {% csrf_token %}
-        <button class="secondary">Ask {{ organizer }} to take me out</button>
-      </form>
-    {% endif %}
-  </details>
-{% endif %}
-
 {% if can_get_new_link %}
   <details class="danger-zone">
     <summary>Shared your link by mistake?</summary>

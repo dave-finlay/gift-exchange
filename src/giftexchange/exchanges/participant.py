@@ -174,17 +174,6 @@ def gift_status(request, pk):
 
 
 @require_POST
-def withdraw(request, pk):
-    """Ask the organizer to take them out. It never happens straight away,
-    because of forwarded links and accidental taps."""
-    participant = own_participant(request, pk)
-    if participant.exchange.status == Exchange.Status.SENT:
-        participant.withdraw_requested_at = timezone.now()
-        participant.save(update_fields=["withdraw_requested_at"])
-    return redirect("participant", pk)
-
-
-@require_POST
 def new_link(request, pk):
     """For a link shared by mistake: email them a new one, and the old one
     stops working. This browser stays signed in. Anyone with the old link

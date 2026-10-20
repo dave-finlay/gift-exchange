@@ -27,7 +27,6 @@
             {% if p.gift_status == "not_yet" %}<span class="pill">Not bought yet</span>{% else %}<span class="pill done">✓ Gift {{ p.get_gift_status_display|lower }}</span>{% endif %}
           {% endif %}
           {% if p.latest_email.status == "failed" %}<span class="pill problem">Email failed</span>{% elif p.latest_email.status == "bounced" %}<span class="pill problem">Email bounced</span>{% endif %}
-          {% if p.withdraw_requested_at and not p.withdrawn_at %}<span class="pill problem">Asked to be taken out</span>{% endif %}
         </span>
         </span>
         {% if p.can_resend %}<a class="resend" href="{% url 'exchange_resend' exchange.pk p.pk %}">Send again</a>{% endif %}
