@@ -2,7 +2,7 @@
 # See "Architecture" in docs/DESIGN.md. Base images are pinned by digest
 # (a tag can be moved); Dependabot keeps them current.
 
-FROM ghcr.io/astral-sh/uv:0.13.4@sha256:9f130421e930bfbdc563c00740466603f8723158e90297d07957c2294640262b AS uv
+FROM ghcr.io/astral-sh/uv:0.13.5@sha256:32a7bb39b496babbd997b0a39a4d66c126bdaf5661b302bf6f06abda8deca6ff AS uv
 
 # Build: install the app and its locked dependencies into /app/.venv, and
 # collect the static files.
