@@ -78,6 +78,7 @@ docker run --rm -p 8000:8000 -e SITE_DOMAIN=localhost \
 | `Dockerfile`, `deploy/` | The container image, and the files for running it on a server |
 | `tests/` | Tests, including property-based tests with Hypothesis |
 | `docs/DESIGN.md` | Architecture, data model and screens |
+| `docs/events/` | What happened when something real came along, such as a new advisory, and what we learned |
 
 ## License
 
