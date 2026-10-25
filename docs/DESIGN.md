@@ -97,7 +97,7 @@ variables. The repository has a commented `site.env.example`.
 | Setting | Example | Used by |
 |---|---|---|
 | `SITE_DOMAIN` | `giftexchange.org` | Caddy's site address (`{$SITE_DOMAIN}` in the Caddyfile), Django's `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`, links in emails |
-| `EXTRA_DOMAINS` | `kriskindle.example` | Optional: more domains for the same site, comma-separated. Links (in pages and emails) use the domain the request came in on, which must be one of the site's domains, so a group can use the name that suits it. Caddy will need to serve these too. |
+| `EXTRA_DOMAINS` | `kriskindle.example` | Optional: more domains for the same site, separated by spaces (Caddy reads the same file, and needs spaces). Links (in pages and emails) use the domain the request came in on, which must be one of the site's domains, so a group can use the name that suits it. Caddy serves them all, with a certificate for each. |
 | `SITE_NAME` | `Gift Exchange` | Page titles, email subjects and signatures |
 | `EMAIL_PROVIDER` | `mailjet` | The email provider: any provider Anymail supports, by the name of its Anymail backend (`mailjet`, the default, `postmark`, `mailgun`, `sparkpost`, …) |
 | `EMAIL_FROM` | `Gift Exchange <hello@giftexchange.org>` | Sender of all emails; must be on a domain verified with the email provider |
