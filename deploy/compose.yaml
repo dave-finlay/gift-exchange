@@ -1,0 +1,71 @@
+# The site: Caddy in front (HTTPS, with certificates from Let's Encrypt),
+# and the app behind it. See docs/SELF-HOSTING.md.
+#
+# Site settings come from site.env, and the app's secrets from the files
+# in secrets/app, both in /etc/gift-exchange (or GIFT_EXCHANGE_ETC, for
+# tests). APP_IMAGE picks the app's image, the latest from main by
+# default; set it in a .env file next to this one.
+
+name: gift-exchange
+
+x-logging: &logging
+  # Docker's default log never shrinks; keep the newest 30 MB.
+  driver: json-file
+  options: { max-size: 10m, max-file: "3" }
+
+services:
+  app:
+    image: ${APP_IMAGE:-ghcr.io/dave-finlay/gift-exchange:main}
+    restart: unless-stopped
+    env_file: ${GIFT_EXCHANGE_ETC:-/etc/gift-exchange}/site.env
+    volumes:
+      - app-data:/data
+      - ${GIFT_EXCHANGE_ETC:-/etc/gift-exchange}/secrets/app:/run/secrets:ro
+    # Only the database volume is writable; the app can't gain privileges.
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      # Asks for the sign-in page as Caddy would, with the site's address.
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import os, urllib.request as r;
+          r.urlopen(r.Request("http://127.0.0.1:8000/signin/",
+          headers={"Host": os.environ["SITE_DOMAIN"],
+          "X-Forwarded-Proto": "https"}), timeout=5)
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      start_interval: 2s
+    logging: *logging
+
+  caddy:
+    image: caddy:2.11.7@sha256:504a44d7d74bd2bc28a66afc4774912fc21223ca8a67734af1c54ab2f999b489
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    env_file: ${GIFT_EXCHANGE_ETC:-/etc/gift-exchange}/site.env
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data # Certificates: keep them, or Let's Encrypt's limits bite
+      - caddy-config:/config
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE] # Ports 80 and 443
+    security_opt: [no-new-privileges:true]
+    logging: *logging
+
+volumes:
+  app-data:
+  caddy-data:
+  caddy-config:

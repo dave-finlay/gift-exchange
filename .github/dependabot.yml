@@ -37,3 +37,11 @@ updates:
     groups:
       images:
         patterns: ["*"]
+  # Caddy's image in deploy/compose.yaml, pinned by digest. The app's own
+  # image there is ours, and follows main.
+  - package-ecosystem: docker-compose
+    directory: /deploy
+    schedule:
+      interval: weekly
+    ignore:
+      - dependency-name: ghcr.io/dave-finlay/gift-exchange

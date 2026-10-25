@@ -1,7 +1,8 @@
 name: Image
 
-# Builds the app image, checks that it starts and serves pages, and scans
-# it with grype. On main, and daily, it also publishes it to GitHub's
+# Builds the app image, checks that it starts and serves pages (on its
+# own, then behind Caddy as on the server, with deploy/check.sh), and
+# scans it with grype. On main, and daily, it also publishes it to GitHub's
 # container registry. The daily run picks up new vulnerability reports,
 # and changes merged by Dependabot (whose merges don't start workflows).
 
@@ -62,6 +63,26 @@ jobs:
       - name: Show the app's log
         if: failure()
         run: docker logs app
+
+      - name: Run it behind Caddy, as on the server, and check the site
+        # The same throwaway secrets, with Caddy's own certificate for
+        # localhost.
+        run: |
+          mkdir -p "$GIFT_EXCHANGE_ETC/secrets"
+          cp -r secrets "$GIFT_EXCHANGE_ETC/secrets/app"
+          echo "SITE_DOMAIN=localhost" > "$GIFT_EXCHANGE_ETC/site.env"
+          cd deploy
+          docker compose up --detach --wait
+          ./check.sh localhost
+        env:
+          GIFT_EXCHANGE_ETC: ${{ runner.temp }}/etc
+          APP_IMAGE: gift-exchange:ci
+      - name: Show the site's log
+        if: failure()
+        run: docker compose --file deploy/compose.yaml logs
+        env:
+          GIFT_EXCHANGE_ETC: ${{ runner.temp }}/etc
+          APP_IMAGE: gift-exchange:ci
 
       - name: Scan (fails on fixable high or critical vulnerabilities)
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
