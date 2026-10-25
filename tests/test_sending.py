@@ -1,6 +1,8 @@
+import json
 import re
 
 import pytest
+import requests
 from django.core import mail
 from django.test import Client
 from django.urls import reverse
@@ -87,6 +89,43 @@ def test_send_join_emails(client, b):
     assert "Hi Alice," in message.body
     assert message.alternatives[0][1] == "text/html"
     assert EmailLog.objects.filter(kind="join", status="sent").count() == 6
+    assert all(not m.track_clicks and not m.track_opens for m in mail.outbox)
+
+
+def test_mailjet_is_told_not_to_track(client, b, settings, monkeypatch):
+    """What actually goes to Mailjet's API, with the network faked."""
+    settings.EMAIL_BACKEND = "anymail.backends.mailjet.EmailBackend"
+    settings.ANYMAIL = {"MAILJET_API_KEY": "key", "MAILJET_SECRET_KEY": "secret"}
+    sent = []
+
+    def fake_request(session, method, url, **kwargs):
+        sent.append(json.loads(kwargs["data"]))
+        response = requests.Response()
+        response.status_code = 200
+        to = sent[-1]["Messages"][0]["To"][0]["Email"]
+        response._content = json.dumps(
+            {"Messages": [{"Status": "success", "To": [{"Email": to, "MessageID": 1}]}]}
+        ).encode()
+        return response
+
+    monkeypatch.setattr(requests.Session, "request", fake_request)
+    send_join(client, b)
+    assert len(sent) == 6
+    for payload in sent:
+        assert payload["Globals"]["TrackClicks"] == "disabled"
+        assert payload["Globals"]["TrackOpens"] == "disabled"
+    assert EmailLog.objects.filter(kind="join", status="sent").count() == 6
+
+
+def test_a_provider_that_cant_turn_off_tracking_sends_nothing(
+    client, b, settings, caplog
+):
+    # Brevo can only turn tracking off for a whole account, on request.
+    settings.EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+    settings.ANYMAIL = {"BREVO_API_KEY": "key"}
+    send_join(client, b)
+    assert EmailLog.objects.filter(kind="join", status="failed").count() == 6
+    assert "does not support track_clicks" in caplog.text
 
 
 def test_people_sharing_an_address_are_named_in_the_subject(client, b):
