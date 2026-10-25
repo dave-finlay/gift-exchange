@@ -17,6 +17,7 @@ import base64
 import hashlib
 import os
 import pkgutil
+import re
 import socket
 from pathlib import Path
 
@@ -38,7 +39,9 @@ def env_int(name, default):
 
 
 def env_list(name):
-    return [item.strip() for item in env(name, "").split(",") if item.strip()]
+    """Items separated by spaces or commas. (Caddy, which reads the same
+    site.env, needs spaces.)"""
+    return [item for item in re.split(r"[\s,]+", env(name, "")) if item]
 
 
 def local_network_address():

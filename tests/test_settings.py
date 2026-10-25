@@ -70,3 +70,14 @@ def test_development_saves_emails_as_files(tmp_path, monkeypatch):
 def test_development_sends_once_the_secrets_are_installed(tmp_path, monkeypatch):
     s = load(tmp_path, monkeypatch, True, MAILJET_SECRETS)
     assert s["EMAIL_BACKEND"] == "anymail.backends.mailjet.EmailBackend"
+
+
+def test_extra_domains_separated_by_spaces_or_commas(tmp_path, monkeypatch):
+    extra = "kriskindle.example  other.example,third.example"
+    s = load(tmp_path, monkeypatch, True, EXTRA_DOMAINS=extra)
+    assert s["SITE_DOMAINS"] == [
+        "example.org",
+        "kriskindle.example",
+        "other.example",
+        "third.example",
+    ]
