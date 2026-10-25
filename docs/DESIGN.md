@@ -42,7 +42,7 @@ Status: working app, not yet deployed, as of 2026-10-19.
 | Database | SQLite in WAL mode, with a busy timeout and Django's `"transaction_mode": "IMMEDIATE"` |
 | Backups | Backblaze B2 (Amsterdam). Layer 1: Litestream continuous replication, in its own container, with a one-off restore container before the app starts. Layer 2: a nightly `sqlite3 .backup`, encrypted with `age` (the server holds only the public key), in a separate bucket with 30-day Object Lock and a write-only key. 30-day retention. A weekly automated restore test reports to healthchecks.io. |
 | Secrets | Master copies in KeePassXC. A script on the Mac reads them with `keepassxc-cli` and installs them over SSH into `/etc/gift-exchange/secrets/` (root-owned, readable only by the container's user). Mounted per service with Compose `secrets`, never as environment variables. CI never sees production secrets. |
-| Email | Brevo over its HTTPS API, via `django-anymail`. Emails carry a private link, not the assignment. Link and open tracking must be turned off in Brevo's settings (Anymail can't turn them off per message for Brevo), or Brevo would rewrite the private links. Emails come from the site's address as "Organizer via Gift Exchange", with Reply-To set to the organizer. Without the API key, development saves each email as a .eml file in `data/emails`. The API key is limited by Brevo's Authorized IPs setting. |
+| Email | An email provider's HTTPS API, via `django-anymail`: Mailjet by default (EU-based, with a free tier, and the only one tried so far), or any other provider Anymail supports, chosen with `EMAIL_PROVIDER`. Emails carry a private link, not the assignment. Every message turns off link and open tracking, so the provider doesn't rewrite private links to go through its servers, or record when each person opens the email and clicks. A provider that can't turn tracking off per message (Brevo, Amazon SES, Resend, Scaleway) is refused by Anymail, so its emails fail. That's opinionated: a setting to allow tracking could come later, if someone needs one of those. (Brevo was the first choice, but it turns tracking off only for a whole account, on request, so it was dropped before the first real send.) Emails come from the site's address as "Organizer via Gift Exchange", with Reply-To set to the organizer. Without the provider's secret files, development saves each email as a .eml file in `data/emails`. |
 | Domain | The operator's own domain, with DNS at Cloudflare |
 | Sign-in | Organizers: password (Argon2id), lockout after repeated failures (`django-axes`), optional two-factor codes. Invitation links are single use, expire after about 7 days, and are stored hashed. Only staff (the site's operator) can invite, for now. The new link is shown once, for the operator to send; emailing it comes with the email work. Plain Django sign-in views; two-factor codes come later, with `django-otp`. |
 | Admin | Django admin, reachable only through an SSH tunnel |
@@ -99,6 +99,7 @@ variables. The repository has a commented `site.env.example`.
 | `SITE_DOMAIN` | `giftexchange.org` | Caddy's site address (`{$SITE_DOMAIN}` in the Caddyfile), Django's `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`, links in emails |
 | `EXTRA_DOMAINS` | `kriskindle.example` | Optional: more domains for the same site, comma-separated. Links (in pages and emails) use the domain the request came in on, which must be one of the site's domains, so a group can use the name that suits it. Caddy will need to serve these too. |
 | `SITE_NAME` | `Gift Exchange` | Page titles, email subjects and signatures |
+| `EMAIL_PROVIDER` | `mailjet` | The email provider: any provider Anymail supports, by the name of its Anymail backend (`mailjet`, the default, `postmark`, `mailgun`, `sparkpost`, …) |
 | `EMAIL_FROM` | `Gift Exchange <hello@giftexchange.org>` | Sender of all emails; must be on a domain verified with the email provider |
 | `OPERATOR_NAME`, `OPERATOR_EMAIL` | | The privacy note and the contact address shown to users |
 | `TIME_ZONE` | `Europe/Dublin` | Default for dates; organizers can set their own |
@@ -114,6 +115,7 @@ go in `site.env`.
 |---|---|
 | `django_secret_key` | Django's `SECRET_KEY`. Any further lines are older keys, kept as `SECRET_KEY_FALLBACKS` while rotating. |
 | `assignment_keys` | Fernet keys for encrypting assignments, newest first. The first encrypts; all of them decrypt. |
+| `<provider>_…` | The email provider's Anymail settings, one file each, named after the setting in lower case: `mailjet_api_key` and `mailjet_secret_key` for Mailjet's `MAILJET_API_KEY` and `MAILJET_SECRET_KEY` |
 
 Each file holds one value per line, newest first. With `DJANGO_DEBUG=1`
 (development and tests), missing files fall back to fixed development
@@ -160,7 +162,7 @@ part this time, one-off rules, the draw and the emails. The model is
 | Participant | exchange, person, link_rotated_at, response (pending, in, declined), responded_at, gift_status (not_yet, bought, sent), gift_status_at, revealed_at, withdraw_requested_at, withdrawn_at, created_at | Who takes part in this exchange; the private link points here |
 | GiftIdea | participant, text (up to 280 characters), created_at, updated_at | Ideas for yourself, seen only by your giver. Up to 10 per participant; deleted at archive. |
 | Assignment | giver (Participant, unique), receiver_ciphertext, created_at, updated_at | See "Assignment secrecy" |
-| EmailLog | participant, kind (join, assignment, reassignment, removed, reminder, called_off), sent_at, provider_message_id, status (sent, delivered, bounced, complaint, failed) | Never stores email bodies. Statuses come from Brevo webhooks. |
+| EmailLog | participant, kind (join, assignment, reassignment, removed, reminder, called_off), sent_at, provider_message_id, status (sent, delivered, bounced, complaint, failed) | Never stores email bodies. Statuses come from the email provider's webhooks. |
 | AuditEvent | actor, action, target, created_at, ip | Sign-ins, invitations, draws, sends, rule changes, withdrawals, admin actions |
 
 ### Rules
@@ -518,8 +520,8 @@ These are settings, checked in forms and in the draw:
 
 ## Next
 
-- A real send through Brevo: a new API key, the sender domain's DNS
-  records, tracking off.
+- A real send through Mailjet (the sender domain's DNS records are
+  done).
 - Withdrawals and late joiners (the repair), and reminders.
 - Done: sign-in, invitations, circles, gift exchange setup with test
   mode, "Are you in?" and "Draw and send" emails, the participant page

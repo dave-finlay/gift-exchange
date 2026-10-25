@@ -105,6 +105,11 @@ def send(request, exchange, participants, kind, *, new_link=False):
             reply_to=[exchange.owner.email],
         )
         message.attach_alternative(html, "text/html")
+        # Tracking would send the link through the provider's servers, and
+        # record when each person opens the email and clicks. A provider
+        # that can't turn it off per message refuses to send.
+        message.track_clicks = False
+        message.track_opens = False
         status, message_id = EmailLog.Status.SENT, ""
         try:
             message.send()

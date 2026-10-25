@@ -32,7 +32,8 @@ DJANGO_DEBUG=1 uv run python manage.py migrate
 DJANGO_DEBUG=1 uv run python manage.py createsuperuser
 DJANGO_DEBUG=1 uv run python manage.py runserver
 # Emails aren't sent in development: each is saved as a .eml file in
-# data/emails, which opens in any mail app.
+# data/emails, which opens in any mail app. (For a real test send, put the
+# email provider's secret files in a folder and set SECRETS_DIR to it.)
 
 # To try pages on a phone on the same Wi-Fi, listen on the local network,
 # then open http://<your-computer>.local:8000 or http://<its address>:8000
@@ -59,7 +60,8 @@ docker build -t gift-exchange .
 mkdir -p /tmp/ge-secrets
 uv run python -c "import secrets; print(secrets.token_urlsafe(50))" > /tmp/ge-secrets/django_secret_key
 uv run python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())" > /tmp/ge-secrets/assignment_keys
-echo not-a-real-key > /tmp/ge-secrets/brevo_api_key
+echo not-a-real-key > /tmp/ge-secrets/mailjet_api_key
+echo not-a-real-key > /tmp/ge-secrets/mailjet_secret_key
 docker run --rm -p 8000:8000 -e SITE_DOMAIN=localhost \
   -v /tmp/ge-secrets:/run/secrets:ro gift-exchange
 ```

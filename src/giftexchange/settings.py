@@ -16,9 +16,11 @@ back to fixed development values. Without it they're an error.
 import base64
 import hashlib
 import os
+import pkgutil
 import socket
 from pathlib import Path
 
+import anymail.backends
 from django.core.exceptions import ImproperlyConfigured
 
 
@@ -238,14 +240,36 @@ AUTH_PASSWORD_VALIDATORS = [
 
 INVITATION_DAYS = env_int("INVITATION_DAYS", 7)
 
-# Email. Brevo's HTTPS API once its key is installed (also for a real test
-# send in development). Without it, development saves each email as a .eml
-# file in data/emails, which opens in any mail app.
+# Email, sent over the provider's HTTPS API by django-anymail.
+# EMAIL_PROVIDER names any provider Anymail supports. Its settings come
+# from secret files named after Anymail's settings in lower case:
+# mailjet_api_key for MAILJET_API_KEY, and so on. emails.py turns off link
+# and open tracking on every message, and Anymail refuses to send through
+# a provider that can't do that per message.
+EMAIL_PROVIDERS = sorted(
+    module.name
+    for module in pkgutil.iter_modules(anymail.backends.__path__)
+    if module.name not in {"base", "base_requests", "console", "test"}
+)
+EMAIL_PROVIDER = env("EMAIL_PROVIDER", "mailjet")
+if EMAIL_PROVIDER not in EMAIL_PROVIDERS:
+    raise ImproperlyConfigured(
+        f"EMAIL_PROVIDER must be one of: {', '.join(EMAIL_PROVIDERS)}"
+    )
+_secrets = sorted(SECRETS_DIR.glob(f"{EMAIL_PROVIDER}_*"))
 
+# Development sends real email only once the provider's secret files are
+# installed (for a test send). Until then, each email is saved as a .eml
+# file in data/emails, which opens in any mail app.
 SERVER_EMAIL = EMAIL_FROM
-if (SECRETS_DIR / "brevo_api_key").exists() or not DEBUG:
-    EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
-    ANYMAIL = {"BREVO_API_KEY": secret_lines("brevo_api_key", "")[0]}
+if _secrets or not DEBUG:
+    if not _secrets:
+        raise ImproperlyConfigured(
+            f"No secret files for {EMAIL_PROVIDER} in {SECRETS_DIR}"
+            f" (such as {EMAIL_PROVIDER}_api_key)"
+        )
+    EMAIL_BACKEND = f"anymail.backends.{EMAIL_PROVIDER}.EmailBackend"
+    ANYMAIL = {f.name.upper(): secret_lines(f.name, "")[0] for f in _secrets}
 else:
     EMAIL_BACKEND = "giftexchange.mail.EmlFileBackend"
     EMAIL_FILE_PATH = DATA_DIR / "emails"
