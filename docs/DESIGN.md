@@ -41,11 +41,11 @@ Status: working app, not yet deployed, as of 2026-10-19.
 | App | Django 5.2 LTS under gunicorn (2–3 sync workers), dependencies managed with `uv` (`uv.lock`), base image `python:3.13-slim` |
 | Database | SQLite in WAL mode, with a busy timeout and Django's `"transaction_mode": "IMMEDIATE"` |
 | Backups | Backblaze B2 (Amsterdam). Layer 1: Litestream continuous replication, in its own container, with a one-off restore container before the app starts. Layer 2: a nightly `sqlite3 .backup`, encrypted with `age` (the server holds only the public key), in a separate bucket with 30-day Object Lock and a write-only key. 30-day retention. A weekly automated restore test reports to healthchecks.io. |
-| Secrets | Master copies in KeePassXC. A script on the Mac reads them with `keepassxc-cli` and installs them over SSH into `/etc/gift-exchange/secrets/` (root-owned, readable only by the container's user). Mounted per service with Compose `secrets`, never as environment variables. CI never sees production secrets. |
+| Secrets | Master copies in KeePassXC. A script on the Mac reads them with `keepassxc-cli` and installs them over SSH into `/etc/gift-exchange/secrets/` (root-owned, readable only by the container's user). Each service gets its own folder (`secrets/app/`), mounted read-only at `/run/secrets`, never as environment variables. (Compose `secrets` would need each file named in `compose.yaml`; the email provider's files depend on the provider.) CI never sees production secrets. |
 | Email | An email provider's HTTPS API, via `django-anymail`: Mailjet by default (EU-based, with a free tier, and the only one tried so far), or any other provider Anymail supports, chosen with `EMAIL_PROVIDER`. Emails carry a private link, not the assignment. Every message turns off link and open tracking, so the provider doesn't rewrite private links to go through its servers, or record when each person opens the email and clicks. A provider that can't turn tracking off per message (Brevo, Amazon SES, Resend, Scaleway) is refused by Anymail, so its emails fail. That's opinionated: a setting to allow tracking could come later, if someone needs one of those. (Brevo was the first choice, but it turns tracking off only for a whole account, on request, so it was dropped before the first real send.) Emails come from the site's address as "Organizer via Gift Exchange", with Reply-To set to the organizer. Without the provider's secret files, development saves each email as a .eml file in `data/emails`. |
 | Domain | The operator's own domain, with DNS at Cloudflare |
 | Sign-in | Organizers: password (Argon2id), lockout after repeated failures (`django-axes`), optional two-factor codes. Invitation links are single use, expire after about 7 days, and are stored hashed. Only staff (the site's operator) can invite, for now. The new link is shown once, for the operator to send; emailing it comes with the email work. Plain Django sign-in views; two-factor codes come later, with `django-otp`. |
-| Admin | Django admin, reachable only through an SSH tunnel |
+| Admin | Django admin, not public: Caddy answers 404. Operators use `django-admin` commands on the server instead. Reaching it through an SSH tunnel may come later. |
 | CI | GitHub Actions: ruff (lint, formatting) and pytest on every push to `main` and every pull request; read-only permissions; actions pinned to commit SHAs. Dependabot: weekly grouped updates for uv and GitHub Actions, plus immediate security updates. GitHub security features: CodeQL (Python and Actions), secret scanning with push protection, private vulnerability reporting. Rulesets on `main`: CI's `test` job must pass (repository admins can still push directly), and no force-pushes or deletion. Dependabot's pull requests merge automatically once CI passes (a small workflow turns on GitHub's auto-merge), except major updates, which wait for review. Dependabot stays within `pyproject.toml`'s version ranges (`lockfile-only`) and on Python 3.13 images, so moving to a new Django or Python version is a decision, not an automatic update (#12 and #13 did both by themselves, and were reverted). A merge made that way doesn't trigger workflows on `main`, because it's made with the workflow's own token, so the image build and deploy will need a GitHub App token or another trigger. Dependabot was chosen over Renovate to start with, because it needs no app installed; revisit when image digests come in. A cooldown (waiting a few days before taking a new release) is on hold for now. |
 | Local development | OrbStack |
 | JavaScript | Our own JavaScript is welcome wherever it makes pages nicer. The risk to guard against is someone else's script running in our pages, so: no inline scripts (the Content-Security-Policy allows only `script-src 'self'`, which blocks injected script even if escaping ever fails); no third-party scripts (analytics, widgets, CDNs), since a compromised one could read assignments; core actions keep working without JavaScript, above all on the participant page, which opens in email apps' built-in browsers; and no npm build step unless it's really needed (if one comes, its packages join the dependency scanning). |
@@ -73,7 +73,8 @@ GitHub's ARM runners.
 
 1. Build the image.
 2. Start it with throwaway secrets and check it serves pages and static
-   files.
+   files. Then start it behind Caddy with `deploy/compose.yaml`, as on the
+   server, and run `deploy/check.sh` (below).
 3. Scan it with grype. A fixable high or critical vulnerability fails the
    run; unfixed ones don't, since nothing can be done about them yet but
    wait. Every finding goes to the Security tab.
@@ -83,6 +84,19 @@ GitHub's ARM runners.
 The daily run catches newly reported vulnerabilities in an unchanged
 image, and publishes what Dependabot merged (its merges don't start
 workflows). Dependabot also updates the base images' digests weekly.
+
+**Running it** (`deploy/`): `compose.yaml` runs the app and Caddy. Only
+Caddy is reachable from outside (ports 80 and 443). Both containers have
+read-only file systems, apart from their volumes, drop all Linux
+capabilities (Caddy keeps the one for binding ports 80 and 443), and
+can't gain privileges. The app's health check asks for the sign-in page;
+Caddy starts once the app is healthy. The `Caddyfile` sets HSTS, keeps
+the admin site private, and logs requests with participants' tokens
+replaced. `check.sh` checks a running site from its server: HTTPS, the
+redirect from plain HTTP, headers, the admin site, static files, the log,
+and that a client can't choose the address used for sign-in lockouts.
+`install-secrets.sh` copies secrets from KeePassXC to the server.
+Dependabot updates Caddy's digest weekly.
 
 ## Configuration
 
@@ -106,8 +120,8 @@ variables. The repository has a commented `site.env.example`.
 | `LITESTREAM_BUCKET`, `BACKUP_BUCKET`, `B2_ENDPOINT` | | Backups |
 | Size limits | | Optional overrides of the defaults in "Size limits" |
 
-**Secrets** stay separate, as files under `/etc/gift-exchange/secrets/`
-mounted with Compose `secrets` (see the Secrets row above). The rule of
+**Secrets** stay separate, as files under `/etc/gift-exchange/secrets/`,
+one folder per service (see the Secrets row above). The rule of
 thumb: if leaking it would matter, it's a secret file; otherwise it can
 go in `site.env`.
 
@@ -121,10 +135,10 @@ Each file holds one value per line, newest first. With `DJANGO_DEBUG=1`
 (development and tests), missing files fall back to fixed development
 values; in production they're an error.
 
-**Self-hosting documentation** is part of the product: what to buy (a
-server, a domain, a B2 account, an email provider account), which DNS
-records to create, how to fill in `site.env` and the secrets, and how to
-start, upgrade, back up and restore.
+**Self-hosting documentation** is part of the product:
+[SELF-HOSTING.md](SELF-HOSTING.md) covers what's needed, the email
+provider's DNS records, the server, `site.env`, the secrets, and starting
+and upgrading. Backing up and restoring come with backups.
 
 ## Data model
 
@@ -520,13 +534,13 @@ These are settings, checked in forms and in the draw:
 
 ## Next
 
-- A real send through Mailjet (the sender domain's DNS records are
-  done).
 - Withdrawals and late joiners (the repair), and reminders.
 - Done: sign-in, invitations, circles, gift exchange setup with test
   mode, "Are you in?" and "Draw and send" emails, the participant page
   (answer, gift ideas, tap to reveal, gift status, asking to be taken
   out), a progress list for the organizer, ending and calling off gift
-  exchanges, sending an email again, and new links.
-- Deployment: the Compose file and Caddyfile, the server, secrets,
-  backups, and redeploying when a new image is published.
+  exchanges, sending an email again, new links, and a real send through
+  Mailjet.
+- Deployment. Done: the Compose file and Caddyfile, the secrets script,
+  the site check, and the self-hosting guide. Still to do: the server
+  itself, backups, and redeploying when a new image is published.

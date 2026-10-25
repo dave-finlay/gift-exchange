@@ -13,9 +13,10 @@ suit your group.
 It's early days, but the main flow works: organizers set up a gift
 exchange, everyone gets an email with a private link, and the draw is
 made and sent. A container image is built and scanned for
-vulnerabilities; deployment, withdrawals and reminders are next.
+vulnerabilities; backups, withdrawals and reminders are next.
 
-See [docs/DESIGN.md](docs/DESIGN.md) for the design.
+See [docs/SELF-HOSTING.md](docs/SELF-HOSTING.md) to run your own site, and
+[docs/DESIGN.md](docs/DESIGN.md) for the design.
 
 ## Development
 
@@ -77,9 +78,10 @@ docker run --rm -p 8000:8000 -e SITE_DOMAIN=localhost \
 | `src/giftexchange/templates/`, `static/` | The base page layout and stylesheet; each app has its own templates |
 | `src/giftexchange/exchanges/` | Circles, people, rules, exchanges and participants (`models.py`); the organizer pages (`views.py`, `forms.py`); turning rules into a draw and saving it (`draws.py`); test mode (`checks.py`); encrypting assignments (`secrecy.py`) |
 | `src/giftexchange/audit/` | A log of security-relevant actions |
-| `Dockerfile`, `deploy/` | The container image, and the files for running it on a server |
+| `Dockerfile`, `deploy/` | The container image, and the files for running it on a server: Compose, Caddy, a site check and the secrets script |
 | `tests/` | Tests, including property-based tests with Hypothesis |
 | `docs/DESIGN.md` | Architecture, data model and screens |
+| `docs/SELF-HOSTING.md` | Running your own site |
 
 ## License
 
