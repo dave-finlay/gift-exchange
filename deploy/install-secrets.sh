@@ -29,8 +29,13 @@ printf '\n' >&2
 # keepassxc-cli reads the database's password from its input.
 kp() { printf '%s\n' "$password" | keepassxc-cli "$@"; }
 
-# Entries, not subgroups (which end in "/").
-names=$(kp ls --quiet "$db" "$group" | grep -v '/$') || {
+if ! listing=$(kp ls --quiet "$db" "$group"); then
+    echo "Couldn't open $group in $db: wrong password, or no such group?" >&2
+    exit 1
+fi
+# Entries, not subgroups (which end in "/"). An empty group lists as
+# "[empty]".
+names=$(printf '%s\n' "$listing" | grep -v -e '/$' -e '^\[empty\]$') || {
     echo "No entries in $group" >&2
     exit 1
 }
