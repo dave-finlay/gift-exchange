@@ -60,9 +60,18 @@ jobs:
           output-format: table
 
       - name: Tag it with the version
+        # An exact copy (--prefer-index=false): by default imagetools wraps
+        # a single image in a new index, with a digest of its own.
         env:
           DIGEST: ${{ steps.image.outputs.digest }}
-        run: docker buildx imagetools create --tag "$IMAGE:${VERSION#v}" "$IMAGE@$DIGEST"
+        run: |
+          docker buildx imagetools create --prefer-index=false \
+            --tag "$IMAGE:${VERSION#v}" "$IMAGE@$DIGEST"
+          tagged=$(docker buildx imagetools inspect "$IMAGE:${VERSION#v}" --format '{{json .Manifest.Digest}}' | tr -d '"')
+          if [ "$tagged" != "$DIGEST" ]; then
+            echo "::error::$IMAGE:${VERSION#v} is $tagged, not the tested $DIGEST"
+            exit 1
+          fi
 
       - name: Make its SBOM
         uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
@@ -96,7 +105,7 @@ jobs:
           below, and signed on the image. To check the signature:
 
           \`\`\`sh
-          gh attestation verify oci://$IMAGE:${VERSION#v} --repo $GITHUB_REPOSITORY \\
+          gh attestation verify oci://$IMAGE@$DIGEST --repo $GITHUB_REPOSITORY \\
             --predicate-type https://spdx.dev/Document/v2.3
           \`\`\`
           EOF
