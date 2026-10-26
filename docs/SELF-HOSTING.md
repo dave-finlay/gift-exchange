@@ -152,6 +152,10 @@ Then make your own account, as the site's operator:
 docker compose exec app django-admin createsuperuser
 ```
 
+It asks for your email address, your name (shown on the emails you send,
+as "<name> via Gift Exchange"; you can change it later from the menu)
+and a password.
+
 Sign in at `https://<your domain>/signin/`. As the operator, you can
 invite other organizers from the menu.
 

@@ -20,6 +20,7 @@
         <summary>{% include "icons/menu.svg" %}</summary>
         <nav>
           {% if user.is_staff %}<a href="{% url 'invitations' %}">Invite New Organizer</a>{% endif %}
+          <a href="{% url 'name_change' %}">Change your name</a>
           <a href="{% url 'password_change' %}">Change password</a>
           <form method="post" action="{% url 'signout' %}">{% csrf_token %}<button class="link">Sign out</button></form>
         </nav>

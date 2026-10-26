@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Change Your Name · {% endblock %}
+{% block content %}
+<h1>Change Your Name</h1>
+<form method="post" class="card">
+  {% csrf_token %}
+  {% include "form.html" %}
+  <p class="actions"><button>Save</button> <a class="button secondary" href="{% url 'home' %}">Cancel</a></p>
+</form>
+{% endblock %}

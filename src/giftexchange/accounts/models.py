@@ -45,6 +45,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = "email"
     EMAIL_FIELD = "email"
+    # So createsuperuser asks for it too.
+    REQUIRED_FIELDS = ["display_name"]
 
     def __str__(self):
         return self.display_name or self.email

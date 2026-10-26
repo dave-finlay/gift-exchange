@@ -13,7 +13,7 @@ from django.views.decorators.http import require_POST
 
 from giftexchange.audit.models import record
 
-from .forms import AcceptForm, InviteForm
+from .forms import AcceptForm, InviteForm, NameForm
 from .models import Invitation, User
 
 
@@ -31,6 +31,17 @@ class PasswordChangeView(auth_views.PasswordChangeView):
         record(self.request, "password.change")
         messages.success(self.request, "Your password has been changed.")
         return response
+
+
+@login_required
+def name_change(request):
+    form = NameForm(request.POST or None, instance=request.user)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        record(request, "name.change")
+        messages.success(request, "Your name has been changed.")
+        return redirect("home")
+    return render(request, "accounts/name_change.html", {"form": form})
 
 
 def staff_only(view):
