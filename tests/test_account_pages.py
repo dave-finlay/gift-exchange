@@ -1,4 +1,5 @@
 import pytest
+from django.core.management import call_command
 from django.urls import reverse
 
 from giftexchange.accounts.models import Invitation, User
@@ -50,6 +51,31 @@ def test_security_headers(client):
     assert response["X-Robots-Tag"] == "noindex, nofollow"
     assert response["Referrer-Policy"] == "same-origin"
     assert response["X-Frame-Options"] == "DENY"
+
+
+def test_change_your_name(client):
+    assert client.get(reverse("name_change")).status_code == 302  # Sign in first
+    alice = User.objects.create_user("alice@example.org", PASSWORD)
+    client.force_login(alice)
+    page = client.get(reverse("name_change"))
+    assert page.status_code == 200 and b"Your name" in page.content
+    assert client.post(reverse("name_change"), {"display_name": ""}).status_code == 200
+    response = client.post(reverse("name_change"), {"display_name": " Alice Smith "})
+    assert response.status_code == 302
+    alice.refresh_from_db()
+    assert alice.display_name == "Alice Smith"
+    assert AuditEvent.objects.filter(action="name.change").count() == 1
+
+
+def test_createsuperuser_asks_for_a_name():
+    call_command(
+        "createsuperuser",
+        interactive=False,
+        email="op@example.org",
+        display_name="Olive",
+        verbosity=0,
+    )
+    assert User.objects.get(email="op@example.org").display_name == "Olive"
 
 
 def test_only_staff_can_invite(client):

@@ -14,6 +14,21 @@ class InviteForm(forms.Form):
         return email
 
 
+class NameForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ["display_name"]
+        labels = {"display_name": "Your name"}
+        help_texts = {
+            "display_name": "Shown to the people in your exchanges, and on the"
+            " emails sent for you."
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["display_name"].required = True
+
+
 class AcceptForm(forms.Form):
     """Creating an account from an invitation. The email address comes from
     the invitation, which proves the person can read it."""
