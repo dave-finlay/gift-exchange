@@ -98,6 +98,15 @@ and that a client can't choose the address used for sign-in lockouts.
 `install-secrets.sh` copies secrets from KeePassXC to the server.
 Dependabot updates Caddy's digest weekly.
 
+**Releases** (`.github/workflows/release.yml`) start from a version tag,
+such as `v0.9.0`, on a commit whose image `main` has already published.
+The tag must match the version in `pyproject.toml`. Nothing is rebuilt:
+the release is that image (`sha-<commit>`), scanned again, then tagged
+with the version (`0.9.0`), so what's released is exactly what was
+checked. syft makes its SBOM (SPDX), which is attached to the GitHub
+release and, signed with GitHub's attestations, stored with the image
+(`gh attestation verify` checks it).
+
 ## Configuration
 
 Everyone who self-hosts runs the same code and the same container image.

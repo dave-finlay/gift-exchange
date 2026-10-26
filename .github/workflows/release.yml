@@ -1,0 +1,105 @@
+name: Release
+
+# Publishes a release when a version tag (such as v0.9.0) is pushed.
+# Nothing is rebuilt: the release is the image that main already built,
+# checked and scanned for that commit (sha-<commit>, see image.yml),
+# scanned again, then tagged with the version. Its SBOM, from syft, goes
+# on the GitHub release and, signed, on the image.
+
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+
+permissions: {}
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
+    permissions:
+      contents: write # Create the GitHub release
+      packages: write # Tag the image, and store the SBOM's attestation with it
+      id-token: write # Sign the attestation
+      attestations: write
+    env:
+      IMAGE: ghcr.io/${{ github.repository }}
+      VERSION: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check the tag matches the version in pyproject.toml
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' pyproject.toml)
+          if [ "v$version" != "$VERSION" ]; then
+            echo "::error::Tag $VERSION, but pyproject.toml says $version"
+            exit 1
+          fi
+
+      - name: Find the image main built for this commit
+        id: image
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          echo "$GH_TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
+          built="$IMAGE:sha-${GITHUB_SHA::12}"
+          if ! digest=$(docker buildx imagetools inspect "$built" --format '{{json .Manifest.Digest}}'); then
+            echo "::error::No image $built. Tag a commit on main whose image run has published (or run the Image workflow on main)."
+            exit 1
+          fi
+          echo "digest=$(echo "$digest" | tr -d '"')" >> "$GITHUB_OUTPUT"
+
+      - name: Scan it again (fails on fixable high or critical vulnerabilities)
+        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
+        with:
+          image: ${{ env.IMAGE }}@${{ steps.image.outputs.digest }}
+          only-fixed: true
+          severity-cutoff: high
+          output-format: table
+
+      - name: Tag it with the version
+        env:
+          DIGEST: ${{ steps.image.outputs.digest }}
+        run: docker buildx imagetools create --tag "$IMAGE:${VERSION#v}" "$IMAGE@$DIGEST"
+
+      - name: Make its SBOM
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          image: ${{ env.IMAGE }}@${{ steps.image.outputs.digest }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+          dependency-snapshot: false
+      - name: Sign the SBOM and attach it to the image
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4.1.0
+        with:
+          subject-name: ${{ env.IMAGE }}
+          subject-digest: ${{ steps.image.outputs.digest }}
+          sbom-path: sbom.spdx.json
+          push-to-registry: true
+
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          cat > notes.md <<EOF
+          The image: \`$IMAGE:${VERSION#v}\`
+          (\`$IMAGE@$DIGEST\`), for 64-bit ARM. See
+          [SELF-HOSTING.md](https://github.com/$GITHUB_REPOSITORY/blob/$VERSION/docs/SELF-HOSTING.md)
+          to run it.
+
+          Its SBOM (software bill of materials, from syft) is attached
+          below, and signed on the image. To check the signature:
+
+          \`\`\`sh
+          gh attestation verify oci://$IMAGE:${VERSION#v} --repo $GITHUB_REPOSITORY \\
+            --predicate-type https://spdx.dev/Document/v2.3
+          \`\`\`
+          EOF
+          gh release create "$VERSION" sbom.spdx.json \
+            --repo "$GITHUB_REPOSITORY" --title "$VERSION" \
+            --notes-file notes.md --generate-notes --verify-tag
