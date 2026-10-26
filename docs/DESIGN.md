@@ -138,6 +138,7 @@ go in `site.env`.
 |---|---|
 | `django_secret_key` | Django's `SECRET_KEY`. Any further lines are older keys, kept as `SECRET_KEY_FALLBACKS` while rotating. |
 | `assignment_keys` | Fernet keys for encrypting assignments, newest first. The first encrypts; all of them decrypt. |
+| `anymail_webhook_secret` | Optional: `user:password`, which the email provider sends with its reports on each email (bounces and so on). It's part of the webhook address given to the provider. Without it, those reports aren't received. |
 | `<provider>_…` | The email provider's Anymail settings, one file each, named after the setting in lower case: `mailjet_api_key` and `mailjet_secret_key` for Mailjet's `MAILJET_API_KEY` and `MAILJET_SECRET_KEY` |
 
 Each file holds one value per line, newest first. With `DJANGO_DEBUG=1`
@@ -185,7 +186,7 @@ part this time, one-off rules, the draw and the emails. The model is
 | Participant | exchange, person, link_rotated_at, response (pending, in, declined), responded_at, gift_status (not_yet, bought, sent), gift_status_at, revealed_at, withdraw_requested_at, withdrawn_at, created_at | Who takes part in this exchange; the private link points here |
 | GiftIdea | participant, text (up to 280 characters), created_at, updated_at | Ideas for yourself, seen only by your giver. Up to 10 per participant; deleted at archive. |
 | Assignment | giver (Participant, unique), receiver_ciphertext, created_at, updated_at | See "Assignment secrecy" |
-| EmailLog | participant, kind (join, assignment, reassignment, removed, reminder, called_off), sent_at, provider_message_id, status (sent, delivered, bounced, complaint, failed) | Never stores email bodies. Statuses come from the email provider's webhooks. |
+| EmailLog | participant, kind (join, assignment, reassignment, removed, reminder, called_off), sent_at, provider_message_id, status (sent, delivered, bounced, blocked, complaint, failed) | Never stores email bodies. "Failed" means the provider refused the email when it was sent. The rest come later, from the provider's reports through Anymail's webhook (`/anymail/<provider>/tracking/`, which exists only once `anymail_webhook_secret` is installed): delivered, bounced (the provider has given up), blocked (it won't send to that address, after an earlier bounce, unsubscribe or spam complaint) and complaint (marked as spam). A problem is never replaced by "delivered". The progress page shows problems, and the send-again page explains them. |
 | AuditEvent | actor, action, target, created_at, ip | Sign-ins, invitations, draws, sends, rule changes, withdrawals, admin actions |
 
 ### Rules
@@ -548,8 +549,9 @@ These are settings, checked in forms and in the draw:
   mode, "Are you in?" and "Draw and send" emails, the participant page
   (answer, gift ideas, tap to reveal, gift status, asking to be taken
   out), a progress list for the organizer, ending and calling off gift
-  exchanges, sending an email again, new links, and a real send through
-  Mailjet.
+  exchanges, sending an email again, new links, a real send through
+  Mailjet, and the provider's reports of bounces, blocks and spam
+  complaints.
 - Deployment. Done: the Compose file and Caddyfile, the secrets script,
   the site check, and the self-hosting guide. Still to do: the server
   itself, backups, and redeploying when a new image is published.

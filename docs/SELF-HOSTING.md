@@ -106,13 +106,15 @@ the secret's name and the value as its password:
 | `assignment_keys` | A new encryption key (below) |
 | `mailjet_api_key` | Mailjet's API key (Account settings → API Key Management) |
 | `mailjet_secret_key` | Mailjet's secret key |
+| `anymail_webhook_secret` | A new user name and password for Mailjet's reports on each email (below; see step 6) |
 
-To make the two new values without showing them on screen, copy each to
-the clipboard, then paste it into the entry's password field:
+To make the new values without showing them on screen, copy each to the
+clipboard, then paste it into the entry's password field:
 
 ```sh
-python3 -c "import secrets; print(secrets.token_urlsafe(50), end='')" | pbcopy
-python3 -c "import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).decode(), end='')" | pbcopy
+python3 -c "import secrets; print(secrets.token_urlsafe(50), end='')" | pbcopy   # django_secret_key
+python3 -c "import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).decode(), end='')" | pbcopy   # assignment_keys
+python3 -c "import secrets; print('mailjet:' + secrets.token_urlsafe(24), end='')" | pbcopy   # anymail_webhook_secret
 ```
 
 (`pbcopy` is macOS's; on Linux, `xclip -selection clipboard` does the
@@ -162,6 +164,35 @@ and a password.
 
 Sign in at `https://<your domain>/signin/`. As the operator, you can
 invite other organizers from the menu.
+
+## 6. Bounces
+
+Without this, a mistyped address looks like it worked: the provider
+accepts the email, then the recipient's server bounces it, and the
+organizer never knows. With it, the provider reports back what happened
+to each email, and the progress page shows "Email bounced", "Email
+blocked" or "Marked as spam" next to the person, with "Send again" to
+correct the address.
+
+It needs the `anymail_webhook_secret` entry (step 4) installed on the
+server, and the app restarted. Then, in Mailjet, under Account settings,
+find the event notifications (webhooks) and set this address for the
+**sent**, **bounce**, **blocked** and **spam** events (not open, click or
+unsubscribe):
+
+```
+https://mailjet:<the rest of the secret>@<your domain>/anymail/mailjet/tracking/
+```
+
+That is, the whole `anymail_webhook_secret` value goes before the `@`.
+Mailjet sends it with each report, and the app refuses reports without
+it. To check it, send an email to an address that doesn't exist, such as
+one at your own domain that nothing receives: within a few minutes, the
+progress page should show "Email bounced".
+
+Other providers have their own webhook settings; the address ends in
+`/anymail/<provider>/tracking/` (see Anymail's documentation for the
+provider).
 
 ## Running It
 

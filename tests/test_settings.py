@@ -81,3 +81,11 @@ def test_extra_domains_separated_by_spaces_or_commas(tmp_path, monkeypatch):
         "other.example",
         "third.example",
     ]
+
+
+def test_the_providers_reports_need_a_secret(tmp_path, monkeypatch):
+    assert "WEBHOOK_SECRET" not in load(tmp_path, monkeypatch, True)["ANYMAIL"]
+    secrets = PRODUCTION_SECRETS + MAILJET_SECRETS + ["anymail_webhook_secret"]
+    s = load(tmp_path, monkeypatch, False, secrets)
+    assert s["ANYMAIL"]["WEBHOOK_SECRET"] == ["anymail_webhook_secret-value"]
+    assert s["ANYMAIL"]["MAILJET_API_KEY"] == "mailjet_api_key-value"
