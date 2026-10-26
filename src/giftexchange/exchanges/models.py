@@ -276,10 +276,16 @@ class EmailLog(models.Model):
         CALLED_OFF = "called_off"
 
     class Status(models.TextChoices):
+        """The provider reports what happened after "sent" (see
+        emails.record_outcome)."""
+
         SENT = "sent"
         DELIVERED = "delivered"
         BOUNCED = "bounced"
-        COMPLAINT = "complaint"
+        # The provider wouldn't try: the address bounced before, or its
+        # owner unsubscribed or marked an email as spam.
+        BLOCKED = "blocked"
+        COMPLAINT = "complaint"  # Marked as spam
         FAILED = "failed"  # The provider refused it
 
     participant = models.ForeignKey(

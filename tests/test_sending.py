@@ -1,3 +1,4 @@
+import base64
 import json
 import re
 
@@ -641,3 +642,80 @@ def test_leaving_out_everyone_draws_nothing(client, b):
     assert b.participant("Alice").response == "pending"
     page = client.get(reverse("exchange", args=[b.exchange.pk])).content.decode()
     assert "At least 2 people need to be taking part." in page
+
+
+# The email provider's reports
+
+
+def mailjet_report(client, message_id, event, password="webhook-secret", **fields):
+    """Mailjet's webhook telling the site what happened to one email."""
+    report = {"event": event, "time": 1793036676, "MessageID": message_id}
+    report.update(fields)
+    credentials = base64.b64encode(f"provider:{password}".encode()).decode()
+    return client.post(
+        "/anymail/mailjet/tracking/",
+        json.dumps([report]),
+        content_type="application/json",
+        HTTP_AUTHORIZATION=f"Basic {credentials}",
+    )
+
+
+@pytest.fixture
+def sent(client, b):
+    """Everyone's "Are you in?" email, as if sent through Mailjet."""
+    send_join(client, b)
+    for number, log in enumerate(EmailLog.objects.order_by("pk"), start=1):
+        log.provider_message_id = str(number)
+        log.save()
+    return {log.participant.person.name: log for log in EmailLog.objects.all()}
+
+
+def status(log):
+    log.refresh_from_db()
+    return log.status
+
+
+def test_a_bounce_shows_on_the_progress_page(client, b, sent):
+    page = client.get(reverse("exchange", args=[b.exchange.pk]))
+    assert b"Email bounced" not in page.content
+    response = mailjet_report(
+        client, 1, "bounce", hard_bounce=True, error="user unknown"
+    )
+    assert response.status_code == 200
+    alice = sent["Alice"]
+    assert status(alice) == "bounced"
+    assert status(sent["Bob"]) == "sent"
+    page = client.get(reverse("exchange", args=[b.exchange.pk]))
+    assert b"Email bounced" in page.content
+    resend = client.get(
+        reverse("exchange_resend", args=[b.exchange.pk, alice.participant.pk])
+    )
+    assert b"check the address" in resend.content
+
+
+def test_blocked_and_spam_reports(client, b, sent):
+    mailjet_report(client, 1, "blocked", error="preblocked")
+    mailjet_report(client, 2, "sent")
+    mailjet_report(client, 2, "spam")
+    assert status(sent["Alice"]) == "blocked"
+    assert status(sent["Bob"]) == "complaint"
+    page = client.get(reverse("exchange", args=[b.exchange.pk]))
+    assert b"Email blocked" in page.content and b"Marked as spam" in page.content
+
+
+def test_reports_in_any_order(client, b, sent):
+    mailjet_report(client, 1, "bounce", hard_bounce=True)
+    mailjet_report(client, 1, "sent")  # Late, or out of order
+    assert status(sent["Alice"]) == "bounced"
+    mailjet_report(client, 2, "sent")
+    assert status(sent["Bob"]) == "delivered"
+    # Greylisting, which Mailjet retries, changes nothing. (Other soft
+    # bounces come once it has given up.)
+    mailjet_report(client, 3, "bounce", hard_bounce=False, error="greylisted")
+    assert status(sent["Carol"]) == "sent"
+
+
+def test_reports_need_the_secret(client, b, sent):
+    response = mailjet_report(client, 1, "bounce", hard_bounce=True, password="guess")
+    assert response.status_code != 200
+    assert status(sent["Alice"]) == "sent"

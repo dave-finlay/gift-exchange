@@ -5,8 +5,10 @@ import logging
 from datetime import timedelta
 from email.utils import formataddr, parseaddr
 
+from anymail.signals import EventType, tracking
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
+from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
@@ -126,3 +128,31 @@ def send(request, exchange, participants, kind, *, new_link=False):
             provider_message_id=message_id,
         )
     return failed
+
+
+# What the provider's reports mean for an email. A bounce is final: the
+# provider has given up. Others (deferred, which it will retry; opened and
+# clicked, which aren't tracked) change nothing.
+OUTCOMES = {
+    EventType.DELIVERED: EmailLog.Status.DELIVERED,
+    EventType.BOUNCED: EmailLog.Status.BOUNCED,
+    EventType.REJECTED: EmailLog.Status.BLOCKED,
+    EventType.COMPLAINED: EmailLog.Status.COMPLAINT,
+}
+
+
+@receiver(tracking)
+def record_outcome(sender, event, esp_name, **kwargs):
+    """A report from the provider about one email, through Anymail's
+    webhook. Reports can arrive in any order: a problem is never replaced
+    by "delivered", but a delivered email can still bounce later, or be
+    marked as spam."""
+    status = OUTCOMES.get(event.event_type)
+    if status is None or not event.message_id:
+        return
+    replaces = [EmailLog.Status.SENT]
+    if status != EmailLog.Status.DELIVERED:
+        replaces.append(EmailLog.Status.DELIVERED)
+    EmailLog.objects.filter(
+        provider_message_id=event.message_id, status__in=replaces
+    ).update(status=status)

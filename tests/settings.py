@@ -14,3 +14,6 @@ STORAGES = {
     **STORAGES,  # noqa: F405
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
+
+# So the email provider's webhook exists (see urls.py).
+ANYMAIL = {"WEBHOOK_SECRET": ["provider:webhook-secret"]}

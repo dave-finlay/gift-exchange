@@ -276,6 +276,15 @@ if _secrets or not DEBUG:
 else:
     EMAIL_BACKEND = "giftexchange.mail.EmlFileBackend"
     EMAIL_FILE_PATH = DATA_DIR / "emails"
+    ANYMAIL = {}
+
+# What happened to each email (delivered, bounced, blocked, marked as
+# spam) comes back from the provider to /anymail/<provider>/tracking/, once
+# this secret is installed: "user:password", which the provider sends
+# with each request (it's in the address given to the provider). Without
+# it, that address doesn't exist.
+if (SECRETS_DIR / "anymail_webhook_secret").exists():
+    ANYMAIL["WEBHOOK_SECRET"] = secret_lines("anymail_webhook_secret", "")
 
 # Internationalization
 
