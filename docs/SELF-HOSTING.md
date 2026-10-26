@@ -80,12 +80,16 @@ scp deploy/site.env.example root@<server>:/etc/gift-exchange/site.env
 Then fill in `/etc/gift-exchange/site.env` on the server. Each setting is
 explained in the file. Nothing in it is secret.
 
-By default the site runs the latest image from `main`. To run a
-particular image instead, put it in `/opt/gift-exchange/.env`:
+By default the site runs the latest image from `main`. To run a release
+instead, which is what most sites should do, put it in
+`/opt/gift-exchange/.env`:
 
 ```sh
-APP_IMAGE=ghcr.io/dave-finlay/gift-exchange:sha-<first 12 characters of a commit>
+APP_IMAGE=ghcr.io/dave-finlay/gift-exchange:0.9.0
 ```
+
+Releases are listed on the repository's Releases page, each with its
+image's SBOM.
 
 ## 4. Secrets
 
@@ -157,7 +161,9 @@ invite other organizers from the menu.
 
 ## Running It
 
-- **Upgrade** to the latest image:
+- **Upgrade:** for a release, change `APP_IMAGE` in `.env` to the new
+  version first (and copy over the release's `compose.yaml` and
+  `Caddyfile`, if they've changed). Then:
   ```sh
   cd /opt/gift-exchange
   docker compose pull && docker compose up --detach --wait && ./check.sh <your domain>
