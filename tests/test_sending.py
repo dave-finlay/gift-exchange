@@ -709,6 +709,8 @@ def test_reports_in_any_order(client, b, sent):
     assert status(sent["Alice"]) == "bounced"
     mailjet_report(client, 2, "sent")
     assert status(sent["Bob"]) == "delivered"
+    page = client.get(reverse("exchange", args=[b.exchange.pk]))
+    assert page.content.count("✓ Email delivered".encode()) == 1  # Bob's
     # Greylisting, which Mailjet retries, changes nothing. (Other soft
     # bounces come once it has given up.)
     mailjet_report(client, 3, "bounce", hard_bounce=False, error="greylisted")
