@@ -26,7 +26,7 @@
             {% if p.revealed_at %}<span class="pill done">✓ Has looked</span>{% else %}<span class="pill">Hasn't looked</span>{% endif %}
             {% if p.gift_status == "not_yet" %}<span class="pill">Not bought yet</span>{% else %}<span class="pill done">✓ Gift {{ p.get_gift_status_display|lower }}</span>{% endif %}
           {% endif %}
-          {% if p.latest_email.status == "failed" %}<span class="pill problem">Email failed</span>{% elif p.latest_email.status == "bounced" %}<span class="pill problem">Email bounced</span>{% elif p.latest_email.status == "blocked" %}<span class="pill problem">Email blocked</span>{% elif p.latest_email.status == "complaint" %}<span class="pill problem">Marked as spam</span>{% elif p.latest_email.status == "delivered" %}<span class="pill done">✓ Email delivered</span>{% endif %}
+          {% if p.latest_email.status == "failed" %}<span class="pill problem">Email failed</span>{% elif p.latest_email.status == "bounced" %}<span class="pill problem">Email bounced</span>{% elif p.latest_email.status == "blocked" %}<span class="pill problem">Email blocked</span>{% elif p.latest_email.status == "complaint" %}<span class="pill problem">Marked as spam</span>{% elif p.latest_email.status == "unsubscribed" %}<span class="pill problem">Unsubscribed</span>{% elif p.latest_email.status == "delivered" %}<span class="pill done">✓ Email delivered</span>{% endif %}
         </span>
         </span>
         {% if p.can_resend %}<a class="resend" href="{% url 'exchange_resend' exchange.pk p.pk %}">Send again</a>{% endif %}

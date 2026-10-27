@@ -703,6 +703,18 @@ def test_blocked_and_spam_reports(client, b, sent):
     assert b"Email blocked" in page.content and b"Marked as spam" in page.content
 
 
+def test_unsubscribe_reports(client, b, sent):
+    mailjet_report(client, 1, "sent")
+    mailjet_report(client, 1, "unsub", mj_list_id=0)
+    assert status(sent["Alice"]) == "unsubscribed"
+    page = client.get(reverse("exchange", args=[b.exchange.pk]))
+    assert b"Unsubscribed" in page.content
+    resend = client.get(
+        reverse("exchange_resend", args=[b.exchange.pk, sent["Alice"].participant.pk])
+    )
+    assert b"they unsubscribed" in resend.content
+
+
 def test_reports_in_any_order(client, b, sent):
     mailjet_report(client, 1, "bounce", hard_bounce=True)
     mailjet_report(client, 1, "sent")  # Late, or out of order
