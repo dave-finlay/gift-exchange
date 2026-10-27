@@ -138,6 +138,7 @@ OUTCOMES = {
     EventType.BOUNCED: EmailLog.Status.BOUNCED,
     EventType.REJECTED: EmailLog.Status.BLOCKED,
     EventType.COMPLAINED: EmailLog.Status.COMPLAINT,
+    EventType.UNSUBSCRIBED: EmailLog.Status.UNSUBSCRIBED,
 }
 
 
@@ -145,8 +146,8 @@ OUTCOMES = {
 def record_outcome(sender, event, esp_name, **kwargs):
     """A report from the provider about one email, through Anymail's
     webhook. Reports can arrive in any order: a problem is never replaced
-    by "delivered", but a delivered email can still bounce later, or be
-    marked as spam."""
+    by "delivered", but a delivered email can still bounce later, be
+    marked as spam, or be unsubscribed from."""
     status = OUTCOMES.get(event.event_type)
     if status is None or not event.message_id:
         return

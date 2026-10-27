@@ -40,6 +40,13 @@ Mailjet sends from its own bounce address, so SPF can never match your
 domain. DMARC passes on DKIM alone: emails sent before Mailjet shows DKIM
 as good are signed with Mailjet's key, not yours, and fail DMARC.
 
+On its free plan, Mailjet adds a List-Unsubscribe header to every email,
+and some mail apps show it as an Unsubscribe link. The app's emails
+aren't a mailing list, but someone who clicks it may stop getting them.
+With step 6 set up, the progress page shows "Unsubscribed" next to them.
+Paid plans can ask Mailjet to send a List-Help header instead, with a
+help address or page of your own, once its Compliance team approves.
+
 The API key pair comes in step 4 below.
 
 ## 2. The Server
@@ -171,14 +178,14 @@ Without this, a mistyped address looks like it worked: the provider
 accepts the email, then the recipient's server bounces it, and the
 organizer never knows. With it, the provider reports back what happened
 to each email, and the progress page shows "Email bounced", "Email
-blocked" or "Marked as spam" next to the person, with "Send again" to
-correct the address.
+blocked", "Marked as spam" or "Unsubscribed" next to the person, with
+"Send again" to correct the address.
 
 It needs the `anymail_webhook_secret` entry (step 4) installed on the
 server, and the app restarted. Then, in Mailjet, under Account settings,
 find the event notifications (webhooks) and set this address for the
-**sent**, **bounce**, **blocked** and **spam** events (not open, click or
-unsubscribe):
+**sent**, **bounce**, **blocked**, **spam** and **unsub** events (not
+open or click):
 
 ```
 https://mailjet:<the rest of the secret>@<your domain>/anymail/mailjet/tracking/

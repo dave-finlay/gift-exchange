@@ -286,6 +286,9 @@ class EmailLog(models.Model):
         # owner unsubscribed or marked an email as spam.
         BLOCKED = "blocked"
         COMPLAINT = "complaint"  # Marked as spam
+        # Clicked the unsubscribe link that some providers (Mailjet's free
+        # plan) add to every email.
+        UNSUBSCRIBED = "unsubscribed"
         FAILED = "failed"  # The provider refused it
 
     participant = models.ForeignKey(
@@ -295,7 +298,7 @@ class EmailLog(models.Model):
     sent_at = models.DateTimeField(default=timezone.now)
     provider_message_id = models.CharField(max_length=200, blank=True)
     status = models.CharField(
-        max_length=10, choices=Status.choices, default=Status.SENT
+        max_length=12, choices=Status.choices, default=Status.SENT
     )
 
     def __str__(self):
