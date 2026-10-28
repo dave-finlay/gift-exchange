@@ -43,7 +43,8 @@ body {
 }
 
 /* The wallpaper: pastel gifts (gifts.svg) behind the page, faint, and
-   mostly covered by the cards. Fixed, so it stays put while scrolling. */
+   mostly covered by the cards. Fixed, so it stays put while scrolling.
+   Pastels turn muddy on a dark page, so dark mode has its own. */
 body::before {
   content: "";
   position: fixed;
@@ -54,7 +55,7 @@ body::before {
   opacity: 0.45;
 }
 @media (prefers-color-scheme: dark) {
-  body::before { opacity: 0.1; }
+  body::before { background-image: url("gifts-dark.svg"); opacity: 0.25; }
 }
 
 a { color: var(--accent); }
