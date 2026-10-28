@@ -15,16 +15,16 @@
       <path fill="currentColor" d="M5 0Q5.6 4.4 10 5Q5.6 5.6 5 10Q4.4 5.6 0 5Q4.4 4.4 5 0Z"/>
     </symbol>
   </defs>
-  <use href="#gift" x="24" y="22" width="68" height="68" transform="rotate(-12 58 56)" fill="#d6456b" color="#ff9ab4"/>
-  <use href="#gift" x="208" y="14" width="50" height="50" transform="rotate(10 233 39)" fill="#239e74" color="#7fe3b8"/>
-  <use href="#gift" x="128" y="140" width="42" height="42" transform="rotate(6 149 161)" fill="#d99a1e" color="#ffd97a"/>
-  <use href="#gift" x="262" y="160" width="72" height="72" transform="rotate(-8 298 196)" fill="#7d5fd6" color="#c6b3ff"/>
-  <use href="#gift" x="34" y="234" width="58" height="58" transform="rotate(14 63 263)" fill="#2f86d4" color="#9fd0ff"/>
-  <use href="#gift" x="192" y="278" width="46" height="46" transform="rotate(-16 215 301)" fill="#df6a2e" color="#ffb48a"/>
-  <use href="#sparkle" x="150" y="40" width="12" height="12" color="#ffd97a"/>
-  <use href="#sparkle" x="300" y="100" width="9" height="9" color="#ff9ab4"/>
-  <use href="#sparkle" x="70" y="150" width="10" height="10" color="#c6b3ff"/>
-  <use href="#sparkle" x="230" y="230" width="8" height="8" color="#7fe3b8"/>
-  <use href="#sparkle" x="130" y="320" width="11" height="11" color="#9fd0ff"/>
-  <use href="#sparkle" x="320" y="320" width="9" height="9" color="#ffb48a"/>
+  <use href="#gift" x="24" y="22" width="68" height="68" transform="rotate(-12 58 56)" fill="#b8284f" color="#ff6f91"/>
+  <use href="#gift" x="208" y="14" width="50" height="50" transform="rotate(10 233 39)" fill="#14805a" color="#4fd69a"/>
+  <use href="#gift" x="128" y="140" width="42" height="42" transform="rotate(6 149 161)" fill="#b97c0a" color="#ffc93d"/>
+  <use href="#gift" x="262" y="160" width="72" height="72" transform="rotate(-8 298 196)" fill="#5f3fc0" color="#a98bff"/>
+  <use href="#gift" x="34" y="234" width="58" height="58" transform="rotate(14 63 263)" fill="#1a68b8" color="#6bb8ff"/>
+  <use href="#gift" x="192" y="278" width="46" height="46" transform="rotate(-16 215 301)" fill="#c04f17" color="#ff9257"/>
+  <use href="#sparkle" x="150" y="40" width="12" height="12" color="#ffc93d"/>
+  <use href="#sparkle" x="300" y="100" width="9" height="9" color="#ff6f91"/>
+  <use href="#sparkle" x="70" y="150" width="10" height="10" color="#a98bff"/>
+  <use href="#sparkle" x="230" y="230" width="8" height="8" color="#4fd69a"/>
+  <use href="#sparkle" x="130" y="320" width="11" height="11" color="#6bb8ff"/>
+  <use href="#sparkle" x="320" y="320" width="9" height="9" color="#ff9257"/>
 </svg>
