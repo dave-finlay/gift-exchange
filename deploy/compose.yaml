@@ -18,6 +18,12 @@ services:
     image: ${APP_IMAGE:-ghcr.io/dave-finlay/gift-exchange:main}
     restart: unless-stopped
     env_file: ${GIFT_EXCHANGE_ETC:-/etc/gift-exchange}/site.env
+    environment:
+      # Ignore the search domains Docker copies from the host's resolver
+      # settings: the app looks up only full names, and a malformed search
+      # list makes glibc's resolver abort the process (CVE-2026-8674).
+      # This wins over site.env.
+      LOCALDOMAIN: ""
     volumes:
       - app-data:/data
       - ${GIFT_EXCHANGE_ETC:-/etc/gift-exchange}/secrets/app:/run/secrets:ro
