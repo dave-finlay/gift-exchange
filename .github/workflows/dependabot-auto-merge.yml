@@ -20,13 +20,20 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - name: Read what it updates
-        id: metadata
-        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
       - name: Merge once CI passes, unless it's a major update
-        # For a group of updates, this is the largest of them.
-        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
-        run: gh pr merge --auto --squash "$PR_URL"
+        # Dependabot lists each update at the end of its commit message,
+        # with an update type for each version change. A new build of the
+        # same base image tag (python:3.13-slim at a new digest, which is
+        # how Debian and Python fixes arrive) has no update type.
+        # dependabot/fetch-metadata counted that as major, so base-image
+        # fixes were never merged; this reads Dependabot's own list.
+        run: |
+          if gh pr view "$PR_URL" --json commits --jq '.commits[0].messageBody' \
+            | grep -q 'update-type: version-update:semver-major'; then
+            echo "A major update: it waits for review."
+          else
+            gh pr merge --auto --squash "$PR_URL"
+          fi
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
