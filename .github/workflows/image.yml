@@ -3,8 +3,11 @@ name: Image
 # Builds the app image, checks that it starts and serves pages (on its
 # own, then behind Caddy as on the server, with deploy/check.sh), and
 # scans it with grype. On main, and daily, it also publishes it to GitHub's
-# container registry. The daily run picks up new vulnerability reports,
-# and changes merged by Dependabot (whose merges don't start workflows).
+# container registry, with signed attestations of where it was built
+# (build provenance) and what's in it (an SBOM, from syft), so that each
+# image can be traced to its commit. The daily run picks up new
+# vulnerability reports, and changes merged by Dependabot (whose merges
+# don't start workflows).
 
 on:
   push:
@@ -30,6 +33,8 @@ jobs:
       contents: read
       packages: write # Publish the image (not from pull requests)
       security-events: write # Upload scan results to the Security tab
+      id-token: write # Sign the attestations (not from pull requests)
+      attestations: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -112,6 +117,7 @@ jobs:
           category: grype
 
       - name: Publish
+        id: publish
         if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -123,3 +129,30 @@ jobs:
             docker tag gift-exchange:ci "$IMAGE:$tag"
             docker push "$IMAGE:$tag"
           done
+          digest=$(docker buildx imagetools inspect "$IMAGE:sha-${GITHUB_SHA::12}" --format '{{json .Manifest.Digest}}')
+          echo "digest=$(echo "$digest" | tr -d '"')" >> "$GITHUB_OUTPUT"
+      - name: Sign where it was built and attach that to the image
+        if: github.event_name != 'pull_request'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: ghcr.io/${{ github.repository }}
+          subject-digest: ${{ steps.publish.outputs.digest }}
+          push-to-registry: true
+      - name: Make its SBOM
+        if: github.event_name != 'pull_request'
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          image: ghcr.io/${{ github.repository }}@${{ steps.publish.outputs.digest }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+          dependency-snapshot: false
+      - name: Sign the SBOM and attach it to the image
+        if: github.event_name != 'pull_request'
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4.1.0
+        with:
+          subject-name: ghcr.io/${{ github.repository }}
+          subject-digest: ${{ steps.publish.outputs.digest }}
+          sbom-path: sbom.spdx.json
+          push-to-registry: true
