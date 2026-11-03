@@ -79,7 +79,9 @@ GitHub's ARM runners.
    run; unfixed ones don't, since nothing can be done about them yet but
    wait. Every finding goes to the Security tab.
 4. Except for pull requests: publish it to GitHub's container registry as
-   `main` and `sha-<commit>`.
+   `main` and `sha-<commit>`, with two signed attestations stored with
+   it: its build provenance (the commit and workflow run that built it)
+   and its SBOM (SPDX, from syft). `gh attestation verify` checks them.
 
 The daily run catches newly reported vulnerabilities in an unchanged
 image, and publishes what Dependabot merged (its merges don't start
