@@ -29,7 +29,7 @@ FROM python:3.13-slim@sha256:09a17cad02668ae61ece136b4fd36ac3849e14f670ebedb637e
 # CVE-2026-76844 and CVE-2026-85091, which fail the scan): install that
 # version, pinned, so a commit still decides the image's zlib. Once the
 # base has it, this fails the build, so the step gets removed rather
-# than lingering. See docs/CI-FAILURES.md.
+# than lingering.
 ARG ZLIB_FIXED=1:1.3.dfsg+really1.3.1-1+deb13u1
 RUN if dpkg --compare-versions "$(dpkg-query -W -f '${Version}' zlib1g)" \
          ge "$ZLIB_FIXED"; then \
