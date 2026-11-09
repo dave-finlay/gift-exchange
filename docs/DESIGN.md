@@ -86,6 +86,9 @@ GitHub's ARM runners.
 The daily run catches newly reported vulnerabilities in an unchanged
 image, and publishes what Dependabot merged (its merges don't start
 workflows). Dependabot also updates the base images' digests weekly.
+`CI-FAILURES.md` tracks the ways this stops, such as a Debian fix the
+base image doesn't have yet (the Dockerfile then installs it, pinned,
+until the base catches up).
 
 **Running it** (`deploy/`): `compose.yaml` runs the app and Caddy. Only
 Caddy is reachable from outside (ports 80 and 443). Both containers have
