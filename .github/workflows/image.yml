@@ -89,6 +89,10 @@ jobs:
           GIFT_EXCHANGE_ETC: ${{ runner.temp }}/etc
           APP_IMAGE: gift-exchange:ci
 
+      # Without the action's cache-db: it caches the database under a key
+      # that names only grype's version, so the cached copy never updates.
+      # Grype rejected it as too old, then downloaded a fresh database for
+      # each scan. Now the first scan downloads it and the second reuses it.
       - name: Scan (fails on fixable high or critical vulnerabilities)
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
@@ -96,20 +100,19 @@ jobs:
           only-fixed: true
           severity-cutoff: high
           output-format: table
-          cache-db: true
       - name: Scan (everything, for the Security tab)
         id: report
         if: always()
+        # Reporting, not a gate, like the upload below: a hiccup in either
+        # shouldn't stop an image that passed the scan from being published.
+        continue-on-error: true
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: gift-exchange:ci
           fail-build: false
           output-format: sarif
-          cache-db: true
       - name: Upload the scan to the Security tab
         if: always() && steps.report.outputs.sarif
-        # Reporting, not a gate: a hiccup at GitHub's end shouldn't stop
-        # an image that passed the scan from being published.
         continue-on-error: true
         uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
