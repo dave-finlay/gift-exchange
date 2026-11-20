@@ -92,11 +92,17 @@ instead, which is what most sites should do, put it in
 `/opt/gift-exchange/.env`:
 
 ```sh
-APP_IMAGE=ghcr.io/dave-finlay/gift-exchange:0.9.0
+APP_IMAGE=ghcr.io/dave-finlay/gift-exchange:0.10.0
 ```
 
+From 0.11.0, each version also comes on Alpine Linux, rather than
+Debian: the same app, in a smaller image with fewer packages. To run
+that, add `-alpine` to the tag, as in `0.11.0-alpine`, or `main-alpine`.
+Everything else is the same, and you can switch back and forth: the
+database and secrets don't depend on which image you run.
+
 Releases are listed on the repository's Releases page, each with its
-image's SBOM.
+images' SBOMs.
 
 ## 4. Secrets
 

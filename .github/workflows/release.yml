@@ -1,10 +1,11 @@
 name: Release
 
 # Publishes a release when a version tag (such as v0.9.0) is pushed.
-# Nothing is rebuilt: the release is the image that main already built,
-# checked and scanned for that commit (sha-<commit>, see image.yml),
-# scanned again, then tagged with the version. Its SBOM, from syft, goes
-# on the GitHub release and, signed, on the image.
+# Nothing is rebuilt: the release is the images that main already built,
+# checked and scanned for that commit (sha-<commit> and
+# sha-<commit>-alpine, see image.yml), scanned again, then tagged with the
+# version (0.9.0 and 0.9.0-alpine). Each image's SBOM, from syft, goes on
+# the GitHub release and, signed, on the image.
 
 on:
   push:
@@ -13,30 +14,43 @@ on:
 permissions: {}
 
 jobs:
-  release:
+  check:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check the tag matches the version in pyproject.toml
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' pyproject.toml)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME, but pyproject.toml says $version"
+            exit 1
+          fi
+
+  image:
+    needs: check
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 15
+    strategy:
+      matrix:
+        include:
+          - variant: debian
+            suffix: ""
+          - variant: alpine
+            suffix: -alpine
     permissions:
-      contents: write # Create the GitHub release
       packages: write # Tag the image, and store the SBOM's attestation with it
       id-token: write # Sign the attestation
       attestations: write
     env:
       IMAGE: ghcr.io/${{ github.repository }}
       VERSION: ${{ github.ref_name }}
+      SUFFIX: ${{ matrix.suffix }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Check the tag matches the version in pyproject.toml
-        run: |
-          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' pyproject.toml)
-          if [ "v$version" != "$VERSION" ]; then
-            echo "::error::Tag $VERSION, but pyproject.toml says $version"
-            exit 1
-          fi
-
       - name: Find the image main built for this commit
         id: image
         env:
@@ -44,7 +58,8 @@ jobs:
           ACTOR: ${{ github.actor }}
         run: |
           echo "$GH_TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
-          built="$IMAGE:sha-${GITHUB_SHA::12}"
+          mkdir release
+          built="$IMAGE:sha-${GITHUB_SHA::12}$SUFFIX"
           if ! digest=$(docker buildx imagetools inspect "$built" --format '{{json .Manifest.Digest}}'); then
             echo "::error::No image $built. Tag a commit on main whose image run has published (or run the Image workflow on main)."
             exit 1
@@ -65,11 +80,11 @@ jobs:
         env:
           DIGEST: ${{ steps.image.outputs.digest }}
         run: |
-          docker buildx imagetools create --prefer-index=false \
-            --tag "$IMAGE:${VERSION#v}" "$IMAGE@$DIGEST"
-          tagged=$(docker buildx imagetools inspect "$IMAGE:${VERSION#v}" --format '{{json .Manifest.Digest}}' | tr -d '"')
+          tag="$IMAGE:${VERSION#v}$SUFFIX"
+          docker buildx imagetools create --prefer-index=false --tag "$tag" "$IMAGE@$DIGEST"
+          tagged=$(docker buildx imagetools inspect "$tag" --format '{{json .Manifest.Digest}}' | tr -d '"')
           if [ "$tagged" != "$DIGEST" ]; then
-            echo "::error::$IMAGE:${VERSION#v} is $tagged, not the tested $DIGEST"
+            echo "::error::$tag is $tagged, not the tested $DIGEST"
             exit 1
           fi
 
@@ -78,7 +93,7 @@ jobs:
         with:
           image: ${{ env.IMAGE }}@${{ steps.image.outputs.digest }}
           format: spdx-json
-          output-file: sbom.spdx.json
+          output-file: release/sbom${{ matrix.suffix }}.spdx.json
           upload-artifact: false
           upload-release-assets: false
           dependency-snapshot: false
@@ -87,28 +102,66 @@ jobs:
         with:
           subject-name: ${{ env.IMAGE }}
           subject-digest: ${{ steps.image.outputs.digest }}
-          sbom-path: sbom.spdx.json
+          sbom-path: release/sbom${{ matrix.suffix }}.spdx.json
           push-to-registry: true
+
+      - name: Keep the SBOM and digest for the release
+        env:
+          DIGEST: ${{ steps.image.outputs.digest }}
+        run: echo "$DIGEST" > "release/digest$SUFFIX"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-${{ matrix.variant }}
+          path: release/
+          if-no-files-found: error
+          retention-days: 1
+
+  release:
+    needs: image
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
+    permissions:
+      contents: write # Create the GitHub release
+    env:
+      IMAGE: ghcr.io/${{ github.repository }}
+      VERSION: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: release-*
+          path: release
+          merge-multiple: true
 
       - name: Create the GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-          DIGEST: ${{ steps.image.outputs.digest }}
         run: |
+          debian=$(cat release/digest)
+          alpine=$(cat release/digest-alpine)
           cat > notes.md <<EOF
-          The image: \`$IMAGE:${VERSION#v}\`
-          (\`$IMAGE@$DIGEST\`), for 64-bit ARM. See
+          Two images of the same app, for 64-bit ARM. See
           [SELF-HOSTING.md](https://github.com/$GITHUB_REPOSITORY/blob/$VERSION/docs/SELF-HOSTING.md)
-          to run it.
+          to run one.
 
-          Its SBOM (software bill of materials, from syft) is attached
-          below, and signed on the image. To check the signature:
+          | Image | Base | Digest |
+          |---|---|---|
+          | \`$IMAGE:${VERSION#v}\` | Debian (\`python:3.13-slim\`) | \`$debian\` |
+          | \`$IMAGE:${VERSION#v}-alpine\` | Alpine (\`python:3.13-alpine\`) | \`$alpine\` |
+
+          Each image's SBOM (software bill of materials, from syft) is
+          attached below (\`sbom.spdx.json\` and \`sbom-alpine.spdx.json\`),
+          and signed on the image. To check the signature:
 
           \`\`\`sh
-          gh attestation verify oci://$IMAGE@$DIGEST --repo $GITHUB_REPOSITORY \\
+          gh attestation verify oci://$IMAGE@$debian --repo $GITHUB_REPOSITORY \\
+            --predicate-type https://spdx.dev/Document/v2.3
+          gh attestation verify oci://$IMAGE@$alpine --repo $GITHUB_REPOSITORY \\
             --predicate-type https://spdx.dev/Document/v2.3
           \`\`\`
           EOF
-          gh release create "$VERSION" sbom.spdx.json \
+          gh release create "$VERSION" release/sbom.spdx.json release/sbom-alpine.spdx.json \
             --repo "$GITHUB_REPOSITORY" --title "$VERSION" \
             --notes-file notes.md --generate-notes --verify-tag
