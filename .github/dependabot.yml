@@ -24,14 +24,15 @@ updates:
     groups:
       actions:
         patterns: ["*"]
-  # The base images in the Dockerfile, pinned by digest
+  # The base images in Dockerfile and Dockerfile.alpine, pinned by digest
   - package-ecosystem: docker
     directory: /
     schedule:
       interval: weekly
     ignore:
-      # New builds of python:3.13-slim still come through. Python 3.14
-      # would need .python-version (what CI tests on) to change too.
+      # New builds of python:3.13-slim and python:3.13-alpine still come
+      # through. Python 3.14 would need .python-version (what CI tests
+      # on) to change too.
       - dependency-name: python
         versions: [">=3.14"]
     groups:

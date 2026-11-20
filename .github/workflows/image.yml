@@ -2,7 +2,9 @@ name: Image
 
 # Builds the app image, checks that it starts and serves pages (on its
 # own, then behind Caddy as on the server, with deploy/check.sh), and
-# scans it with grype. On main, and daily, it also publishes it to GitHub's
+# scans it with grype. It does all this twice: for the Debian-based image
+# (Dockerfile, tags main and sha-<commit>) and the Alpine one
+# (Dockerfile.alpine, the same tags with -alpine on the end). On main, and daily, it also publishes it to GitHub's
 # container registry, with signed attestations of where it was built
 # (build provenance) and what's in it (an SBOM, from syft), so that each
 # image can be traced to its commit. The daily run picks up new
@@ -26,8 +28,29 @@ concurrency:
 
 jobs:
   image:
+    name: image (${{ matrix.variant }})
     # The server is ARM, so the image is built on ARM.
     runs-on: ubuntu-24.04-arm
+    strategy:
+      # One image failing doesn't stop the other being checked and
+      # published.
+      fail-fast: false
+      matrix:
+        include:
+          - variant: debian
+            dockerfile: Dockerfile
+            suffix: ""
+            category: grype
+            no-cache: ""
+          - variant: alpine
+            dockerfile: Dockerfile.alpine
+            suffix: -alpine
+            # Each image's scan results under their own category, so that
+            # uploading one image's doesn't close the other's alerts.
+            category: grype-alpine
+            # Its final stage runs apk upgrade, so it's never taken from
+            # the cache: each build gets Alpine's newest fixes.
+            no-cache: run
     timeout-minutes: 20
     permissions:
       contents: read
@@ -44,10 +67,12 @@ jobs:
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
+          file: ${{ matrix.dockerfile }}
           load: true
           tags: gift-exchange:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.variant }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.variant }}
+          no-cache-filters: ${{ matrix.no-cache }}
 
       - name: Check that it starts and serves pages
         # With throwaway secrets: production ones never reach CI.
@@ -117,7 +142,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           sarif_file: ${{ steps.report.outputs.sarif }}
-          category: grype
+          category: ${{ matrix.category }}
 
       - name: Publish
         id: publish
@@ -126,13 +151,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           IMAGE: ghcr.io/${{ github.repository }}
           ACTOR: ${{ github.actor }}
+          SUFFIX: ${{ matrix.suffix }}
         run: |
           echo "$GH_TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
-          for tag in main "sha-${GITHUB_SHA::12}"; do
+          for tag in "main$SUFFIX" "sha-${GITHUB_SHA::12}$SUFFIX"; do
             docker tag gift-exchange:ci "$IMAGE:$tag"
             docker push "$IMAGE:$tag"
           done
-          digest=$(docker buildx imagetools inspect "$IMAGE:sha-${GITHUB_SHA::12}" --format '{{json .Manifest.Digest}}')
+          digest=$(docker buildx imagetools inspect "$IMAGE:sha-${GITHUB_SHA::12}$SUFFIX" --format '{{json .Manifest.Digest}}')
           echo "digest=$(echo "$digest" | tr -d '"')" >> "$GITHUB_OUTPUT"
       - name: Sign where it was built and attach that to the image
         if: github.event_name != 'pull_request'
