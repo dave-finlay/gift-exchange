@@ -38,7 +38,7 @@ Status: working app, not yet deployed, as of 2026-10-19.
 | Hosting | One Hetzner cloud server (ARM, Germany or Finland) |
 | Runtime | Docker Compose: the official Caddy image plus the app image |
 | HTTPS | Caddy, with Let's Encrypt certificates renewed automatically |
-| App | Django 5.2 LTS under gunicorn (2–3 sync workers), dependencies managed with `uv` (`uv.lock`), base image `python:3.13-slim` |
+| App | Django 5.2 LTS under gunicorn (2–3 sync workers), dependencies managed with `uv` (`uv.lock`), base image `python:3.13-slim` (or `python:3.13-alpine`: see below) |
 | Database | SQLite in WAL mode, with a busy timeout and Django's `"transaction_mode": "IMMEDIATE"` |
 | Backups | Backblaze B2 (Amsterdam). Layer 1: Litestream continuous replication, in its own container, with a one-off restore container before the app starts. Layer 2: a nightly `sqlite3 .backup`, encrypted with `age` (the server holds only the public key), in a separate bucket with 30-day Object Lock and a write-only key. 30-day retention. A weekly automated restore test reports to healthchecks.io. |
 | Secrets | Master copies in KeePassXC. A script on the Mac reads them with `keepassxc-cli` and installs them over SSH into `/etc/gift-exchange/secrets/` (root-owned, readable only by the container's user). Each service gets its own folder (`secrets/app/`), mounted read-only at `/run/secrets`, never as environment variables. (Compose `secrets` would need each file named in `compose.yaml`; the email provider's files depend on the provider.) CI never sees production secrets. |
@@ -68,8 +68,19 @@ gunicorn, with no access log (participants' links carry tokens) and no
 control socket. It's built for ARM only, the server's architecture, on
 GitHub's ARM runners.
 
+**The Alpine image** (`Dockerfile.alpine`) is the same, on
+`python:3.13-alpine`: musl rather than glibc, and fewer packages, so a
+smaller image with less to scan. The dependencies with compiled parts
+(`cryptography`, `argon2-cffi`) come as wheels built for musl, so nothing
+is compiled. It's published alongside the Debian image, with `-alpine` on
+each tag, so the two can be compared (findings especially), and a site
+can run either. Fewer findings isn't only fewer packages: Debian's
+security tracker lists every CVE that touches a package, including ones
+it won't fix, while Alpine's database mostly lists vulnerabilities that
+have a fix.
+
 **Image CI** (`.github/workflows/image.yml`), on every pull request, on
-`main`, and daily:
+`main`, and daily, for each image (Debian and Alpine):
 
 1. Build the image.
 2. Start it with throwaway secrets and check it serves pages and static
@@ -77,9 +88,11 @@ GitHub's ARM runners.
    server, and run `deploy/check.sh` (below).
 3. Scan it with grype. A fixable high or critical vulnerability fails the
    run; unfixed ones don't, since nothing can be done about them yet but
-   wait. Every finding goes to the Security tab.
+   wait. Every finding goes to the Security tab, each image's under its
+   own category (`grype`, `grype-alpine`).
 4. Except for pull requests: publish it to GitHub's container registry as
-   `main` and `sha-<commit>`, with two signed attestations stored with
+   `main` and `sha-<commit>` (`main-alpine` and `sha-<commit>-alpine`
+   for the Alpine image), with two signed attestations stored with
    it: its build provenance (the commit and workflow run that built it)
    and its SBOM (SPDX, from syft). `gh attestation verify` checks them.
 

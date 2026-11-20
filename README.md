@@ -53,6 +53,11 @@ vulnerability fails the build, and every finding goes to the repository's
 Security tab. On `main`, and daily, it's published as
 `ghcr.io/<owner>/gift-exchange`.
 
+`Dockerfile.alpine` builds the same app on Alpine Linux instead of
+Debian: a smaller base, with fewer packages. CI builds, checks and scans
+it in the same way, and publishes it under the same tags with `-alpine`
+on the end (`main-alpine`, `0.11.0-alpine`).
+
 To try it locally (with [OrbStack](https://orbstack.dev) or Docker), with
 throwaway secrets:
 
@@ -78,7 +83,7 @@ docker run --rm -p 8000:8000 -e SITE_DOMAIN=localhost \
 | `src/giftexchange/templates/`, `static/` | The base page layout and stylesheet; each app has its own templates |
 | `src/giftexchange/exchanges/` | Circles, people, rules, exchanges and participants (`models.py`); the organizer pages (`views.py`, `forms.py`); turning rules into a draw and saving it (`draws.py`); test mode (`checks.py`); encrypting assignments (`secrecy.py`) |
 | `src/giftexchange/audit/` | A log of security-relevant actions |
-| `Dockerfile`, `deploy/` | The container image, and the files for running it on a server: Compose, Caddy, a site check and the secrets script |
+| `Dockerfile`, `Dockerfile.alpine`, `deploy/` | The container images (Debian and Alpine), and the files for running it on a server: Compose, Caddy, a site check and the secrets script |
 | `tests/` | Tests, including property-based tests with Hypothesis |
 | `docs/DESIGN.md` | Architecture, data model and screens |
 | `docs/SELF-HOSTING.md` | Running your own site |
