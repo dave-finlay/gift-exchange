@@ -72,6 +72,27 @@ docker run --rm -p 8000:8000 -e SITE_DOMAIN=localhost \
   -v /tmp/ge-secrets:/run/secrets:ro gift-exchange
 ```
 
+### VEX
+
+[autosec](https://github.com/dave-finlay/autosec-public) assesses the
+vulnerabilities grype reports in the Debian image, and pushes each
+release's [OpenVEX](https://openvex.dev) document (which say whether the
+app is affected, and why) to the `vex` branch, with a basis record autosec
+signs. Hourly, `.github/workflows/vex.yml` checks each new document
+(`.github/scripts/check-vex.sh`: autosec's signature, with the key in
+`.github/autosec-keys/`, and that this repo built the image from the
+commit the record names) and attests it to the image. To get an image's
+VEX and give it to grype:
+
+```sh
+gh attestation verify oci://ghcr.io/dave-finlay/gift-exchange@<digest> \
+  --repo dave-finlay/gift-exchange --predicate-type https://openvex.dev/ns/v0.2.0 \
+  --signer-workflow dave-finlay/gift-exchange/.github/workflows/vex.yml \
+  --source-ref refs/heads/main --format json \
+  | jq '[.[].verificationResult.statement.predicate] | max_by(.version)' > vex.json
+grype ghcr.io/dave-finlay/gift-exchange@<digest> --vex vex.json
+```
+
 ## Layout
 
 | Path | What's in it |
@@ -84,6 +105,7 @@ docker run --rm -p 8000:8000 -e SITE_DOMAIN=localhost \
 | `src/giftexchange/exchanges/` | Circles, people, rules, exchanges and participants (`models.py`); the organizer pages (`views.py`, `forms.py`); turning rules into a draw and saving it (`draws.py`); test mode (`checks.py`); encrypting assignments (`secrecy.py`) |
 | `src/giftexchange/audit/` | A log of security-relevant actions |
 | `Dockerfile`, `Dockerfile.alpine`, `deploy/` | The container images (Debian and Alpine), and the files for running it on a server: Compose, Caddy, a site check and the secrets script |
+| `.github/workflows/vex.yml`, `.github/scripts/`, `.github/autosec-keys/` | Checking autosec's VEX documents and attesting them to the images |
 | `tests/` | Tests, including property-based tests with Hypothesis |
 | `docs/DESIGN.md` | Architecture, data model and screens |
 | `docs/SELF-HOSTING.md` | Running your own site |

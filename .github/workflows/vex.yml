@@ -1,0 +1,113 @@
+name: VEX
+
+# autosec (https://github.com/dave-finlay/autosec-public) assesses the
+# vulnerabilities scanners report in the images, and pushes each
+# release's OpenVEX document, with its basis record signed by autosec, to
+# the vex branch (releases/<version>/). This checks each new document
+# (.github/scripts/check-vex.sh: autosec signed it, and this repo built
+# the image it's about from the commit it names) and attests it to the
+# image with this repo's identity, so scanners can be given it.
+#
+# It runs on a schedule, not on pushes to the vex branch: a push runs the
+# workflow as the pushed branch has it, and autosec can write to that
+# branch. Scheduled and manual runs use main's. To verify a VEX
+# attestation, check that it's this workflow's, on main:
+#
+#   gh attestation verify oci://ghcr.io/dave-finlay/gift-exchange@<digest> \
+#     --repo dave-finlay/gift-exchange --predicate-type https://openvex.dev/ns/v0.2.0 \
+#     --signer-workflow dave-finlay/gift-exchange/.github/workflows/vex.yml \
+#     --source-ref refs/heads/main
+
+on:
+  schedule:
+    - cron: "41 * * * *"
+  workflow_dispatch:
+    inputs:
+      all:
+        description: Check every release on the vex branch, not only those changed in the last 8 days
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vex
+  cancel-in-progress: false
+
+jobs:
+  find:
+    name: find new documents
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      releases: ${{ steps.due.outputs.releases }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Is there a vex branch?
+        id: branch
+        run: |
+          if git ls-remote --exit-code --heads origin vex > /dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.branch.outputs.exists
+        with:
+          ref: vex
+          path: vex
+          fetch-depth: 0 # for when each release last changed
+          persist-credentials: false
+      - name: Find the documents not attested yet
+        id: due
+        if: steps.branch.outputs.exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ALL: ${{ inputs.all && 'all' || '' }}
+        run: |
+          releases=$(.github/scripts/vex-due.sh vex $ALL)
+          echo "releases=$releases" >> "$GITHUB_OUTPUT"
+          echo "To attest: $releases"
+
+  attest:
+    name: attest ${{ matrix.release }}
+    needs: find
+    if: needs.find.outputs.releases && needs.find.outputs.releases != '[]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      # One release failing its checks doesn't stop the others.
+      fail-fast: false
+      matrix:
+        release: ${{ fromJSON(needs.find.outputs.releases) }}
+    permissions:
+      contents: read
+      packages: write # Store the attestation with the image
+      id-token: write # Sign the attestation
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: vex
+          path: vex
+          persist-credentials: false
+      - name: Check it
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE: ${{ matrix.release }}
+        run: |
+          digest=$(.github/scripts/check-vex.sh "vex/releases/$RELEASE")
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+      - name: Sign it and attach it to the image
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-name: ghcr.io/${{ github.repository }}
+          subject-digest: ${{ steps.check.outputs.digest }}
+          predicate-type: https://openvex.dev/ns/v0.2.0
+          predicate-path: vex/releases/${{ matrix.release }}/vex.openvex.json
+          push-to-registry: true
