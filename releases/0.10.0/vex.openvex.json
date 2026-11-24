@@ -1,0 +1,2530 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "urn:autosec:vex:gift-exchange:0.10.0",
+  "author": "Dave Finlay",
+  "role": "Document Creator",
+  "timestamp": "2026-10-29T22:22:54Z",
+  "version": 34,
+  "tooling": "autosec",
+  "statements": [
+    {
+      "vulnerability": {
+        "name": "CVE-2005-2541"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/tar@1.35%2Bdfsg-3.1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2005-2541 is about GNU tar not warning when it extracts setuid or setgid files. GNU tar comes with the Debian base image, but Gift Exchange never runs it. The container runs start.sh, which runs only the database migration and gunicorn, and the app starts no external programs. tar could only be started by hand inside the container, which isn't part of the threat model. Even then, the container runs as an unprivileged user (uid 10001) with no-new-privileges set, all capabilities dropped and a read-only root filesystem, so setuid bits on extracted files couldn't grant more privileges.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2007-5686"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/login.defs@1%3A4.17.4-2?arch=all&distro=debian-13.7&upstream=shadow"
+            },
+            {
+              "@id": "pkg:deb/debian/passwd@1%3A4.17.4-2?arch=arm64&distro=debian-13.7&upstream=shadow"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "CVE-2007-5686 is about /var/log/btmp, the log of failed logins, having permissions that let local users read it. gift-exchange doesn't run login, sshd, su or any other program that records login attempts in btmp, so the file in the image stays empty. Only someone who already runs commands inside the container could read it, and the product's threat model doesn't include that position. Users sign in to the web app, which checks their passwords itself (Django with Argon2) and never writes to btmp. The container runs as an unprivileged user with a read-only root filesystem.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2010-4756"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2010-4756 is a CPU and memory exhaustion in glibc's glob() function, triggered when an attacker can supply crafted glob patterns (e.g. FTP STAT commands). glibc is present in the image, but nothing Gift Exchange runs calls glob(), or wordexp() which uses it internally: not CPython, the app's dependencies or the startup shell. User input never reaches the C library's pattern expansion.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2011-3374"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/apt@3.0.3?arch=arm64&distro=debian-13.7"
+            },
+            {
+              "@id": "pkg:deb/debian/libapt-pkg7.0@3.0.3?arch=arm64&distro=debian-13.7&upstream=apt"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "CVE-2011-3374 is a flaw in apt-key, apt's keyring-management script. apt 3.0 no longer ships apt-key, and the image doesn't contain it. Also, gift-exchange never runs apt or any other package-management tool: the container only runs migrations and then gunicorn. Nothing in this image or the product's operation contains or uses the flawed code.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2011-4116"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/perl-base@5.40.1-6%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=perl"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2011-4116 is a symlink-handling weakness in Perl's File::Temp module (_is_safe), exploitable only by a local user against a Perl program creating temporary files. Perl comes with the Debian base image but nothing Gift Exchange runs starts perl or any Perl script: the container runs only start.sh (dash), Django migrations and gunicorn, and the app starts no external programs. The container also runs as an unprivileged user with a read-only root filesystem.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2013-4392"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsystemd0@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            },
+            {
+              "@id": "pkg:deb/debian/libudev1@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "CVE-2013-4392 is a symlink race in systemd's file-permission updating (systemd-tmpfiles and the service manager), which a local user can use to change other files' permissions. The image contains only the libsystemd0 and libudev1 client libraries, from Debian's base system. It has no systemd service manager and no systemd-tmpfiles, so the flawed code isn't there. Nothing gift-exchange runs loads these libraries either. The flaw also needs a local user on the system, which the product doesn't have: it runs as an unprivileged nologin user with a read-only root filesystem and all capabilities dropped.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2017-18018"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/coreutils@9.7-3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2017-18018 is a race condition in coreutils' chown and chgrp when they are run with -R -L. A local user can use it to change the ownership of arbitrary files. gift-exchange never runs chown, chgrp or any other coreutils program. The container's command is a start script that runs only the database migration and then gunicorn, and the app starts no external programs. The flaw could only be triggered by someone running these tools by hand inside the container. Even then, the container runs as an unprivileged user with all capabilities dropped and a read-only root filesystem, so chown can't change ownership of files that user doesn't own.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2018-20796"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2018-20796 is an uncontrolled recursion in glibc's regular-expression matcher (check_dst_limits_calc_pos_1 in posix/regexec.c). It can only be triggered by matching a crafted pattern that uses back-references. The vulnerable code is in the image's libc6 library, but gift-exchange never runs it. No program or library the product runs calls glibc's regex functions. Python's re module has its own regex engine, and the Debian tools that use glibc's regex, such as grep and sed, are never run.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-1010022"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "CVE-2019-1010022 isn't a vulnerability you can exploit on its own. It describes a way to get around glibc's stack protector (the stack canary), and it only helps an attacker who already has a stack buffer overflow to exploit in a program that uses glibc. Upstream glibc treats it as a non-security bug, and Debian rates it unimportant. gift-exchange has no known flaw that this weakness would enable. Any such overflow would be a vulnerability of its own and would be assessed separately. The app container also limits what an attacker who got that far could do: it runs as an unprivileged user with a read-only root filesystem, no capabilities and no-new-privileges.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-1010023"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "CVE-2019-1010023 needs a victim to run ldd on (or otherwise load) ELF files that an attacker made. gift-exchange never runs ldd or any external program. It accepts no file uploads, and it loads only the libraries and extension modules that ship in its image, on a read-only root filesystem. Only someone who can already write files and run commands in the container could trigger it, which already gives them everything the flaw would. The container runs as an unprivileged user with all capabilities dropped and no-new-privileges, which limits even that attacker. Upstream glibc and Debian treat this as a non-security bug.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-1010024"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "CVE-2019-1010024 is not a vulnerability someone can exploit on its own. It describes a way to weaken ASLR, a hardening feature, through glibc's cache of thread stacks and heaps. It would only help an attacker who already has a separate memory-corruption bug in the product, and that bug would be the real vulnerability, assessed on its own. Upstream glibc treats this as a non-security bug, and Debian rates it unimportant and local. If an attacker did get that far, they would be limited by how the container runs: as an unprivileged user (uid 10001, no login shell), with a read-only root filesystem, all capabilities dropped and no-new-privileges.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-1010025"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "CVE-2019-1010025 says that glibc places the heaps of threads created with pthread_create at addresses an attacker may be able to guess. That weakens address space layout randomisation (ASLR), a defence that makes memory-corruption bugs harder to exploit. It is not a way into the product by itself. An attacker would first need a separate memory-corruption bug in a process that gift-exchange runs, and that bug would be the real vulnerability. glibc's developers and Debian take the same view: Debian rates this issue as unimportant and won't fix it. Even with such a bug, the attacker would be limited by the container's hardening: it runs as an unprivileged user with no login shell, all capabilities dropped, no-new-privileges set, and a read-only root filesystem.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-9192"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2019-9192 is uncontrolled recursion in glibc's POSIX regex matcher (posix/regexec.c), triggered by a crafted regular expression such as one passed to grep. Gift Exchange never uses glibc's regex engine. No binary it runs (CPython, the app's virtualenv, dash) or library they load imports regcomp, regexec or the re_* functions. Python's re module has its own engine, and the product runs no tools that use glibc regex, such as grep or sed. The flawed code is in the image but is never executed. The upstream maintainers dispute the issue, and Debian rates it unimportant.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2021-45346"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "This issue (disputed by the SQLite developers) needs SQLite to read a database file someone has deliberately corrupted. Gift Exchange only ever opens its own database, /data/db.sqlite3, on the operator's data volume. Inside the container only the app writes to that file, and it writes through ordinary queries with bound parameters, so those writes can't corrupt the file's format. Users can't upload files or supply a database of their own. To exploit this, someone would have to tamper with the operator's data volume, and anyone in that position could already read the data directly. The container also runs as an unprivileged user, with a read-only root filesystem and all capabilities dropped.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2022-0563"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/bsdutils@1%3A2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/libblkid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/liblastlog2-2@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libmount1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libsmartcols1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libuuid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/login@1%3A4.16.0-2%2Breally2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/mount@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/util-linux@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "CVE-2022-0563 affects util-linux's chfn and chsh tools when they are built with Readline. Debian doesn't ship util-linux's versions of these tools. The chfn and chsh in the image come from the shadow suite (the passwd package) and don't use Readline, so the flawed code isn't in the image. The other util-linux packages were flagged only because they come from the same source package. Separately, gift-exchange never runs chfn or chsh. Using the flaw would require running local commands inside the container, which is outside the threat model. The container also runs as an unprivileged user with no-new-privileges and all capabilities dropped, so setuid programs can't gain privileges there.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-31437"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsystemd0@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            },
+            {
+              "@id": "pkg:deb/debian/libudev1@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2023-31437 concerns systemd's journal: someone who can modify a sealed (Forward Secure Sealing) journal file can hide some sealed entries from some views. gift-exchange doesn't run journald or journalctl, and it never reads journal files. libsystemd0 and libudev1 come with the Debian base image, and only base programs that the product never runs load them. Nothing the product runs loads either library. Even if it did, the attacker would need write access to log files inside the container. Write access there would need a foothold or host access, which the threat model leaves out. The container also has a read-only root filesystem and runs without privileges.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-31438"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsystemd0@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            },
+            {
+              "@id": "pkg:deb/debian/libudev1@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2023-31438 is about systemd-journald's Forward Secure Sealing: someone who can already write to sealed journal files can truncate one and resume sealing, and verification won't notice. Gift Exchange doesn't run journald or journalctl, and it neither writes nor verifies sealed journals. libsystemd0 and libudev1 are only in the image because the Debian base system includes them. Nothing the product runs loads them. The attack also needs write access to log files, which only someone with access to the host or container has. The container also runs as a non-root user with a read-only root filesystem.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-31439"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsystemd0@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            },
+            {
+              "@id": "pkg:deb/debian/libudev1@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2023-31439 is about tampering with systemd-journald's sealed (Forward Secure Sealing) journal files so that integrity verification misses the change. gift-exchange doesn't use systemd's journal: the image has no journald and no journalctl, nothing the product runs loads libsystemd0 or libudev1, and the app writes no journal files. The two libraries are in the image only because the Debian base system includes them.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-56433"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/login.defs@1%3A4.17.4-2?arch=all&distro=debian-13.7&upstream=shadow"
+            },
+            {
+              "@id": "pkg:deb/debian/passwd@1%3A4.17.4-2?arch=arm64&distro=debian-13.7&upstream=shadow"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2024-56433 is about the default subordinate-uid ranges (/etc/subuid, from login.defs' SUB_UID_* settings) that shadow's useradd hands out to new user accounts. Those ranges can clash with uids used elsewhere on a network, and newuidmap can then be used to reach their files. Gift Exchange never creates users or runs useradd or newuidmap while it runs. The image's /etc/subuid and /etc/subgid are empty, and newuidmap isn't installed. The app runs as the system user app (uid 10001) in a hardened container.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-15367"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/python@3.13.16"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2025-15367 is a command injection in Python's poplib module, the POP3 client: a command containing newlines can carry extra POP3 commands. Gift Exchange never uses poplib. It only sends email, through its provider's HTTPS API, and never reads a mailbox. The unfixed poplib.py ships with the image's Python, but nothing the product runs imports it.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-5278"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/coreutils@9.7-3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2025-5278 is a heap buffer under-read in GNU coreutils' sort command. It is triggered only when sort is run with a crafted key specification in the old +POS format on its command line. coreutils is in the image only because the Debian base image includes it. gift-exchange never runs sort or any other coreutils program: the container starts a shell script that runs database migrations and then gunicorn, and the app's code starts no external programs. Only someone who already has a shell in the container could run sort, and that position isn't in the product's threat model. The container also runs as an unprivileged user, with a read-only root filesystem and all capabilities dropped.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-6141"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libncursesw6@6.5%2B20250216-2?arch=arm64&distro=debian-13.7&upstream=ncurses"
+            },
+            {
+              "@id": "pkg:deb/debian/libtinfo6@6.5%2B20250216-2?arch=arm64&distro=debian-13.7&upstream=ncurses"
+            },
+            {
+              "@id": "pkg:deb/debian/ncurses-base@6.5%2B20250216-2?arch=all&distro=debian-13.7&upstream=ncurses"
+            },
+            {
+              "@id": "pkg:deb/debian/ncurses-bin@6.5%2B20250216-2?arch=arm64&distro=debian-13.7&upstream=ncurses"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2025-6141 is a stack buffer overflow in ncurses' postprocess_termcap (tinfo/parse_entry.c), part of the code that parses terminal descriptions written in source form, as the tic and infocmp tools do. In this image that parser is in libtic, and nothing gift-exchange runs loads libtic. The web app, its dependencies and CPython never load it or call into it, and no part of the product runs the ncurses tools. The library is in the image, but this code never runs. Even in an operator's interactive shell, the only terminal descriptions involved come from the operator's own terminal settings, which are trusted. An attacker reaching the site through the web has no way to supply terminal data.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-69720"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libncursesw6@6.5%2B20250216-2?arch=arm64&distro=debian-13.7&upstream=ncurses"
+            },
+            {
+              "@id": "pkg:deb/debian/libtinfo6@6.5%2B20250216-2?arch=arm64&distro=debian-13.7&upstream=ncurses"
+            },
+            {
+              "@id": "pkg:deb/debian/ncurses-base@6.5%2B20250216-2?arch=all&distro=debian-13.7&upstream=ncurses"
+            },
+            {
+              "@id": "pkg:deb/debian/ncurses-bin@6.5%2B20250216-2?arch=arm64&distro=debian-13.7&upstream=ncurses"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2025-69720 is a stack buffer overflow in the infocmp command-line tool (analyze_string in progs/infocmp.c). That code is built only into /usr/bin/infocmp from ncurses-bin. It isn't in the libtinfo or libncursesw libraries, and ncurses-base contains only terminfo data. Gift Exchange never runs infocmp or any other ncurses tool. The container starts only database migrations and gunicorn, and the app starts no external programs. The tool could only be run by hand inside the container, which isn't an attack path in the product's threat model. The container also runs as an unprivileged user with a read-only root filesystem and all capabilities dropped.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-70873"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "CVE-2025-70873 is an out-of-bounds read in zipfileInflate, part of SQLite's optional zipfile extension, which upstream ships with its sqlite3 command-line shell. That extension isn't anywhere in the gift-exchange image. Debian's libsqlite3 library, which the app uses for its database, doesn't include it, and no sqlite3 shell or loadable extension is installed. A crafted ZIP file can't reach the flawed code because the code isn't in the image.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-100290"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in glibc's POSIX regular expression functions (regcomp and regexec), and only shows up when a memory allocation fails while a pattern is compiled or matched. Gift Exchange never calls these functions. Python's re module uses its own regex engine. No program the product runs imports glibc's regex functions or rpmatch, the one glibc function that uses them internally. The Debian tools that do use glibc's regex, such as grep and sed, are never run by the product. Even if the code were reached, the expected result would be a crash under memory pressure. The container runs as an unprivileged user with a read-only root filesystem.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-102010"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/gcc-14-base@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libgcc-s1@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libstdc%2B%2B6@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "The flaw is in libstdc++'s binary-heap priority queue (its erase_if operation), C++ template code that is compiled into the C++ programs that use it. gift-exchange is a Python application: it contains no such program, the image has no C++ headers, and the libstdc++ and libgcc_s libraries in the image don't contain the code. Nothing gift-exchange runs loads libstdc++. The only gcc-14 library it loads is libgcc_s, which cryptography's Rust extension needs for low-level runtime support and which has no C++ containers.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-102473"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/dash@0.5.12-12?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "The flaw is a CPU-exhaustion bug in dash's internal pattern matcher, which runs on filename globs, case statements and ${var#pattern} expansions. Only a local user who can create filenames or write shell input can trigger it. In gift-exchange, dash runs one fixed start script when the container starts. The script uses no pattern matching, and its only inputs are the operator's environment settings. Then it hands over to gunicorn, so dash isn't running while the site serves requests. No remote or signed-in user can send input to dash. Even someone who did get into the container would be stopped only by its existing hardening, not by anything this flaw removes: the container runs as an unprivileged user with a read-only filesystem and no capabilities, and the worst outcome would be one busy process.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-102474"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/dash@0.5.12-12?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in dash's printf builtin (and echo %b) when given a \\u or \\U escape. Gift Exchange runs dash only once, at container start, for its start script. That script never uses printf or echo, and its only inputs are the operator's environment settings. Nothing else in the product starts a shell, so no attacker can get such an escape to dash. Even a local user who could would be confined by the container's hardening: a non-root user, a read-only root filesystem and no capabilities.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-103995"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/python@3.13.16"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "The flaw is in how CPython's http.client reads the Content-Length and chunk sizes of HTTP responses. Only a malicious HTTP server, or someone able to change responses in transit, could use it. Gift Exchange reads HTTP responses from two places only. One is the email provider's API, which the operator chooses and which is reached over HTTPS with the certificate checked. The other is the app's own server, which the container's health check queries on localhost. Users can't make the app connect to any other host. Neither the network nor any untrusted party can send the app a response with bad framing, so the product is not affected. Even a trusted provider that sent bad framing would only cause one email send to misread a response, with no access to app data.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-107493"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "This use-after-free happens only when an application passes its own existing stack to OpenSSL's PEM_X509_INFO_read functions and a read then fails. Nothing gift-exchange runs calls these functions itself: they run only inside OpenSSL, for example when loading the CA certificate file for outbound HTTPS to the email provider, and OpenSSL always passes no stack there, which is safe. That CA file is part of the image, not something an attacker can supply. cryptography's bundled OpenSSL copy doesn't expose the functions, and the app uses cryptography only for Fernet encryption. The openssl command-line tool and the legacy provider are never used. The app container also runs as an unprivileged user with a read-only root filesystem and all capabilities dropped.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-107496"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is an infinite loop in OpenSSL's CMS_encrypt()/CMS_encrypt_ex() when encrypting to an EC certificate whose group order is 1. Gift Exchange never performs CMS or S/MIME encryption. It uses Debian's OpenSSL only for outbound TLS, which the advisory says doesn't use this code. Nothing the product runs calls the CMS functions, and the openssl command-line tool is never run. The product isn't affected.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-109518"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/apt@3.0.3?arch=arm64&distro=debian-13.7"
+            },
+            {
+              "@id": "pkg:deb/debian/libapt-pkg7.0@3.0.3?arch=arm64&distro=debian-13.7&upstream=apt"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in APT's package download code: it is triggered only when apt runs a package installation and fetches package files over HTTP from a mirror. Gift Exchange never runs apt or anything that uses its library (libapt-pkg); the packages are leftovers from the Debian base image, and packages are installed only when the image is built, not by the running product. The container also runs as an unprivileged user with a read-only root filesystem, all capabilities dropped and no-new-privileges, so even someone running apt by hand in it could not install packages. Running apt by hand inside the container is not in the threat model.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-114583"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/python@3.13.16"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2026-114583 is a path-traversal bypass in CPython's tarfile 'tar' extraction filter: a crafted archive extracted with tarfile.extractall(filter='tar') can write files outside the destination directory. CPython 3.13.16 in the image contains the flawed tarfile module, but gift-exchange never extracts tar archives with tarfile's filters: neither the app, its dependencies nor anything the container runs calls extract/extractall with a filter or shutil.unpack_archive, and the app accepts no file uploads. Even if it did, the container runs as an unprivileged user with a read-only root filesystem, so only /data and /tmp would be writable.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-114690"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/gcc-14-base@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libgcc-s1@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libstdc%2B%2B6@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in libstdc++'s parallel-mode search, template code that only gets into a C++ program built with parallel mode (which also needs OpenMP). Gift Exchange runs no such program. Its Python runtime and the app's dependencies don't load libstdc++ or OpenMP. The libstdc++6 library is in the image only because the Debian base needs it, and only base programs that the product never runs load it. The product loads one gcc-14 library, libgcc_s, and that library has no libstdc++ code.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-114691"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/gcc-14-base@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libgcc-s1@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libstdc%2B%2B6@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in libstdc++'s std::vector<bool> (C++ template code). gift-exchange is a Python/Django application: neither CPython nor any native extension in its virtualenv is C++ code or loads libstdc++, so the flawed code never runs in the product. libstdc++6 is present only for Debian base tools (such as apt) that the product never runs; libgcc-s1 (used by cryptography's Rust extension) and gcc-14-base (documentation only) do not contain the flawed code.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-115455"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/gcc-14-base@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libgcc-s1@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libstdc%2B%2B6@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "This flaw is in libstdc++, the GNU C++ standard library. It affects C++ programs that read a std::bitset from a wide-character stream. Gift Exchange runs no C++ code: CPython and every native extension in the app's virtualenv are C or Rust, and none of them loads libstdc++. The library is in the image only because base Debian tools such as apt need it, and the product never runs those tools. libgcc-s1 and gcc-14-base come from the same gcc-14 source package, but neither contains the flawed code.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-115456"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/gcc-14-base@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libgcc-s1@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libstdc%2B%2B6@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is an out-of-bounds read in std::from_chars() in libstdc++, the C++ standard library. gift-exchange never runs it. CPython, the app and its dependencies are not C++ programs that use libstdc++, so none of them loads it. libstdc++ is in the image only because Debian base tools such as apt need it, and the product never runs those tools. The other two packages from the same source don't contain the flawed function: libgcc-s1 provides only libgcc_s, a low-level runtime library, and gcc-14-base holds only documentation.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-115557"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/python@3.13.16"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "impact_statement": "gift-exchange sends every invitation and assignment email through its email provider's HTTPS API (Mailjet by default), using Python's ssl module in CPython 3.13.16. That version lacks the denylist added in CPython 3.13.18 that rejects known compromised intermediate certificates (the eMudhra incident), and the app's CA bundle (certifi) still trusts eMudhra's emSign root. An attacker on the network between the server and the provider who holds a compromised intermediate's key could impersonate the provider's API: they would capture the provider API credentials sent with each request and the email contents, including participants' private invitation and participant links and gift assignments, and could forge API responses. Users' browsers are not affected (Caddy terminates their TLS). Mitigation: rebuild on a python:3.13 base image with CPython 3.13.18 or later (an upgrade release of gift-exchange will do this); rotate the provider API key if interception is suspected.",
+      "action_statement": "Update to a release that fixes it.",
+      "timestamp": "2026-11-22T00:52:22Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-115559"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/python@3.13.16"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in CPython's imaplib: IMAP4.starttls() keeps plaintext bytes buffered before the TLS handshake and returns them as if they came over TLS, letting a network attacker inject IMAP responses. Gift Exchange never uses imaplib: it doesn't read mailboxes, and sends email only through its provider's HTTPS API. imaplib.py ships in the image's Python standard library, but nothing the product runs imports it, so the flawed code never executes.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-115791"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/python@3.13.16"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in the command-line interfaces of Python's tarfile, zipfile and gzip modules (python -m tarfile -e ..., and so on): extracting an archive into the current directory can drop a Python file that shadows a standard-library module and then runs. Gift Exchange never runs those command-line tools: the container only applies migrations and runs the web server, and the app starts no other programs. Using them would take someone running commands by hand inside the container, which isn't in the product's threat model; even then, the container runs as an unprivileged user with a read-only root filesystem, all capabilities dropped and only /data and /tmp writable.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-115819"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is a one-byte overflow in glibc's wide-character scanf functions (swscanf, fwscanf, wscanf and their v-variants) when a %s or %[ conversion writes into a narrow char array. Gift Exchange never calls these functions. CPython, the app's dependencies and the startup shell don't import them, and the product doesn't look up C functions by name at run time. The vulnerable code is in the image's C library but nothing the product runs executes it.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-116566"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/python@3.13.16"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "The flaw lets a host name or port containing a null byte be silently cut short when it's resolved. gift-exchange never resolves a host name or port that a user supplies. The only host it looks up is its email provider's API host. That comes from Anymail's built-in URL or from a secret file the operator installs. The health check connects to a fixed 127.0.0.1 address, and gunicorn's bind address comes from the operator's settings. Only the operator could supply a value with a null byte, and the operator is trusted. Even then it would gain them nothing beyond what their settings already allow.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119371"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "The flaw lets someone who can write the SQL a program runs crash it. They would do that with a WITH clause chaining tens of thousands of common table expressions, either in SQL text they supply or in a view inside a database file they supply. Gift Exchange gives nobody either. The app writes no SQL of its own: user input reaches SQLite only as bound parameters of Django ORM queries, never as SQL text. The only database it opens is its own, on the app's data volume. Only the app writes that volume inside the container, and the admin site isn't reachable from outside. Planting a crafted view would mean tampering with the operator's data volume, a position that is not in the threat model. Even then, the result would only be a crash of the affected worker process. That process runs as an unprivileged user in a hardened container with a read-only root filesystem and no capabilities.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119372"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in SQLite's FTS3/FTS4 full-text extension. It is reached only when a MATCH query runs against an FTS3/FTS4 virtual table and calls snippet(). Gift Exchange keeps its data in ordinary SQLite tables. It creates no full-text or other virtual tables, sends no SQL text of its own (user input goes in only as bound query parameters), and opens only its own database. Debian's libsqlite3 includes the FTS3 code, but nothing the product runs ever executes the vulnerable snippet code.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119373"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in SQLite's FTS5 full-text search extension. It is triggered only by a prefix MATCH query against an FTS5 table created with detail=none that contains negative rowids. Gift Exchange creates no FTS5 or other virtual tables, so the flawed merge code never runs. Users can't change the SQL it runs: their input reaches SQLite only as bound parameters of fixed ORM queries. The only database it opens is its own, on a data volume that only the app writes, inside a hardened, non-root container.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119374"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in SQLite's FTS5 full-text search extension. It is triggered by deleting rows from an FTS5 table with secure-delete enabled, in a database whose FTS5 index has been maliciously corrupted. Gift Exchange creates no FTS5 or other virtual tables. It opens only its own database on its private data volume, and user input reaches SQLite only as bound query parameters. The vulnerable FTS5 code is never executed. Putting a crafted database in place would require tampering with the operator's data volume. That is outside the threat model, and even such an attacker would gain nothing from it, because the container runs as an unprivileged user with a read-only root filesystem and all capabilities dropped.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119375"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "This SQLite flaw lets an attacker read stale memory only by giving SQLite a database and WAL file they crafted themselves. Gift Exchange opens just one database, its own /data/db.sqlite3 and the WAL files beside it, on the operator's data volume. Only the app writes to that volume inside the container. The app accepts no file uploads and never opens or attaches another database. User input reaches SQLite only as bound query parameters. To plant a crafted WAL file, an attacker would have to tamper with the host or the data volume, which the operator controls and the product trusts. That access would already give them the whole database, so the flaw adds nothing. The container also runs hardened: it runs as a non-root user with a read-only root filesystem and no capabilities, and only /data and /tmp are writable.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119376"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "This SQLite flaw lets someone crash the process, but only if they can write the SQL text that SQLite parses or supply a database file whose schema (for example a view) holds about 175,000 chained COLLATE operators. Gift Exchange writes no SQL of its own. Everything users send reaches SQLite only as bound parameters of Django ORM queries, never as SQL text. The only database the app opens is its own, on a data volume that only the app writes. No attacker in the threat model can supply such SQL or such a database. Tampering with the data volume would take control of the host, and that already gives more than a crash. Even then, the container runs as an unprivileged user with a read-only root filesystem and no capabilities.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119377"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "This SQLite flaw lets someone who can write their own SQL get around read restrictions set up through SQLite's authorizer callback, using a RIGHT or FULL JOIN with USING. Gift Exchange never sets up an authorizer, so there are no restrictions to get around. It also never runs SQL that users write: user input reaches the database only as bound parameters of Django ORM queries. The product is not affected.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119378"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "This flaw is in SQLite's R-Tree extension. It can be triggered only when a program uses an R-Tree table from a database that an attacker has crafted. Gift Exchange creates no R-Tree tables, and the only database it opens is its own, which only the app writes. Users can't upload files or send SQL text; their input reaches SQLite only as bound query parameters. So the vulnerable R-Tree node-writing code never runs. Someone who could change the data volume would already control all the app's data. Even then the result would be a crash of a worker process running as an unprivileged user with a read-only root filesystem.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119379"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in SQLite's session extension, in sqlite3changeset_apply(), and is triggered by applying a crafted changeset. Debian's libsqlite3 in the image includes the session extension, but gift-exchange never uses it. The app reaches SQLite only through Python's sqlite3 module and Django's ORM, and the sqlite3 module offers no changeset or session API. No program or library the product runs calls any changeset function, so a changeset is never applied and the flawed code never runs.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119591"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "The flaw is a stack exhaustion in SQLite's query planner, triggered by SQL text or a database file that contains a crafted view with count(*) over a very large multi-row VALUES clause. Gift Exchange never lets users supply SQL or database files. The Django ORM sends user input to SQLite only as bound parameters, the app's code contains no raw SQL, and the only database it opens is its own /data/db.sqlite3 on the operator's data volume. An attacker could only trigger the crash by tampering with that volume, and that position already gives them full control of the data. Even then, the result would be a worker crash (denial of service) in a container that runs as an unprivileged user with a read-only root filesystem.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-121757"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in glibc's CP949 (UHC) character-set converter, used only when a program calls iconv to convert CP949 input with //IGNORE. The converter module is in the image (part of libc6), but nothing Gift Exchange runs calls iconv: Python's own codecs, including its CP949 codec, are CPython's own implementations, and glibc's internal conversions use only the C.utf8 locale's built-in converters. The vulnerable decoder therefore never executes.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-121758"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in glibc's ISO-2022-CN-EXT character-set converter, which runs only when a program asks glibc's iconv to convert text from that encoding. The module is in the image as part of libc6, but nothing gift-exchange runs calls iconv: Python's codecs are CPython's own implementations, and the processes stay in the C.UTF-8 locale. So no input an attacker sends to the site ever reaches the flawed decoder.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-12345"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/python@3.13.16"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "The flaw is a race in CPython's tempfile.TemporaryDirectory cleanup: someone who can change the directory's contents while it is being deleted can swap in a symbolic link and make the cleanup delete files, or reset their permissions, elsewhere with the cleaning process's privileges. Doing that needs the ability to create files inside the container as the app's own user, which only someone already running code in the container has; no user of the site can place files there (the app accepts no uploads and starts no external programs). Such an attacker would gain nothing the cleanup's privileges don't already give them. In addition, gift-exchange's code and dependencies don't use TemporaryDirectory, and the container runs as an unprivileged user with a read-only root filesystem and all capabilities dropped, so only its database volume and /tmp are writable at all.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-124024"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in glibc's IBM1390/IBM1399 character-set converters, which run only when a program asks glibc's iconv to convert text from UCS-4 into one of those encodings. The converter modules ship in the image's libc6 package, but nothing gift-exchange runs ever calls glibc's iconv: CPython, the app's virtualenv and the startup shell import no iconv or gconv functions, Python's codecs are its own implementations, and the app uses only the C.UTF-8 locale. No input to the product can make these converters run.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-124249"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/python@3.13.16"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "The flaw lets a server that sends an already-expired Set-Cookie header delete cookies belonging to other domains from a shared http.cookiejar cookie jar. In gift-exchange, the only cookie jar is the one requests keeps while Anymail calls the email provider's HTTPS API: it holds only the provider's own cookies, and every Set-Cookie header it processes comes from the provider over TLS verified against certifi's bundle. Only the provider, a service the operator chose and the product trusts, could send such a header, and no user can make the app contact any other host, so no attacker in the threat model can use the flaw; even the provider would only delete cookies of its own in a short-lived jar the app doesn't rely on. The app container also runs as an unprivileged user with a read-only root filesystem and all capabilities dropped.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-124709"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "This flaw is in OpenSSL's QUIC server: a client can make a QUIC server keep the state of rejected streams and slowly use up its memory. Gift Exchange never uses QUIC, as a client or a server. Its only use of Debian's OpenSSL is Python's ssl module, which offers TLS over TCP only, and that only for outbound HTTPS requests to the email provider. The app never acts as a TLS server: Caddy terminates HTTPS in its own container, and the app serves plain HTTP behind it. The openssl command-line tool is never run. So the flawed code is in the image but never executed.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-125709"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/gcc-14-base@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libgcc-s1@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libstdc%2B%2B6@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in libstdc++'s file stream code (basic_filebuf). Nothing gift-exchange runs loads libstdc++: neither CPython nor any library in the app's virtualenv links it, and the only Debian programs that use it (such as apt) are never run. The other two packages flagged, libgcc-s1 and gcc-14-base, come from the same source package but don't contain this code. The product only loads libgcc_s, for cryptography's Rust extension. The library is in the image, but the product never runs the flawed code.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-126765"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is a double free in glibc's glob() functions when a memory allocation fails while glob rewrites matched names. gift-exchange's libc contains glob, but nothing the product runs ever calls it: neither CPython, the app's dependencies nor the startup shell import glob, glob64 or wordexp (the only other way into glob), and Python's own glob and fnmatch modules are pure Python and don't use the C library's glob. The flawed code therefore never executes in the product.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-15059"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsystemd0@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            },
+            {
+              "@id": "pkg:deb/debian/libudev1@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "This flaw is in systemd-oomd, systemd's out-of-memory daemon, and in the IPC interface it exposes. The image doesn't include systemd-oomd. libsystemd0 and libudev1 are installed only as part of the Debian base system, and neither contains the daemon's code. The container doesn't run systemd or any systemd daemon. The attack would also need a local user on the machine, which no attacker in the product's threat model is.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-15534"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/perl-base@5.40.1-6%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=perl"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in Perl's regular expression engine and is triggered only when a Perl program matches a huge (about 286 MB) attacker-supplied string against a particular kind of pattern. Gift Exchange never runs Perl. perl-base is in the image only because it comes with the Debian base system. The app is Python, its start script runs only the database migration and gunicorn, and nothing the product runs loads the Perl interpreter. Only someone already running commands by hand inside the container could use Perl, and that person is not in the product's threat model. The container also runs as an unprivileged user with a read-only root filesystem and all capabilities dropped.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-16052"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/python@3.13.16"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "The flaw lets whoever controls a cookie's attribute values (such as Domain or SameSite) slip extra attributes in with a semicolon. gift-exchange does write cookies through the affected Python code, but every attribute value comes from Django's settings and code, which the product's maintainers and operator control. No visitor or signed-in user can influence them, and user input reaches cookies only as values, which Python quotes. Only a trusted party who can change the app's settings could exploit this, and that party can already set any cookie attribute directly.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-16742"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsystemd0@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            },
+            {
+              "@id": "pkg:deb/debian/libudev1@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "The flaw is in systemd-homed, the systemd daemon that manages home directories, which ships in Debian's systemd-homed package. That package isn't in the image. The image has only the libsystemd0 and libudev1 client libraries, which the scanner matched because they come from the same source package. Neither contains homed. It's also a local privilege escalation that needs a signed-in, homed-managed user, and the container has no such users and no login service.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-18374"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in glibc's handling of the \",ccs=\" character-set extension in fopen's mode argument, and needs an attacker to control that mode string. Nothing gift-exchange runs ever uses \",ccs=\": every fopen call in CPython, the app's dependencies and the libraries they load uses a fixed mode such as \"r\" or \"rb\". Python's open() accepts only a short list of mode letters and doesn't call fopen at all. No user input becomes an fopen mode, so the vulnerable code never runs. The container also runs as an unprivileged user with a read-only root filesystem.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-18477"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/tar@1.35%2Bdfsg-3.1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in the GNU tar program, in how it restores incremental archives. gift-exchange never runs tar. The image's only start-up program is start.sh, which runs database migrations and then gunicorn, and the app never starts other programs. tar is in the image only because the Debian base system includes it. Even someone who started tar by hand would gain nothing: the attack needs local write access to a directory being backed up, and the container runs as an unprivileged user with a read-only root filesystem and all capabilities dropped.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-18508"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/tar@1.35%2Bdfsg-3.1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in the GNU tar program. It lets a crafted archive create hardlinks outside the target directory when the archive is extracted with --one-top-level. GNU tar is in the image only because it comes with the Debian base system. Gift Exchange never runs it: the container starts a script that runs database migrations and then gunicorn, and the app starts no external programs and accepts no file uploads. tar could only be run by hand inside the container, which is not part of the threat model.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-19499"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is a buffer overflow in glibc's strfmon and strfmon_l monetary formatting functions, triggered only when a program calls them with right-justified width padding. Nothing gift-exchange runs calls these functions: neither CPython, the app's dependencies nor the startup shell imports them or looks them up by name, and Python's locale.currency doesn't use them. The vulnerable code is in libc6 in the image but is never executed.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-19542"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "The flaw is in glibc's tdelete, and only when a tsearch tree is deep enough to need about a million nodes, built from inserts and deletes an attacker can drive. Gift Exchange's web app, startup script and health check never call tsearch or tdelete. The only code in the image that does is ncurses, which is loaded only when an operator opens an interactive Django shell. There, ncurses keys its trees on a small, trusted set of terminal-capability strings, so no attacker can grow a tree to that size. If such a tree were ever reached, the container still runs as an unprivileged user with a read-only root filesystem and no capabilities.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-19552"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/python@3.13.16"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2026-19552 is a flaw in Python's ssl.get_server_certificate() helper: when given ca_certs it verifies the server's certificate chain but not that the certificate matches the host name. Gift Exchange never calls this function; its only outbound TLS is the email provider's HTTPS API through requests and urllib3, which use their own SSL contexts with host name checking. The vulnerable function is present in the image's Python standard library but never runs.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-27171"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/zlib1g@1%3A1.3.dfsg%2Breally1.3.1-1%2Bb1?arch=arm64&distro=debian-13.7&upstream=zlib%401%3A1.3.dfsg%2Breally1.3.1-1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2026-27171 is a CPU-exhaustion flaw in zlib's crc32_combine64 and crc32_combine_gen64 functions (which crc32_combine and crc32_combine_gen wrap): an invalid (negative) length makes their helper x2nmodp loop forever. zlib1g's library is in the image and loaded, but nothing gift-exchange runs ever calls these checksum-combining functions: no binary or library the product loads imports them and nothing looks them up by name. The product uses only zlib's compression streams and plain crc32/adler32 checksums, which don't run the flawed code. The fixed package (1:1.3.dfsg+really1.3.1-1+deb13u1) will arrive with a later base image refresh.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-3184"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/bsdutils@1%3A2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/libblkid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/liblastlog2-2@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libmount1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libsmartcols1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libuuid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/login@1%3A4.16.0-2%2Breally2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/mount@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/util-linux@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in the login(1) program's handling of the -h remote-host option, which can alter the host name passed to PAM as PAM_RHOST and weaken host-based PAM rules. Gift Exchange never runs login, nor uses PAM at all: the container runs only its start script, database migrations and gunicorn, and users sign in to the web app, which authenticates them itself. The other util-linux packages reported (libuuid1, libmount1, libblkid1 and others) are flagged only because they come from the same source package and don't contain this code. The login program is in the image but never executed, and the container runs as an unprivileged nologin user with no remote login service.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-35190"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2026-35190 is an out-of-bounds read in OpenSSL's server-side processing of a TLS 1.3 ClientHello's key shares. It only happens in a TLS server that has turned on Suite B mode. Gift Exchange never acts as a TLS server: Caddy, in its own container, terminates HTTPS, and the app serves plain HTTP behind it. The app uses OpenSSL only as a TLS client, to send email through the provider's API, and nothing it runs turns on Suite B. So the flawed code never runs in this product. Even if it did, the flaw discloses no memory and at worst could crash one worker process.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-40228"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsystemd0@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            },
+            {
+              "@id": "pkg:deb/debian/libudev1@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "The flaw is in systemd-journald's wall forwarding (ForwardToWall=yes), which writes emergency log messages to users' terminals. The gift-exchange image has no systemd-journald and no systemd service manager. It contains only the libsystemd0 and libudev1 client libraries, which come with the Debian base system and don't include journald's wall-forwarding code. The container runs only start.sh and gunicorn. The issue is also local-only: exploiting it would need a shell on a host that runs journald.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-42250"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libbz2-1.0@1.0.8-6?arch=arm64&distro=debian-13.7&upstream=bzip2"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "The flaw is in bzip2recover, a standalone command-line tool shipped in Debian's bzip2 package. The image doesn't include that package or the tool. It has only the libbz2-1.0 compression library, which doesn't contain bzip2recover's code. The vulnerable code isn't in the product.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-50812"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in SQLite's session extension: applying a corrupt changeset with sqlite3changeset_apply_v3() dereferences a NULL pointer. Debian's libsqlite3 includes the extension, but gift-exchange never uses it. The app uses SQLite only through Python's sqlite3 module, which has no session or changeset API. Nothing the product runs calls any session or changeset function, so no attacker can get a changeset to that code.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-50813"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in SQLite's session extension, in the code that concatenates or merges changesets (sqlite3changeset_concat and the changegroup functions). Debian's libsqlite3 includes this code, but gift-exchange never calls it. The app uses SQLite only through Django's ORM and CPython's sqlite3 module, which has no session or changeset API. No program or library in the image's Python runtime or the app's virtualenv imports or looks up any session-extension function, so no input can reach the vulnerable merge path.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-53910"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/diffutils@1%3A3.10-4?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in GNU diffutils' diff3 program, which overflows when it parses crafted output from the diff program it runs. diffutils is in the image only because it comes with the Debian base system. Gift Exchange never runs diff3, diff or any other diffutils program, and its own code starts no external programs, so no attacker can feed crafted diff output to diff3 through the product. Someone who could already run commands in the container would gain nothing from this either. The container also runs as an unprivileged user with a read-only root filesystem and all capabilities dropped.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-5435"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2026-5435 is an out-of-bounds write in glibc's deprecated resolver functions ns_printrr, ns_printrrf and fp_nquery. They write past the buffer when they print TSIG records as text. glibc in the image includes these functions, but nothing gift-exchange runs ever calls them. CPython, the app's virtualenv and the startup shell don't import them, and no code looks them up by name. The app resolves only its email provider's API host, through the ordinary getaddrinfo lookup, which never prints DNS records.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-54369"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libacl1@2.3.2-2%2Bb1?arch=arm64&distro=debian-13.7&upstream=acl%402.3.2-2"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in libacl's pathname-based ACL functions (acl_get_file, acl_set_file, acl_extended_file, acl_delete_def_file), which a local attacker can redirect with symlinks when a privileged program calls them. libacl1 is in the image only as part of the Debian base system. Nothing gift-exchange runs calls these functions: not the Python runtime, not the app or its dependencies, and not the startup shell. Only base-system tools such as coreutils, which the product never runs, load the library. The attack would also need a local attacker in the container, and the container runs as an unprivileged user with all capabilities dropped and no-new-privileges set.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-54370"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libacl1@2.3.2-2%2Bb1?arch=arm64&distro=debian-13.7&upstream=acl%402.3.2-2"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "The flaw is a race in the acl command-line tools getfacl, setfacl and chacl when they walk a path an attacker controls. Those tools are not in the gift-exchange image. The image has only the shared library libacl1, which Debian's base system includes and which only Debian's own utilities load. Nothing the product runs loads it. Even if the tools were present, this is a local privilege escalation: the attacker would already need to run code inside the container, which runs as the unprivileged user app with all capabilities dropped and a read-only root filesystem.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-54371"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libattr1@1%3A2.5.2-3?arch=arm64&distro=debian-13.7&upstream=attr"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "The flaw is in the getfattr and setfattr command-line tools from Debian's attr package. The gift-exchange image doesn't have that package or either tool. It has only libattr1, the shared extended-attribute library, which contains no directory-walking code. So the vulnerable code isn't in the image. Even if it were, exploiting it would need a local attacker who can run programs in the container and a privileged process that runs these tools. The container runs as an unprivileged user with all capabilities dropped and a read-only root filesystem.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-54411"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libpam-modules-bin@1.7.0-5?arch=arm64&distro=debian-13.7&upstream=pam"
+            },
+            {
+              "@id": "pkg:deb/debian/libpam-modules@1.7.0-5?arch=arm64&distro=debian-13.7&upstream=pam"
+            },
+            {
+              "@id": "pkg:deb/debian/libpam-runtime@1.7.0-5?arch=all&distro=debian-13.7&upstream=pam"
+            },
+            {
+              "@id": "pkg:deb/debian/libpam0g@1.7.0-5?arch=arm64&distro=debian-13.7&upstream=pam"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is a timing leak in Linux-PAM's pam_userdb module when it compares plaintext passwords. The module ships in the image as part of the Debian base system, but gift-exchange never uses PAM. Users sign in through the app's own Django authentication, with Argon2 password hashes. Nothing the product runs loads libpam, no PAM configuration in the image names pam_userdb, and the programs that do use PAM (login, su, passwd) are never started. Even if one were started, the container runs as an unprivileged user with no shell (nologin), with all capabilities dropped and no-new-privileges set.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-56391"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/coreutils@9.7-3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in the uniq command-line tool from GNU coreutils. It needs uniq to be run with the -w option on crafted multibyte input. Gift Exchange never runs uniq or any other coreutils program. Its container runs only a short start-up script (database migrations, then gunicorn) and the Python web app, and the app starts no external programs. coreutils is in the image only because it comes with the Debian base. No attacker can reach uniq through the product. Only someone who already has a shell in the container could run it, and the container runs as an unprivileged user with a read-only filesystem and no capabilities.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-56392"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/coreutils@9.7-3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in GNU coreutils' unexpand command, which overflows a heap buffer when given huge tab-stop (-t) arguments. gift-exchange never runs unexpand or any other coreutils program. The container's start command is a shell script that runs only the database migration and then gunicorn, and the app starts no external programs. coreutils is only part of the Debian base filesystem. Running unexpand by hand inside the container is not part of the threat model. The container runs as an unprivileged user with no capabilities and a read-only filesystem.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-5704"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/tar@1.35%2Bdfsg-3.1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2026-5704 is a flaw in the GNU tar program's archive extraction: a crafted archive can place hidden files that pre-extraction checks miss. GNU tar is in the image only because Debian's base filesystem includes it. Gift Exchange never runs it. The container starts only a shell script that runs database migrations and then the gunicorn web server. The app starts no external programs and accepts no file uploads, so an attacker has no way to get an archive extracted by tar. The container also has a read-only root filesystem, has all capabilities dropped and runs as an unprivileged user.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-6238"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in glibc's deprecated debugging functions ns_printrr, ns_printrrf and fp_nquery, which print DNS records. glibc's resolver doesn't use them. Nothing Gift Exchange runs calls them: no binary in CPython, the app's virtualenv or the startup shell imports them, and nothing looks them up by name. A crafted DNS response therefore can't reach the flawed code through the product.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-6368"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in glibc's wordexp() function, when it is called with the WRDE_APPEND flag. Nothing gift-exchange runs calls wordexp() or wordfree(). That covers CPython, the app's virtualenv, the startup shell and every library they load. The vulnerable code is in the image's C library, but the product never executes it.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-6791"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in glibc's wordexp() function, which overflows the stack when it expands a very long \"~username\". gift-exchange never calls wordexp(). Neither CPython, the app's dependencies nor the startup shell script imports it, and nothing looks it up by name while running. The vulnerable code is in the image's C library but is never run, so no attacker can trigger it through the product.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-76642"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/bsdutils@1%3A2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/libblkid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/liblastlog2-2@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libmount1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libsmartcols1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libuuid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/login@1%3A4.16.0-2%2Breally2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/mount@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/util-linux@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "CVE-2026-76642 is a local privilege escalation in util-linux's libmount. To use it, an unprivileged local user has to run the mount command, which libmount then mishandles after a mount helper fails. Gift Exchange never runs mount or any other util-linux program, and nothing it runs loads libmount, so the only attacker who could use the flaw is one who can already run commands inside the container. That position is outside the product's threat model. Even then, the container's hardening limits what they could gain: it runs as an unprivileged user with every capability dropped, no-new-privileges set (so setuid programs like mount gain nothing) and a read-only root filesystem.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-77117"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in glibc's SHIFT_JISX0213 iconv converter, which hangs only when an application converts attacker-controlled SHIFT_JISX0213 text through iconv into a small output buffer. Gift Exchange never uses glibc's iconv. Python decodes text with its own codecs, the Japanese ones included. The image has only the C.UTF-8 locale. So the vulnerable converter never runs.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-78408"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/bsdutils@1%3A2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/libblkid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/liblastlog2-2@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libmount1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libsmartcols1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libuuid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/login@1%3A4.16.0-2%2Breally2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/mount@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/util-linux@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in util-linux's nsenter command (its --join-cgroup option), which is present in the image only because it comes with the Debian base system. Gift Exchange never runs nsenter or any other util-linux program: the container starts only a shell start-up script, database migrations and gunicorn. Exploiting the flaw needs a privileged user to run nsenter --join-cgroup by hand, which is not part of how the product operates. The container also runs as an unprivileged user with every capability dropped and no-new-privileges set, so nsenter couldn't join namespaces or cgroups there anyway. The other util-linux packages are listed only because they come from the same source package. None of them contains the flawed code.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-78409"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/bsdutils@1%3A2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/libblkid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/liblastlog2-2@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libmount1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libsmartcols1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libuuid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/login@1%3A4.16.0-2%2Breally2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/mount@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/util-linux@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in util-linux's mount (libmount's handling of the X-mount.subdir option). It can only be used by a local user who runs mount with an fstab entry that allows them to. Gift Exchange never runs mount or loads libmount: the container starts only the database migration and gunicorn. Running mount by hand in the container takes code execution there first, and that isn't in the product's threat model. Even then, the container runs as an unprivileged user with no capabilities, no-new-privileges set and a read-only root filesystem, so mounting is blocked anyway.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-78410"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/bsdutils@1%3A2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/libblkid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/liblastlog2-2@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libmount1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libsmartcols1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libuuid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/login@1%3A4.16.0-2%2Breally2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/mount@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/util-linux@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "This flaw is in the setuid mount(8) program from util-linux. A local user who can already run commands on the system and replace a mount source path while mount(8) is running can use it to escalate privileges. Gift Exchange never runs mount(8) or uses libmount: the container runs only the start script and gunicorn. Nothing the product exposes lets anyone run commands in the container, so the only attacker position that matters is one that already has code execution, and the product's threat model excludes that. If someone did get that far, the container runs as an unprivileged user with every capability dropped and no-new-privileges set, so the setuid bit on mount(8) gives no extra privileges. Its filesystem is also read-only, apart from the data volume and /tmp.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-80489"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in glibc's EUC-JISX0213 character-set converter, a gconv module that only iconv() loads. gift-exchange never calls iconv. Python's text codecs are CPython's own code, not glibc's. The container has only the C.UTF-8 locale, and nothing runs the iconv command-line tool. So the converter that can hang never runs, and no attacker input can reach it.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-82560"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/perl-base@5.40.1-6%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=perl"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "The flaw is in Perl's Pod::Text module (podlators), which formats POD documentation. The image doesn't include that module: Debian ships it in perl-modules-5.40, which isn't installed, and the scanner matched only perl-base, which leaves it out. Nothing in Gift Exchange runs Perl or formats POD in any case.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-84243"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "The flaw lets someone who can set the LANGUAGE (and LANG/LC_ALL) environment variables of a program make glibc's gettext load a crafted message catalog. In gift-exchange, only the operator sets the container's environment, through the Compose file and site.env, and no untrusted party can. Even then, gift-exchange's processes keep the C messages locale, so glibc's gettext ignores LANGUAGE entirely. The app also starts no other programs and accepts no file uploads, so no one could place a crafted catalog in the container. The container also runs as an unprivileged user, with a read-only root filesystem, all capabilities dropped and no-new-privileges.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-84786"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "CVE-2026-84786 is a NULL pointer dereference (a crash) in OpenSSL's DANE verification, reachable only by a TLS client that has turned DANE on and loaded TLSA records. gift-exchange's only TLS is outbound HTTPS to its email provider through Python's ssl module, which has no DANE support, and verifies the provider's certificate the ordinary way against certifi's bundle. Nothing in the product enables DANE, in Debian's OpenSSL or in the copy bundled in the cryptography package, and the openssl command-line tool is never run, so the flawed code never executes.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-85091"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/zlib1g@1%3A1.3.dfsg%2Breally1.3.1-1%2Bb1?arch=arm64&distro=debian-13.7&upstream=zlib%401%3A1.3.dfsg%2Breally1.3.1-1"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in zlib's gzip file-writing functions (gzwrite and related gz* calls), which overflow a heap buffer when a write is retried after a failed write(). Gift Exchange never uses zlib's gz* file functions: CPython and the app use only zlib's in-memory compression and decompression streams (deflate/inflate), and Python's gzip module is implemented on top of those streams rather than on gzwrite. The vulnerable code is present in Debian's libz but never runs. Updating zlib1g to 1:1.3.dfsg+really1.3.1-1+deb13u1 when the base image picks it up removes the finding.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-8674"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "The flaw is an assertion failure (process abort) in glibc's DNS stub resolver when its search list, from /etc/resolv.conf or the LOCALDOMAIN variable, holds a domain of about 200 characters or more. Gift Exchange does resolve one host name, its email provider's API host, but its resolver configuration comes only from the operator's environment: Docker builds the container's /etc/resolv.conf from the host's resolver settings, and the environment comes from the operator's site.env. Nothing a user sends becomes resolver configuration, so only someone who controls the host's network configuration (for example by feeding it a malicious DHCP search domain) could trigger it, and that position is not in the threat model. Even then the attacker gets only a denial of service (app workers aborting on outbound email lookups, restarted by gunicorn); the container runs as an unprivileged user with a read-only root filesystem and no capabilities. Operators who want to rule it out can set LOCALDOMAIN to an empty value in site.env, as later releases do in Compose.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-86805"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "CVE-2026-86805 is a local privilege-escalation race in glibc's dynamic loader. It affects only setuid or setgid programs. To exploit it, an attacker must already be running commands on the system: they hard-link such a program into a directory they control and swap a path component for a symbolic link. Gift Exchange gives no one a way to run commands or create files in its container: the app accepts no uploads and starts no external programs. So no attacker the product faces is in that position. Even an attacker who got that far would gain nothing. The container runs as an unprivileged user with no-new-privileges set, so setuid and setgid bits grant no extra privileges. It also drops all capabilities and has a read-only root filesystem.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-88822"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in OpenSSL's QUIC stack, in the code that detects the peer's address on an already-connected socket. Gift Exchange never uses QUIC. Its only use of Debian's OpenSSL is CPython's ssl module, which makes TLS-over-TCP client connections to the email provider's API. Nothing in the product calls any OpenSSL QUIC function, and the openssl command-line tool is never run. The flawed code never executes.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-88823"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in OpenSSL's AES-GCM-SIV cipher. It affects only applications that encrypt or decrypt with AES-GCM-SIV and pass their additional authenticated data in several pieces. Gift Exchange never uses AES-GCM-SIV. It uses Debian's OpenSSL only through Python's ssl module, as a TLS client when it sends email, and TLS has no AES-GCM-SIV cipher suites. The openssl command-line tool is never run. The app's own encryption (Fernet, which is AES-CBC with HMAC) runs on the OpenSSL copy bundled in the cryptography package, and nothing in the product uses that copy's AES-GCM-SIV either. The flawed code is in the image but never runs.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-89092"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "This vulnerability is a stack overflow in nscd, glibc's name service cache daemon. A malicious DNS server can trigger it by sending an oversized response. Debian ships nscd as its own package, and the gift-exchange image doesn't install it, so the nscd daemon isn't in the image. The glibc libraries the image does contain (libc6, libc-bin) don't hold the flawed daemon code.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-91094"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/dpkg@1.22.22?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "The flaw is in dpkg-source's unpacking of 3.0 (quilt) source packages, code shipped in Debian's dpkg-dev and libdpkg-perl packages. Neither is installed in the gift-exchange image: only the dpkg binary package from the Debian base is present, and it doesn't contain the source-package code. Nothing the product runs uses dpkg at all.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-9538"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/perl-base@5.40.1-6%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=perl"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "The flaw is in Perl's Archive::Tar module. That module ships in Debian's perl-modules package, which isn't in the gift-exchange image. The image has only perl-base, which doesn't include Archive::Tar. Also, gift-exchange never runs perl.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-95619"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/gcc-14-base@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libgcc-s1@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libstdc%2B%2B6@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in libstdc++'s aligned operator new. libstdc++ is in the image only because the Debian base system includes it, and only Debian tools that gift-exchange never runs (such as apt) load it. Neither CPython nor the app's virtualenv loads libstdc++. The gcc-14 library the product does load, libgcc_s, doesn't contain operator new. gcc-14-base holds only documentation. The flawed code never runs in the product.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-95690"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "This vulnerability is a memory-exhaustion flaw in OpenSSL's DTLS (TLS over UDP) handshake reassembly. Gift Exchange never uses DTLS: its only use of Debian's OpenSSL is as a TLS client over TCP, sending email through the provider's HTTPS API, and the copy of OpenSSL bundled in the cryptography package is used only for Fernet encryption, with no TLS or DTLS. The flawed DTLS code is present in the library but never runs, so no attacker can reach it through the product.",
+      "timestamp": "2026-11-21T16:58:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-95691"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "This flaw is in OpenSSL's QUIC client. A malicious QUIC server can resend handshake data in a way that makes the client read memory after it has been freed. Gift Exchange never uses QUIC. Its only use of Debian's OpenSSL library is CPython's ssl module, which sets up ordinary TLS over TCP for outbound HTTPS to the email provider. The openssl command-line tool is never run. The flawed QUIC code is in the image, but nothing the product runs executes it.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-95692"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in OpenSSL's AES-GCM-SIV cipher, and only an application that sets up that cipher with an IV that isn't 12 bytes long can trigger it. Gift Exchange never uses AES-GCM-SIV. Its only use of Debian's OpenSSL is TLS for outbound email, and TLS has no AES-GCM-SIV cipher suites. Nothing else the product runs calls OpenSSL's cipher functions, and the openssl command-line tool is never run. Its encryption of assignments uses Fernet (AES-CBC with HMAC) from the OpenSSL copy bundled in the cryptography package, not AES-GCM-SIV.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-95818"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "This flaw is in glibc's dynamic loader and affects only setuid/setgid programs (AT_SECURE mode) whose RPATH/RUNPATH starts with $ORIGIN. To trigger it, an attacker has to start such a program inside the container, which means they already run code there. That position is outside the product's threat model. Gift Exchange runs only its own Python processes as the unprivileged user app, plus its start script, and never runs a setuid program. Even an attacker who did get into the container would gain nothing from it: Compose runs the container with no-new-privileges, so setuid bits grant no privileges. It also drops all capabilities and mounts the root filesystem read-only.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-97399"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3A8b2d76ad35c3038dca8afb0f3366f71d3759320fedf4cdddc9c953c7c9637922?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u4?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "The flaw is a one-byte over-read in glibc's strncasecmp variant optimized for IBM Power8 CPUs, which can crash a program that compares attacker-controlled strings. Gift Exchange's web app, its startup script and its health check never call strncasecmp. The only caller is GNU readline, which loads only in an operator's interactive admin shell, and there the input is the trusted operator's own typing. This release's image is also built for arm64, which doesn't contain the Power8 code at all. Even in the worst case the impact would be a crash of one process in a hardened container: it runs as an unprivileged user, its root filesystem is read-only and all capabilities are dropped.",
+      "timestamp": "2026-11-19T21:43:40Z"
+    }
+  ],
+  "last_updated": "2026-11-22T00:52:22Z"
+}
