@@ -25,19 +25,24 @@ RUN DJANGO_DEBUG=1 DATA_DIR=/tmp/data STATIC_ROOT=/app/static \
 
 # Run: the same base, without uv or the source, as an unprivileged user.
 FROM python:3.13-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
-# Stopgap until the base image is rebuilt with Debian's zlib fix (for
-# CVE-2026-76844 and CVE-2026-85091, which fail the scan): install that
-# version, pinned, so a commit still decides the image's zlib. Once the
-# base has it, this fails the build, so the step gets removed rather
+# Stopgap until the base image is rebuilt with Debian's fixes for zlib
+# (CVE-2026-76844 and CVE-2026-85091) and glibc (CVE-2026-5435 and
+# CVE-2026-19499), which fail the scan: install those versions, pinned,
+# so a commit still decides the image's packages. Once the base has a
+# package's fix, this fails the build, so its pin gets removed rather
 # than lingering.
-ARG ZLIB_FIXED=1:1.3.dfsg+really1.3.1-1+deb13u1
-RUN if dpkg --compare-versions "$(dpkg-query -W -f '${Version}' zlib1g)" \
-         ge "$ZLIB_FIXED"; then \
-      echo "The base image now has zlib $ZLIB_FIXED: remove this step" >&2; \
-      exit 1; \
-    fi \
+ARG FIXED="zlib1g=1:1.3.dfsg+really1.3.1-1+deb13u1 \
+    libc6=2.41-12+deb13u5 libc-bin=2.41-12+deb13u5"
+RUN for pin in $FIXED; do \
+      package=${pin%%=*} version=${pin#*=}; \
+      if dpkg --compare-versions \
+           "$(dpkg-query -W -f '${Version}' "$package")" ge "$version"; then \
+        echo "The base image now has $package $version: remove its pin" >&2; \
+        exit 1; \
+      fi; \
+    done \
     && apt-get update \
-    && apt-get install -y --no-install-recommends "zlib1g=$ZLIB_FIXED" \
+    && apt-get install -y --no-install-recommends $FIXED \
     && rm -rf /var/lib/apt/lists/*
 RUN groupadd --system --gid 10001 app \
     && useradd --system --uid 10001 --gid app --no-create-home \

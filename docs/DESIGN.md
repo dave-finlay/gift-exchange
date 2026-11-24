@@ -75,8 +75,8 @@ smaller image with less to scan. The dependencies with compiled parts
 is compiled. It runs `apk upgrade` as it's built, since Alpine's fixes
 reach its repository before the base image is rebuilt, and Alpine keeps
 only the newest version of each package (so pinning, as the Debian
-image does for zlib, would break the build with each new fix). It's
-published alongside the Debian image, with `-alpine` on
+image does for zlib and glibc, would break the build with each new
+fix). It's published alongside the Debian image, with `-alpine` on
 each tag, so the two can be compared (findings especially), and a site
 can run either. Fewer findings isn't only fewer packages: Debian's
 security tracker lists every CVE that touches a package, including ones
