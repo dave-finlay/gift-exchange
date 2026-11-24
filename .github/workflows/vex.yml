@@ -103,6 +103,11 @@ jobs:
         run: |
           digest=$(.github/scripts/check-vex.sh "vex/releases/$RELEASE")
           echo "digest=$digest" >> "$GITHUB_OUTPUT"
+      - name: Sign in to the registry, to attach the attestation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.actor }}
+        run: echo "$GH_TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
       - name: Sign it and attach it to the image
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:

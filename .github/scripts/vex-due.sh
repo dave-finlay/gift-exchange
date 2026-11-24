@@ -12,7 +12,9 @@ set -euo pipefail
 vex=$1
 all=${2:-}
 repo=${GITHUB_REPOSITORY:-dave-finlay/gift-exchange}
-openvex=https://openvex.dev/ns/v0.2.0
+# OpenVEX's predicate type, URL-encoded: gh api takes a path holding
+# "https://" for a URL.
+openvex=https%3A%2F%2Fopenvex.dev%2Fns%2Fv0.2.0
 
 # A JSON document's sha256, with its keys sorted and no spaces.
 canonical() {
