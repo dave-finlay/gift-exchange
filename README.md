@@ -74,13 +74,13 @@ docker run --rm -p 8000:8000 -e SITE_DOMAIN=localhost \
 
 ### VEX
 
-[autosec](https://github.com/dave-finlay/autosec-public) assesses the
-vulnerabilities grype reports in the Debian image, and pushes each
-release's [OpenVEX](https://openvex.dev) document (which say whether the
-app is affected, and why) to the `vex` branch, with a basis record autosec
+[Securomatic](https://securomatic.dev) assesses the vulnerabilities
+grype reports in the Debian image, and pushes each release's
+[OpenVEX](https://openvex.dev) document (which say whether the app is
+affected, and why) to the `vex` branch, with a basis record Securomatic
 signs. Hourly, `.github/workflows/vex.yml` checks each new document
-(`.github/scripts/check-vex.sh`: autosec's signature, with the key in
-`.github/autosec-keys/`, and that this repo built the image from the
+(`.github/scripts/check-vex.sh`: Securomatic's signature, with the key in
+`.github/securomatic-keys/`, and that this repo built the image from the
 commit the record names) and attests it to the image. To get an image's
 VEX and give it to grype:
 
@@ -105,7 +105,7 @@ grype ghcr.io/dave-finlay/gift-exchange@<digest> --vex vex.json
 | `src/giftexchange/exchanges/` | Circles, people, rules, exchanges and participants (`models.py`); the organizer pages (`views.py`, `forms.py`); turning rules into a draw and saving it (`draws.py`); test mode (`checks.py`); encrypting assignments (`secrecy.py`) |
 | `src/giftexchange/audit/` | A log of security-relevant actions |
 | `Dockerfile`, `Dockerfile.alpine`, `deploy/` | The container images (Debian and Alpine), and the files for running it on a server: Compose, Caddy, a site check and the secrets script |
-| `.github/workflows/vex.yml`, `.github/scripts/`, `.github/autosec-keys/` | Checking autosec's VEX documents and attesting them to the images |
+| `.github/workflows/vex.yml`, `.github/scripts/`, `.github/securomatic-keys/` | Checking Securomatic's VEX documents and attesting them to the images |
 | `tests/` | Tests, including property-based tests with Hypothesis |
 | `docs/DESIGN.md` | Architecture, data model and screens |
 | `docs/SELF-HOSTING.md` | Running your own site |

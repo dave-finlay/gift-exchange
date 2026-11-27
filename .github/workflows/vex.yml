@@ -1,15 +1,15 @@
 name: VEX
 
-# autosec (https://github.com/dave-finlay/autosec-public) assesses the
-# vulnerabilities scanners report in the images, and pushes each
-# release's OpenVEX document, with its basis record signed by autosec, to
-# the vex branch (releases/<version>/). This checks each new document
-# (.github/scripts/check-vex.sh: autosec signed it, and this repo built
+# Securomatic (https://securomatic.dev) assesses the vulnerabilities
+# scanners report in the images, and pushes each release's OpenVEX
+# document, with its basis record signed by Securomatic, to the vex
+# branch (releases/<version>/). This checks each new document
+# (.github/scripts/check-vex.sh: Securomatic signed it, and this repo built
 # the image it's about from the commit it names) and attests it to the
 # image with this repo's identity, so scanners can be given it.
 #
 # It runs on a schedule, not on pushes to the vex branch: a push runs the
-# workflow as the pushed branch has it, and autosec can write to that
+# workflow as the pushed branch has it, and Securomatic can write to that
 # branch. Scheduled and manual runs use main's. To verify a VEX
 # attestation, check that it's this workflow's, on main:
 #

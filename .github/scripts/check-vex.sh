@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Checks one release's VEX document from autosec before it's attested to
+# Checks one release's VEX document from Securomatic before it's attested to
 # the image (.github/workflows/vex.yml), and prints the image's digest:
 #
 #   .github/scripts/check-vex.sh <the release's folder on the vex branch>
 #
 # It checks that:
-# - autosec signed the release's basis record, with one of the keys in
-#   .github/autosec-keys/ (read from main: autosec can write to the vex
+# - Securomatic signed the release's basis record, with one of the keys in
+#   .github/securomatic-keys/ (read from main: Securomatic can write to the vex
 #   branch, so a key there proves nothing);
 # - the record is the basis of this VEX document, and names an image of
 #   this repo's;
@@ -17,13 +17,13 @@
 #   so.
 #
 # The files are only read: nothing from the vex branch is run. See
-# https://github.com/dave-finlay/autosec-public/blob/main/basis/v1.md
+# https://securomatic.dev/basis/v1
 set -euo pipefail
 
 dir=$1
 repo=${GITHUB_REPOSITORY:-dave-finlay/gift-exchange}
 image=ghcr.io/$repo
-keys=${AUTOSEC_KEYS:-.github/autosec-keys}
+keys=${SECUROMATIC_KEYS:-.github/securomatic-keys}
 bundle=$dir/basis.sigstore.json
 vex=$dir/vex.openvex.json
 work=$(mktemp -d)
@@ -57,8 +57,13 @@ for sig in $(jq -r '.dsseEnvelope.signatures[].sig' "$bundle"); do
 done
 [ -n "$signer" ] || fail "the basis record isn't signed by any key in $keys"
 
-[ "$(jq -r .predicateType "$payload")" = https://github.com/dave-finlay/autosec-public/blob/main/basis/v1.md ] ||
-  fail "it isn't a basis record"
+# Records made before Securomatic was renamed (until November 2026) have
+# autosec's predicate type; take it until both releases' are re-signed.
+case $(jq -r .predicateType "$payload") in
+  https://securomatic.dev/basis/v1) ;;
+  https://github.com/dave-finlay/autosec-public/blob/main/basis/v1.md) ;;
+  *) fail "it isn't a basis record" ;;
+esac
 subject=$(jq -r '.subject[] | select(.name == "vex.openvex.json") | .digest.sha256' "$payload")
 [ "$subject" = "$(sha256 "$vex")" ] || fail "the VEX document isn't its basis record's subject"
 named=$(jq -r .predicate.image.repo "$payload")
