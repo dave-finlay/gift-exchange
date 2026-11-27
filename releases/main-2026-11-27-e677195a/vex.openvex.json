@@ -1,0 +1,2200 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "urn:securomatic:vex:gift-exchange:main-2026-11-27-e677195a",
+  "author": "Dave Finlay",
+  "role": "Document Creator",
+  "timestamp": "2026-11-27T21:14:07Z",
+  "version": 1,
+  "tooling": "securomatic",
+  "statements": [
+    {
+      "vulnerability": {
+        "name": "CVE-2005-2541"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/tar@1.35%2Bdfsg-3.1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs tar or handles tar archives.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2007-5686"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/login.defs@1%3A4.17.4-2?arch=all&distro=debian-13.7&upstream=shadow"
+            },
+            {
+              "@id": "pkg:deb/debian/passwd@1%3A4.17.4-2?arch=arm64&distro=debian-13.7&upstream=shadow"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs shadow's tools or keeps login records.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2010-4756"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange never calls the C library's glob function: Python's glob module is its own code, and nothing the product runs imports glob.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2011-3374"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/apt@3.0.4?arch=arm64&distro=debian-13.7"
+            },
+            {
+              "@id": "pkg:deb/debian/libapt-pkg7.0@3.0.4?arch=arm64&distro=debian-13.7&upstream=apt"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange never runs apt, and apt-key, where the flaw is, isn't in the image.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2011-4116"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/perl-base@5.40.1-6%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=perl"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs Perl.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2013-4392"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsystemd0@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            },
+            {
+              "@id": "pkg:deb/debian/libudev1@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange doesn't use systemd: nothing in the product runs the programs that use systemd's libraries, and systemd's services aren't in the image. Exploiting it needs a local user in the container, which is outside the product's operation; the app also runs as an unprivileged user with no login shell, and the container's no-new-privileges setting stops setuid programs from raising privileges.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2017-18018"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/coreutils@9.7-3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs chown or chgrp. Exploiting this needs a local user running them in the container, which is outside the product's operation; the app also runs as an unprivileged user with no login shell, and the container's no-new-privileges setting stops setuid programs from raising privileges.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2018-20796"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange never uses the C library's regular expressions: Python's re module is its own engine, and nothing the product runs imports regcomp or regexec.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-1010022"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "This is a way round the stack protector, not a vulnerability on its own. It only helps an attacker who already has another, worse bug in the program, one that lets them write large amounts of data to its memory; that bug would be the vulnerability. glibc's developers don't treat this as a security issue.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-1010023"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw only matters when someone runs ldd on untrusted programs, which ldd's own documentation warns against, and no part of gift-exchange runs ldd.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-1010024"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "This is a way round address space layout randomisation (ASLR), not a vulnerability on its own. It only helps an attacker who already has another, worse bug in the program, one that lets them write large amounts of data to its memory; that bug would be the vulnerability. glibc's developers don't treat this as a security issue.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-1010025"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "This is a way round address space layout randomisation (ASLR), not a vulnerability on its own. It only helps an attacker who already has another, worse bug in the program, one that lets them write large amounts of data to its memory; that bug would be the vulnerability. glibc's developers don't treat this as a security issue.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-9192"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange never uses the C library's regular expressions: Python's re module is its own engine, and nothing the product runs imports regcomp or regexec.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2021-45346"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "Exploiting this needs a corrupted database file, and the only database gift-exchange opens is its own, on a volume only the app writes. Whoever could replace that file already controls all the app's data.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2022-0563"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/bsdutils@1%3A2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/libblkid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/liblastlog2-2@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libmount1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libsmartcols1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libuuid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/login@1%3A4.16.0-2%2Breally2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/mount@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/util-linux@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs chfn or chsh. Exploiting this needs a local user running them in the container, which is outside the product's operation; the app also runs as an unprivileged user with no login shell, and the container's no-new-privileges setting stops setuid programs from raising privileges.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-31437"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsystemd0@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            },
+            {
+              "@id": "pkg:deb/debian/libudev1@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange doesn't use systemd: nothing in the product runs the programs that use systemd's libraries, and there's no systemd journal (journalctl isn't in the image).",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-31438"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsystemd0@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            },
+            {
+              "@id": "pkg:deb/debian/libudev1@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange doesn't use systemd: nothing in the product runs the programs that use systemd's libraries, and there's no systemd journal (journalctl isn't in the image).",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-31439"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsystemd0@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            },
+            {
+              "@id": "pkg:deb/debian/libudev1@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange doesn't use systemd: nothing in the product runs the programs that use systemd's libraries, and there's no systemd journal (journalctl isn't in the image).",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-56433"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/login.defs@1%3A4.17.4-2?arch=all&distro=debian-13.7&upstream=shadow"
+            },
+            {
+              "@id": "pkg:deb/debian/passwd@1%3A4.17.4-2?arch=arm64&distro=debian-13.7&upstream=shadow"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange doesn't use subordinate user IDs or user namespaces, and no part of it runs shadow's tools.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-15367"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/python@3.13.18"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange doesn't use POP3: nothing in the app, its dependencies or the standard library in the image imports poplib, so commands can't be injected through it.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-5278"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/coreutils@9.7-3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs coreutils' programs. Exploiting it needs a local user in the container, which is outside the product's operation; the app also runs as an unprivileged user with no login shell, and the container's no-new-privileges setting stops setuid programs from raising privileges.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-6141"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libncursesw6@6.5%2B20250216-2?arch=arm64&distro=debian-13.7&upstream=ncurses"
+            },
+            {
+              "@id": "pkg:deb/debian/libtinfo6@6.5%2B20250216-2?arch=arm64&distro=debian-13.7&upstream=ncurses"
+            },
+            {
+              "@id": "pkg:deb/debian/ncurses-base@6.5%2B20250216-2?arch=all&distro=debian-13.7&upstream=ncurses"
+            },
+            {
+              "@id": "pkg:deb/debian/ncurses-bin@6.5%2B20250216-2?arch=arm64&distro=debian-13.7&upstream=ncurses"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange never parses terminal descriptions: its processes don't load ncurses's terminal library, which only CPython's interactive tools use, and nothing in the product runs the ncurses programs that compile or translate termcap entries.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-69720"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libncursesw6@6.5%2B20250216-2?arch=arm64&distro=debian-13.7&upstream=ncurses"
+            },
+            {
+              "@id": "pkg:deb/debian/libtinfo6@6.5%2B20250216-2?arch=arm64&distro=debian-13.7&upstream=ncurses"
+            },
+            {
+              "@id": "pkg:deb/debian/ncurses-base@6.5%2B20250216-2?arch=all&distro=debian-13.7&upstream=ncurses"
+            },
+            {
+              "@id": "pkg:deb/debian/ncurses-bin@6.5%2B20250216-2?arch=arm64&distro=debian-13.7&upstream=ncurses"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in the infocmp program, which no part of gift-exchange runs; the ncurses libraries the product loads don't contain it.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-70873"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "The flaw is in SQLite's zipfile extension. Debian's libsqlite3, which gift-exchange uses, doesn't include it, and gift-exchange never loads SQLite extensions.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-100290"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange never uses the C library's regular expressions: Python's re module is its own engine, and nothing the product runs imports regcomp or regexec.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-102010"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/gcc-14-base@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libgcc-s1@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libstdc%2B%2B6@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange has no C++ code: nothing in the product loads the C++ standard library, where the flaw is.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-102473"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/dash@0.5.12-12?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange runs dash only for its start script, once when the container starts, with input only from the operator's configuration; the script does no pattern matching, so dash's vulnerable matcher never runs.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-102474"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/dash@0.5.12-12?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange runs dash only for its start script, once when the container starts, with input only from the operator's configuration; the script does no pattern matching, so dash's vulnerable matcher never runs.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-103995"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/python@3.13.18"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "The only HTTP responses gift-exchange parses come from the email provider's API, over TLS verified against certifi's bundle, and from its own server, in the health check. Only the provider could send a malformed Content-Length, and it can already send any response it likes, so lenient parsing gives it nothing new; TLS rules out an intermediary that frames responses differently.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-107493"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-107494"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-107496"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in OpenSSL's CMS encryption, which gift-exchange never uses: nothing in the product calls CMS, and OpenSSL's TLS doesn't use it.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-114690"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/gcc-14-base@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libgcc-s1@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libstdc%2B%2B6@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange has no C++ code: nothing in the product loads the C++ standard library, where the flaw is.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-114691"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/gcc-14-base@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libgcc-s1@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libstdc%2B%2B6@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange has no C++ code: nothing in the product loads the C++ standard library, where the flaw is.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-115455"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/gcc-14-base@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libgcc-s1@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libstdc%2B%2B6@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange has no C++ code: nothing in the product loads the C++ standard library, where the flaw is.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-115456"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/gcc-14-base@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libgcc-s1@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libstdc%2B%2B6@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in std::from_chars() in libstdc++, the C++ standard library. Nothing gift-exchange runs is C++ or loads libstdc++: in the image only apt and its libraries do, and nothing in the product runs apt.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-115559"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/python@3.13.18"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-115791"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/python@3.13.18"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-115819"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in the C library's wide scanf functions (swscanf and the like), which nothing gift-exchange runs calls; no program in the image calls them at all.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-116566"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/python@3.13.18"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "gift-exchange passes socket.getaddrinfo() only its email provider's API host and port, which come from Anymail or the operator's secret files. Nothing a user sends becomes a host name or port.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119371"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange never runs SQL that anyone outside it writes, so no one can send SQLite the chain of thousands of common table expressions this needs, in a query or in a view in a database the app opens.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119372"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange has no full-text tables and never runs SQL that anyone outside it writes, so SQLite's FTS3 snippet() code, where the flaw is, never runs.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119373"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange has no full-text tables and never runs SQL that anyone outside it writes, so SQLite's FTS5 code, where the flaw is, never runs.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119374"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "Exploiting this needs a database file with a corrupted full-text index, and the only database gift-exchange opens is its own, on a volume only the app writes, with no full-text tables. Whoever could replace that file already controls all the app's data.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119375"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "Exploiting this needs a crafted database and WAL file, and the only database gift-exchange opens is its own, on a volume only the app writes. Whoever could replace those files already controls all the app's data.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119376"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange never runs SQL that anyone outside it writes, so no one can send SQLite the roughly 175,000 chained COLLATE operators this needs, in a query or in a view in a database the app opens.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119377"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange sets no SQLite authorizer, so there are no read restrictions to bypass, and it never runs SQL that anyone outside it writes.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119378"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
+      "impact_statement": "Exploiting this needs an R-Tree table with a tampered shadow table, which only a crafted database or SQL of the attacker's choosing can create. The only database gift-exchange opens is its own, on a volume only the app writes, with no R-Tree tables, and it never runs SQL that anyone outside it writes.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119379"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange never uses SQLite's session extension, where the flaw is: nothing it runs applies changesets.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-119591"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange never runs SQL that anyone outside it writes, so no one can send SQLite the count(*) over a huge multi-row VALUES clause this needs, in a query or in a view in a database the app opens.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-121481"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-121482"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-121757"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-121758"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-124024"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-124249"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/python@3.13.18"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-124709"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-124851"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libzstd1@1.5.7%2Bdfsg-1?arch=arm64&distro=debian-13.7&upstream=libzstd"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-125709"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/gcc-14-base@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libgcc-s1@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libstdc%2B%2B6@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in libstdc++'s file streams (std::basic_filebuf), part of the C++ standard library. Nothing gift-exchange runs is C++ or loads libstdc++: in the image only apt and its libraries do, and nothing in the product runs apt.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-126765"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-135901"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/login.defs@1%3A4.17.4-2?arch=all&distro=debian-13.7&upstream=shadow"
+            },
+            {
+              "@id": "pkg:deb/debian/passwd@1%3A4.17.4-2?arch=arm64&distro=debian-13.7&upstream=shadow"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-15059"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsystemd0@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            },
+            {
+              "@id": "pkg:deb/debian/libudev1@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange doesn't use systemd: nothing in the product runs the programs that use systemd's libraries, and systemd's services aren't in the image. Exploiting it needs a local user in the container, which is outside the product's operation; the app also runs as an unprivileged user with no login shell, and the container's no-new-privileges setting stops setuid programs from raising privileges.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-15534"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/perl-base@5.40.1-6%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=perl"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs Perl.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-16052"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/python@3.13.18"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-16742"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsystemd0@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            },
+            {
+              "@id": "pkg:deb/debian/libudev1@257.13-1~deb13u1?arch=arm64&distro=debian-13.7&upstream=systemd"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange doesn't use systemd: nothing in the product runs the programs that use systemd's libraries, and systemd's services aren't in the image. Exploiting it needs a local user in the container, which is outside the product's operation; the app also runs as an unprivileged user with no login shell, and the container's no-new-privileges setting stops setuid programs from raising privileges.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-18477"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/tar@1.35%2Bdfsg-3.1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs tar or handles tar archives.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-18508"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/tar@1.35%2Bdfsg-3.1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs tar or handles tar archives.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-19552"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:generic/python@3.13.18"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-3184"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/bsdutils@1%3A2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/libblkid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/liblastlog2-2@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libmount1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libsmartcols1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libuuid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/login@1%3A4.16.0-2%2Breally2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/mount@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/util-linux@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs login or uses the code the flaw is in.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-35190"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-40558"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/perl-base@5.40.1-6%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=perl"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-42250"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libbz2-1.0@1.0.8-6?arch=arm64&distro=debian-13.7&upstream=bzip2"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "The flaw is in the bzip2recover program, which isn't in gift-exchange's image; the bzip2 library it does have doesn't contain it.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-50812"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange never uses SQLite's session extension, where the flaw is: nothing it runs applies changesets.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-50813"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.46.1-7%2Bdeb13u2?arch=arm64&distro=debian-13.7&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange never uses SQLite's session extension, where the flaw is: nothing it runs concatenates or merges changesets.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-53910"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/diffutils@1%3A3.10-4?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs diff, cmp or the other diffutils programs.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-54369"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libacl1@2.3.2-2%2Bb1?arch=arm64&distro=debian-13.7&upstream=acl%402.3.2-2"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange doesn't use access control lists: nothing in the product loads libacl, and the acl tools aren't in the image. Exploiting it needs a local user in the container, which is outside the product's operation; the app also runs as an unprivileged user with no login shell, and the container's no-new-privileges setting stops setuid programs from raising privileges.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-54370"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libacl1@2.3.2-2%2Bb1?arch=arm64&distro=debian-13.7&upstream=acl%402.3.2-2"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange doesn't use access control lists: nothing in the product loads libacl, and the acl tools aren't in the image. Exploiting it needs a local user in the container, which is outside the product's operation; the app also runs as an unprivileged user with no login shell, and the container's no-new-privileges setting stops setuid programs from raising privileges.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-54371"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libattr1@1%3A2.5.2-3?arch=arm64&distro=debian-13.7&upstream=attr"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange doesn't use extended attributes: nothing in the product loads libattr, and getfattr and setfattr aren't in the image. Exploiting it needs a local user in the container, which is outside the product's operation; the app also runs as an unprivileged user with no login shell, and the container's no-new-privileges setting stops setuid programs from raising privileges.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-54411"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libpam-modules-bin@1.7.0-5?arch=arm64&distro=debian-13.7&upstream=pam"
+            },
+            {
+              "@id": "pkg:deb/debian/libpam-modules@1.7.0-5?arch=arm64&distro=debian-13.7&upstream=pam"
+            },
+            {
+              "@id": "pkg:deb/debian/libpam-runtime@1.7.0-5?arch=all&distro=debian-13.7&upstream=pam"
+            },
+            {
+              "@id": "pkg:deb/debian/libpam0g@1.7.0-5?arch=arm64&distro=debian-13.7&upstream=pam"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange doesn't use PAM: no one logs in to the container, and nothing in the product authenticates through it.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-56391"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/coreutils@9.7-3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs coreutils' programs.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-56392"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/coreutils@9.7-3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs coreutils' programs.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-5704"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/tar@1.35%2Bdfsg-3.1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs tar or handles tar archives.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-76642"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/bsdutils@1%3A2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/libblkid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/liblastlog2-2@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libmount1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libsmartcols1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libuuid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/login@1%3A4.16.0-2%2Breally2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/mount@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/util-linux@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs mount or uses the code the flaw is in. Exploiting it needs a local user in the container, which is outside the product's operation; the app also runs as an unprivileged user with no login shell, and the container's no-new-privileges setting stops setuid programs from raising privileges.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-78408"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/bsdutils@1%3A2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/libblkid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/liblastlog2-2@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libmount1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libsmartcols1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libuuid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/login@1%3A4.16.0-2%2Breally2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/mount@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/util-linux@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs nsenter or uses the code the flaw is in. Exploiting it needs a local user in the container, which is outside the product's operation; the app also runs as an unprivileged user with no login shell, and the container's no-new-privileges setting stops setuid programs from raising privileges.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-78409"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/bsdutils@1%3A2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/libblkid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/liblastlog2-2@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libmount1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libsmartcols1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libuuid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/login@1%3A4.16.0-2%2Breally2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/mount@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/util-linux@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs mount or uses the code the flaw is in. Exploiting it needs a local user in the container, which is outside the product's operation; the app also runs as an unprivileged user with no login shell, and the container's no-new-privileges setting stops setuid programs from raising privileges.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-78410"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/bsdutils@1%3A2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/libblkid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/liblastlog2-2@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libmount1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libsmartcols1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/libuuid1@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/login@1%3A4.16.0-2%2Breally2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux%402.41.5-0%2Bdeb13u1"
+            },
+            {
+              "@id": "pkg:deb/debian/mount@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=util-linux"
+            },
+            {
+              "@id": "pkg:deb/debian/util-linux@2.41.5-0%2Bdeb13u1?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs mount or uses the code the flaw is in. Exploiting it needs a local user in the container, which is outside the product's operation; the app also runs as an unprivileged user with no login shell, and the container's no-new-privileges setting stops setuid programs from raising privileges.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-82560"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/perl-base@5.40.1-6%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=perl"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs Perl.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-84243"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc-bin@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            },
+            {
+              "@id": "pkg:deb/debian/libc6@2.41-12%2Bdeb13u5?arch=arm64&distro=debian-13.7&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in how glibc's gettext reads the LANGUAGE variable, which it does only when a process's messages locale (LC_MESSAGES) is something other than C. gift-exchange's processes never set their messages locale from the environment, so it stays C whatever LANG, LC_ALL or LANGUAGE say, and gettext never reads LANGUAGE. Setting those variables also needs control of the processes' environment, which only the operator has.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-84785"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-84786"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-88822"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in OpenSSL's QUIC client, and gift-exchange doesn't use QUIC: its only use of Debian's OpenSSL is TLS over TCP, through CPython's ssl module, to send email.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-88823"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in OpenSSL's AES-GCM-SIV cipher, which gift-exchange never uses: TLS has no AES-GCM-SIV cipher suite, nothing else in the product calls a cipher in Debian's OpenSSL, and the app's own encryption (Fernet) is AES-CBC with HMAC, in cryptography's bundled OpenSSL.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-91094"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/dpkg@1.22.22?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "The flaw is in dpkg-source, which unpacks Debian source packages, and dpkg-source isn't in gift-exchange's image: only the dpkg package is, which installs and queries binary packages.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-9538"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/perl-base@5.40.1-6%2Bdeb13u1?arch=arm64&distro=debian-13.7&upstream=perl"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "No part of gift-exchange runs Perl.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-95619"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/gcc-14-base@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libgcc-s1@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            },
+            {
+              "@id": "pkg:deb/debian/libstdc%2B%2B6@14.2.0-19?arch=arm64&distro=debian-13.7&upstream=gcc-14"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "gift-exchange has no C++ code: nothing in the product loads the C++ standard library, where the flaw is.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-95690"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "under_investigation",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-95691"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in OpenSSL's QUIC client, and gift-exchange doesn't use QUIC: its only use of Debian's OpenSSL is TLS over TCP, through CPython's ssl module, to send email.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-95692"
+      },
+      "products": [
+        {
+          "@id": "pkg:oci/gift-exchange@sha256%3Ae677195a2d09f12bb8566372b7285025bbef85dd2cc0e02592b631e810757028?repository_url=ghcr.io/dave-finlay/gift-exchange",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl-provider-legacy@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7&upstream=openssl"
+            },
+            {
+              "@id": "pkg:deb/debian/openssl@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The flaw is in OpenSSL's AES-GCM-SIV cipher, which gift-exchange never uses: TLS has no AES-GCM-SIV cipher suite, nothing else in the product calls a cipher in Debian's OpenSSL, and the app's own encryption (Fernet) is AES-CBC with HMAC, in cryptography's bundled OpenSSL.",
+      "timestamp": "2026-11-27T21:14:07Z"
+    }
+  ]
+}
